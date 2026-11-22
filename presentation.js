@@ -47,24 +47,47 @@
   document.addEventListener('fullscreenchange',()=>{
     $('presentationFull').textContent=document.fullscreenElement?'Exit fullscreen':'Fullscreen';
   });
-  $('presentationFile').addEventListener('click',()=>{
-    if(view==='graph'){$('graphImport').click();return}
+  let requestedFileKind=null;
+  function chooseFile(kind){
+    if(kind==='graph'){$('graphImport').click();return}
+    requestedFileKind=kind;
     chooser.value='';
-    chooser.accept=view==='users'?'.csv,text/csv':'.json,application/json';
+    chooser.accept=kind==='users'?'.csv,text/csv':'.json,application/json';
     chooser.click();
-  });
-  chooser.addEventListener('change',async()=>{
-    const file=chooser.files&&chooser.files[0],chosenView=view;
+  }
+  async function readLocalFile(file,kind){
     if(!file)return;
-    if(file.size>15*1024*1024){alert('File too large (15 MB limit)');return}
-    if(chosenView==='users'&&!/\.csv$/i.test(file.name)||chosenView==='papers'&&!/\.json$/i.test(file.name)){
-      alert('Please choose the expected '+(chosenView==='users'?'CSV':'JSON')+' file');return;
+    if(file.size>15*1024*1024){alert('Choose a file smaller than 15 MB');return}
+    if(kind==='users'&&!/\.csv$/i.test(file.name) ||
+       kind==='papers'&&!/\.json$/i.test(file.name)){
+      alert('Please choose a '+(kind==='users'?'CSV':'JSON')+' file');return;
     }
     try{
       const contents=await file.text();
-      window.dispatchEvent(new CustomEvent(chosenView==='users'?'dashboard:load-users':'dashboard:load-papers',
+      window.dispatchEvent(new CustomEvent(kind==='users'?'dashboard:load-users':'dashboard:load-papers',
         {detail:{text:contents,name:file.name}}));
     }catch(err){alert('Cannot read file: '+err.message)}
+  }
+  $('presentationFile').addEventListener('click',()=>chooseFile(view));
+  chooser.addEventListener('change',()=>readLocalFile(chooser.files?.[0],requestedFileKind||view));
+  window.addEventListener('dashboard:choose-publications',()=>{
+    view='papers';refresh();chooseFile('papers');
+  });
+  $('paperChooseLocal').addEventListener('click',()=>window.dispatchEvent(new Event('dashboard:choose-publications')));
+  const paperDrop=$('paperDropZone');
+  for(const eventType of ['dragenter','dragover']){
+    paperDrop.addEventListener(eventType,event=>{
+      event.preventDefault();paperDrop.classList.add('drag-over');
+    });
+  }
+  for(const eventType of ['dragleave','drop']){
+    paperDrop.addEventListener(eventType,event=>{
+      event.preventDefault();paperDrop.classList.remove('drag-over');
+    });
+  }
+  paperDrop.addEventListener('drop',event=>{
+    view='papers';refresh();
+    readLocalFile(event.dataTransfer?.files?.[0],'papers');
   });
   window.addEventListener('dashboard:local-data-loaded',event=>{
     localFiles[event.detail.kind||view]=event.detail.name;
