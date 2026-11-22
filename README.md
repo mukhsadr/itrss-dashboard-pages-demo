@@ -1,34 +1,53 @@
-# ITRSS Research Metrics Dashboard · v5
+# ITRSS Research Metrics Dashboard · v6
 
-**Live site:** https://mukhsadr.github.io/itrss-dashboard-pages-demo/  
-**Source:** https://github.com/mukhsadr/itrss-dashboard-pages-demo
+**Live website:** https://mukhsadr.github.io/itrss-dashboard-pages-demo/  
+**Public repository:** https://github.com/mukhsadr/itrss-dashboard-pages-demo
 
-## Three views, two modes
+## Published metrics (automatically loaded on any device)
 
-The dashboard opens in **Present** mode, optimized for a centered visualization with minimal surrounding text. Select **Edit** to show filters, data import controls, chart labels and additional details. Switch between:
+### Mill users
 
-1. **Mill users:** Four interactive linked rings with real source totals from the 1,607-user report. Clicking a slice filters and updates the remaining rings; clicking the same slice again clears the filter.
-2. **Publications:** Three interactive linked rings for year, cluster and publication type. **The original publication JSON is not yet included in this repository.** The panel clearly shows pending data rather than inventing values. To use the original chart now, choose **Publications → Open publications.json** (or drag your JSON file onto the panel), and select `~/Projects/itrss-metrics-dashboard/data/publications.json` from your computer. The file stays in this browser tab and is not uploaded to GitHub or a server. **Choose another JSON** in Edit mode replaces the data without resetting the website. Present/Edit and tab switching preserve your selected file until the page is reloaded.
-3. **Graph:** Automatically displays a relationship graph created from the published, privacy-grouped Mill user metrics (department → classification → status). In Edit mode, change **Graph source** to **Research coauthor network** and choose **Open research CSV files**. Select both `enriched_works.csv` and `authors.csv` from your local `mill_graph_pipeline/output/` folder. The site constructs author connections from actual shared publications in-browser. There is no server-side Streamlit runtime on GitHub Pages. The original Python Streamlit source remains local.
+- Real source report total: **1,607 Mill user records**, represented by **48 grouped cohorts** with a `Count` weight
+- Four interlinked SVG rings (department, classification, status, advisor-recorded category)
+- No direct user IDs or individual advisor names in the public dataset; smaller groups combined for privacy
+- These transformations reduce exposure but are not a guarantee of anonymity. Institutional data-release approval remains important.
 
-## Data sources and disclosure limits
+### Publications
 
-The public `data/callie.csv` contains **48 grouped records with a Count column that totals 1,607 original report records**. It excludes user IDs and named advisors, groups small cells and broadens some classification/department labels. It is **not** the same as publishing the 1,607-row local dataset. Category counts are weighted by Count. An aggregate dataset can still carry reidentification risk; public release should be reviewed by the institutional data owner.
+- **247 source entries** from `Foundry_Mill_acknowledgments.xlsx` via the locally supplied `publications.json`
+- **17 entries explicitly flagged as duplicates**, excluded by default → **230 included entries**
+- Three interlinked rings: cluster acknowledged, publication year, and publication type
+- Public GitHub dataset: `data/publications.json` (automatically fetched by the website)
+- Published fields: Year, Cluster acknowledged, Type, Title, Authors, Venue, DOI, DOI / record link, Counted as duplicate
+- Intentionally omitted from the public dataset: internal `#`, `Date`, `MS&T author (OpenAlex)`, `Evidence sources`, and `Note` fields
+- All 247 published record links point to public DOI, Scholars' Mine, or NASA ADS pages. Metadata is taken from the supplied source; it is not independently audited against every publisher.
+- An acknowledgment is not proof of direct cluster usage, and a duplicate flag reflects the supplied workbook's annotation.
 
-The `data/publications.json` file is currently an intentionally empty schema placeholder. It does **not** mean zero publications. The original workbook and its author/title/DOI metadata have not been provided for this update. Neither the original publication record rows nor the research network datasets were invented or copied from the uploaded Python script.
+### Relationship graph
 
-The research graph methodology is adapted from the supplied `research_canvas.py`: authorship edges are based on shared publication identifiers in `authors.csv` and `enriched_works.csv`. The optional browser coauthor view does **not** claim grant funding; award references in research metadata are unverified candidates.
+- Interactive graph from the published grouped Mill cohort data
+- Optional original OpenAlex coauthor network: open `enriched_works.csv` and `authors.csv` locally in the browser
+- No grant funding relationship is inferred from metadata
 
-## Run a local preview
+## Presentation and editing
+
+- **Present:** clean, centered rings or graph, click-to-filter, fullscreen
+- **Edit:** change ring attributes, sorting, inspect publication entries, show legends, import local files
+- Switching tabs or modes preserves the currently loaded data and active filters until refresh
+- Selecting `Open local CSV / JSON` temporarily replaces the public dataset **only inside your browser session**; it does not publish those files
+
+## Deployment
+
+Static website (HTML/CSS/JS), deployed to GitHub Pages via `.github/workflows/deploy-pages.yml` on changes to `main`.
+
+Local preview:
 
 ```bash
 python3 -m http.server 8766
 ```
 
-Deploys automatically via `.github/workflows/deploy-pages.yml` on every push to `main`.
+Open http://localhost:8766 . If an older version is cached, use **Ctrl+Shift+R** and the live site `?v=6` URL.
 
-If the previous version is cached in your browser, refresh with **Ctrl+Shift+R** or add `?v=5` to the site address.
+## Data release boundary
 
-## Publication import smoke test
-
-The v5 publication import was checked with a non-user example containing four records and one flagged duplicate: default base count was 3, all three ring SVGs rendered, and clicking a ring segment reduced the displayed records from 3 to 2. This verifies the client-side loading/filter logic, not the user's unpublished workbook.
+This repository is **public**: everything committed here, including `data/publications.json` and `data/callie.csv`, can be downloaded by anyone. The original full institutional user report, internal publication evidence notes, and the Python research graph exports have **not** been committed here. Do not publish restricted or nonpublic institutional files without appropriate authorization.
