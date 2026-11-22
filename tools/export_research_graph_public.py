@@ -7,7 +7,10 @@ Do not publish until the institutional data owner approves the contents.
 import argparse
 import csv
 import json
+from collections import Counter, defaultdict
+from itertools import combinations
 from pathlib import Path
+import networkx as nx
 from urllib.parse import urlparse
 
 WORK_FIELDS = ("record_id", "title", "year", "cluster", "doi", "venue", "source_url", "citation_count")
@@ -69,6 +72,31 @@ def main():
         seen_pairs.add(pair)
         authors.append({key: (row.get(key) or "").strip() for key in AUTHOR_FIELDS})
 
+    # Same coauthorship graph and weighted greedy-modularity community method
+    # as research_canvas.py; results are exported so the static site can
+    # reuse them without running NetworkX in the browser.
+    author_to_papers = defaultdict(set)
+    paper_to_authors = defaultdict(set)
+    for row in authors:
+        aid, pid = row["author_id"], row["record_id"]
+        author_to_papers[aid].add(pid)
+        paper_to_authors[pid].add(aid)
+    collabs = Counter()
+    for members in paper_to_authors.values():
+        for pair in combinations(sorted(members), 2):
+            collabs[pair] += 1
+    ga = nx.Graph()
+    ga.add_nodes_from(author_to_papers)
+    for (a, b), weight in collabs.items():
+        ga.add_edge(a, b, weight=weight)
+    communities = {}
+    if ga.number_of_edges():
+        for index, group in enumerate(
+            nx.algorithms.community.greedy_modularity_communities(ga, weight="weight")
+        ):
+            for author_id in group:
+                communities[author_id] = index
+
     works.sort(key=lambda x: (x["year"], x["title"], x["record_id"]))
     authors.sort(key=lambda x: (x["record_id"], x["author_name"], x["author_id"]))
     payload = {
@@ -77,11 +105,14 @@ def main():
         "grant_mentions_are_unverified": True,
         "works": works,
         "authors": authors,
+        "communities": communities,
+        "community_algorithm": "networkx.greedy_modularity_communities (weighted)",
     }
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(f"Review file created: {args.out}")
     print(f"Works with public links: {len(works)} | Linked author entries: {len(authors)}")
+    print(f"Detected research communities: {len(set(communities.values()))} | Coauthor links: {len(collabs)}")
     print("No upload was performed. Review the JSON and obtain required approval before public release.")
 
 if __name__ == "__main__":
