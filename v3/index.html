@@ -1,194 +1,85 @@
 <!doctype html>
-<html lang="en">
-<head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
-<meta name="theme-color" content="#0b1423">
-<title>ITRSS | Research Impact Dashboard V3</title>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0b1423"><title>ITRSS · Research Metrics</title>
 <style>
-:root{color-scheme:dark;--bg:#0b1423;--surface:#122136;--surface2:#1a2c43;--line:#30435c;--text:#eef5ff;--muted:#a9bdd3;--accent:#76baff}
-*{box-sizing:border-box}
-html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font:14px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif}
-button,select{font:inherit}button{cursor:pointer}
-button:focus-visible,select:focus-visible{outline:2px solid #8dd1ff;outline-offset:2px}
-.app{max-width:1600px;margin:auto;min-height:100dvh;display:flex;flex-direction:column;gap:12px;padding:clamp(10px,1.4vw,22px)}
-.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
-.brand{font-size:18px;font-weight:800;letter-spacing:.02em}.brand b{color:#71c6ed}.version{font-size:11px;color:var(--muted);font-weight:600;margin-left:9px}
-.toplinks{display:flex;gap:7px;align-items:center}.toplinks a,.toplinks button{padding:7px 11px;text-decoration:none;color:#dcecff;background:#1a2c43;border:1px solid #3e5470;border-radius:8px;font-size:12px}
-.tabs{display:flex;gap:7px;flex-wrap:wrap}
-.tab{border:1px solid #415570;background:#192b42;color:#d6e5f8;padding:9px 15px;border-radius:9px;font-size:13px;font-weight:600}
-.tab[aria-selected=true]{background:#2d5d86;border-color:#7abcf5;color:white}
-.intro{display:flex;justify-content:space-between;align-items:center;gap:12px}
-h1{font-size:clamp(19px,2vw,28px);margin:0;letter-spacing:-.03em}
-.description{font-size:12px;color:var(--muted);margin:2px 0 0}
-.summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
-.metric{border:1px solid var(--line);border-radius:12px;background:linear-gradient(135deg,#17283e,#102035);text-align:left;color:inherit;padding:14px 16px;min-width:0}
-.metric:hover{border-color:#699bc5}
-.metric small{display:block;text-transform:uppercase;letter-spacing:.065em;color:#a7bed8;font-size:10px;font-weight:700}
-.metric strong{display:block;font-size:clamp(25px,3vw,38px);line-height:1.1;letter-spacing:-.03em;margin:6px 0;font-variant-numeric:tabular-nums}
-.metric span{color:#b0c6db;font-size:11px}
-.content{flex:1;min-height:420px;display:grid;grid-template-columns:minmax(0,1.75fr) minmax(285px,.82fr);gap:12px}
-.mainpanel,.sidebar{min-width:0;border:1px solid var(--line);border-radius:13px;background:#111e31;padding:15px}
-.mainpanel{display:flex;flex-direction:column;min-height:0}
-.panelhead{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:8px}
-.panelhead h2{font-size:16px;margin:0}
-.panelhead p{font-size:11px;color:var(--muted);margin:2px 0 0}
-.smallaction{background:#203650;border:1px solid #45617e;border-radius:8px;padding:7px 11px;font-size:12px;color:#eaf4ff}
-.visual{position:relative;flex:1;min-height:300px;display:flex;align-items:center;justify-content:center;overflow:hidden}
-.circle{width:min(100%,min(65vh,590px));aspect-ratio:1;position:relative}
-.circle svg{width:100%;height:100%;display:block}
-.center{position:absolute;inset:33%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;text-align:center;pointer-events:none}
-.center small{font-size:clamp(9px,1vw,12px);color:#a4b8d0;text-transform:uppercase;font-weight:700;letter-spacing:.05em}
-.center strong{font-size:clamp(24px,3.3vw,46px);letter-spacing:-.04em;font-variant-numeric:tabular-nums;line-height:1.08}
-.center span{font-size:clamp(9px,.9vw,12px);color:#abc3de;max-width:100%;overflow-wrap:anywhere}
-.slice{stroke:#111e31;stroke-width:1;cursor:pointer}
-.slice:hover{filter:brightness(1.2)}
-.panelnote{font-size:11px;color:#acc1d9;padding:7px 3px;min-height:24px}
-.sidebar{display:flex;flex-direction:column;min-height:0;gap:9px}
-.sidebarhead{display:flex;align-items:center;justify-content:space-between;gap:8px}
-.sidebarhead strong{font-size:15px}
-.controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
-.control{min-width:0;color:#b3c8e0;font-size:11px;display:flex;flex-direction:column;gap:4px}
-.control select{width:100%;background:#1d3049;border:1px solid #415c79;border-radius:8px;color:white;padding:9px 7px;min-width:0}
-.control[hidden]{display:none}
-.options{display:flex;gap:7px;flex-wrap:wrap}
-.options button{background:#1e324c;border:1px solid #3d5875;border-radius:8px;color:#e3efff;padding:7px 11px;font-size:11px}
-.legend{flex:1;overflow-y:auto;min-height:150px;max-height:calc(100dvh - 400px);scrollbar-color:#69849e transparent}
-.legendTitle{margin:10px 0 4px;padding-bottom:4px;border-bottom:1px solid #30425c;color:#adc7df;font-size:11px;font-weight:750;display:flex;justify-content:space-between}
-.legendRow{width:100%;border:0;background:transparent;color:#e1ecfa;display:flex;gap:8px;align-items:center;text-align:left;padding:5px 4px;border-radius:6px;font-size:11px}
-.legendRow:hover,.legendRow[aria-pressed=true]{background:#29435f}
-.swatch{width:9px;height:9px;flex:none;border-radius:2px}
-.legendRow .name{flex:1;min-width:0;overflow-wrap:anywhere}
-.legendRow .value{color:#afc2dc;font-variant-numeric:tabular-nums;white-space:nowrap}
-.hidden{display:none!important}
-.mapgrid{width:100%;height:100%;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-items:stretch;padding:8px}
-.maplane{border:1px solid #30445f;background:#16273e;border-radius:10px;overflow:auto;padding:12px}
-.maplane h3{font-size:12px;margin:0 0 4px}.maplane p{font-size:10px;color:var(--muted);margin:0 0 10px}
-.mapItem{display:flex;align-items:center;width:100%;gap:7px;text-align:left;color:#e8f3ff;background:none;border:0;border-radius:7px;padding:6px 4px;font-size:11px}
-.mapItem:hover,.mapItem[aria-pressed=true]{background:#294362}
-.mapDot{flex:none;border-radius:50%;background:#60b7f4;min-width:7px;min-height:7px}
-.mapItem span:nth-child(2){flex:1;overflow-wrap:anywhere}
-.mapItem b{font-variant-numeric:tabular-nums;font-size:11px;color:#b1cfe7}
-.mapcaption{font-size:11px;color:var(--muted);margin-top:6px}
-.overview{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:14px;align-content:center}
-.overviewCard{border:1px solid var(--line);background:#16283f;border-radius:10px;padding:18px;min-height:110px}
-.overviewCard strong{font-size:22px;display:block;margin:8px 0 2px}
-.overviewCard p{font-size:12px;color:var(--muted);margin:0}
-.footer{font-size:10px;color:#8da6c1;text-align:right}
-@media(max-width:850px){.content{grid-template-columns:minmax(0,1.2fr) minmax(260px,.9fr)}.app{gap:9px;padding:10px}.mainpanel,.sidebar{padding:11px}.metric{padding:11px}.circle{width:min(100%,55vh)}}
-@media(max-width:650px){.summary{grid-template-columns:repeat(2,minmax(0,1fr))}.content{grid-template-columns:1fr;grid-template-rows:auto auto}.mainpanel{min-height:340px}.visual{min-height:280px}.sidebar{min-height:300px}.legend{max-height:260px}.mapgrid{gap:5px;padding:3px}.maplane{padding:7px}.mapItem{font-size:10px}.panelhead h2{font-size:14px}.tab{font-size:12px;padding:8px 10px}.overview{gap:7px}.overviewCard{padding:10px;min-height:85px}}
-@media(min-width:850px) and (min-height:650px){.app{height:100dvh;min-height:650px}.content{min-height:0}.legend{max-height:none}}
-</style>
-</head>
-<body>
-<div class="app">
-<header class="top"><div class="brand">S&T <b>ITRSS</b><span class="version">RESEARCH METRICS · V3</span></div><div class="toplinks"><a href="../">V1</a><a href="../v2/">V2</a><button id="full" type="button">Full screen</button></div></header>
-<nav class="tabs" role="tablist" aria-label="Dashboard views"><button class="tab" data-view="overview" role="tab" aria-selected="true">Value snapshot</button><button class="tab" data-view="users" role="tab" aria-selected="false">Mill users</button><button class="tab" data-view="papers" role="tab" aria-selected="false">Publications</button><button class="tab" data-view="map" role="tab" aria-selected="false">Publication map</button></nav>
-<div class="intro"><div><h1 id="title">Research support at a glance</h1><p class="description" id="description">Verified counts from the published aggregate datasets</p></div></div>
-<section class="summary" id="summary">
-<button class="metric" type="button" data-card="users"><small>Mill user records</small><strong id="kUsers">—</strong><span>Accounts in source report</span></button>
-<button class="metric" type="button" data-card="users"><small>Active status</small><strong id="kActive">—</strong><span id="activePct">Share of source rows</span></button>
-<button class="metric" type="button" data-card="papers"><small>Publication records included</small><strong id="kPapers">—</strong><span>Cluster-linked records, not confirmed usage</span></button>
-<button class="metric" type="button" data-card="papers"><small>Duplicate-flagged records</small><strong id="kDuplicates">—</strong><span>Excluded from publication count</span></button>
+:root{color-scheme:dark;--bg:#0d1726;--surface:#15243a;--line:#2e425d;--text:#edf5ff;--muted:#a4bbd4;--blue:#65a8fa}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font:14px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif}
+button{font:inherit;cursor:pointer}button:focus-visible{outline:2px solid #a1d5ff;outline-offset:2px}
+.page{max-width:1220px;min-height:100dvh;margin:auto;padding:clamp(14px,2vw,28px);display:flex;flex-direction:column;gap:16px}
+header{display:flex;align-items:center;justify-content:space-between;gap:10px}.logo{font-weight:800;font-size:17px;letter-spacing:.02em}.logo span{color:#74c4e9}.headlink{font-size:12px;color:var(--muted);text-decoration:none;border:1px solid var(--line);border-radius:8px;padding:7px 12px}
+h1{font-size:clamp(21px,2.2vw,31px);letter-spacing:-.025em;margin:0}.subtitle{font-size:12px;color:var(--muted);margin:3px 0 0}
+.cards{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.card{background:var(--surface);border:1px solid var(--line);border-radius:12px;padding:14px;min-width:0}
+.card small{display:block;color:var(--muted);font-size:11px}.card strong{display:block;font-size:clamp(26px,3vw,37px);font-variant-numeric:tabular-nums;margin:3px 0}.card span{font-size:11px;color:#9eb4cc}
+.main{background:#111f33;border:1px solid var(--line);border-radius:16px;padding:18px;min-height:430px;flex:1;display:flex;flex-direction:column;gap:12px}
+.toolbar{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}.toolbar h2{font-size:17px;margin:0}
+.choices{display:flex;flex-wrap:wrap;gap:6px}
+.choice{border:1px solid #3a5270;background:#1c3048;color:#d3e3f5;border-radius:8px;padding:8px 12px;font-size:12px}
+.choice[aria-pressed=true]{background:#30628e;border-color:#86c2fa;color:white}
+.chartRow{flex:1;min-height:350px;display:grid;grid-template-columns:minmax(0,1.5fr) minmax(230px,.8fr);gap:14px}
+.chartHolder{display:flex;align-items:center;justify-content:center;min-width:0}
+.donut{position:relative;width:min(100%,min(65vh,550px));aspect-ratio:1}
+svg{width:100%;height:100%;display:block}.slice{cursor:pointer;stroke:#111f33;stroke-width:1}.slice:hover{filter:brightness(1.15)}
+.middle{position:absolute;inset:33%;display:flex;flex-direction:column;align-items:center;justify-content:center;pointer-events:none;text-align:center;overflow:hidden;gap:3px}
+.middle small{color:#a5bbd5;letter-spacing:.045em;font-size:clamp(9px,.8vw,11px);text-transform:uppercase;font-weight:700}
+.middle strong{font-size:clamp(22px,3.2vw,43px);line-height:1.08;letter-spacing:-.04em;font-variant-numeric:tabular-nums;white-space:nowrap}
+.middle span{color:#bed0e4;font-size:clamp(9px,.85vw,11px);max-width:100%;overflow-wrap:anywhere}
+.legendBox{border-left:1px solid var(--line);min-width:0;display:flex;flex-direction:column;padding:5px 0 5px 14px}
+.legendTitle{display:flex;justify-content:space-between;gap:10px;color:#bdcee0;font-weight:700;font-size:12px;margin:2px 0 9px}
+#legend{overflow-y:auto;max-height:min(53vh,480px);min-height:150px;scrollbar-color:#6b829e transparent}
+.entry{width:100%;text-align:left;border:0;background:transparent;color:#e5f0ff;display:flex;gap:9px;align-items:center;border-radius:7px;padding:6px 4px;font-size:12px}
+.entry:hover,.entry[aria-pressed=true]{background:#2c4564}.dot{width:10px;height:10px;border-radius:2px;flex:none}.name{flex:1;min-width:0;overflow-wrap:anywhere}.stat{white-space:nowrap;color:#b3c8e0;font-variant-numeric:tabular-nums}
+.note{font-size:11px;color:var(--muted);text-align:center}footer{color:#839db8;font-size:10px;text-align:center}
+@media(max-width:700px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))}.main{padding:12px}.chartRow{grid-template-columns:1fr;gap:4px}.donut{width:min(100%,380px)}.legendBox{border-left:0;border-top:1px solid var(--line);padding:9px 0 0}#legend{max-height:210px}.chartRow{min-height:0}}
+@media(min-width:800px) and (min-height:700px){.page{height:100dvh}.chartRow{min-height:0}#legend{max-height:100%}}
+</style></head><body><div class="page">
+<header><div class="logo">S&T <span>ITRSS</span></div><a class="headlink" href="../v2/">Previous version</a></header>
+<div><h1>Research computing · at a glance</h1><p class="subtitle">Mill accounts and publication records</p></div>
+<section class="cards" aria-label="Key metrics">
+<div class="card"><small>Mill user rows</small><strong id="users">—</strong><span>Source accounts</span></div>
+<div class="card"><small>Marked active</small><strong id="active">—</strong><span id="activeShare">Source status</span></div>
+<div class="card"><small>Included publications</small><strong id="papers">—</strong><span>Cluster-linked records</span></div>
+<div class="card"><small>Duplicate flags</small><strong id="duplicates">—</strong><span>Excluded from included total</span></div>
 </section>
-<div class="content">
-<section class="mainpanel"><div class="panelhead"><div><h2 id="panelTitle">What these metrics show</h2><p id="panelDesc">Volume and documentation, not a financial return score</p></div><button type="button" class="smallaction" id="clear">Clear selection</button></div>
-<div class="visual">
-<div class="overview" id="overview">
-<div class="overviewCard"><span>Active-status share</span><strong id="activeRate">—</strong><p>Active ÷ all Mill user rows</p></div>
-<div class="overviewCard"><span>Publication inclusion rate</span><strong id="paperRate">—</strong><p>Included ÷ source publication records</p></div>
-<div class="overviewCard"><span>Mill-acknowledging records</span><strong id="millPapers">—</strong><p>Mill only + Foundry & Mill, included</p></div>
-<div class="overviewCard"><span>Year range</span><strong id="yearRange">—</strong><p>Years with recorded publications</p></div>
-</div>
-<div class="circle hidden" id="circle"><svg id="chart" viewBox="0 0 680 680" role="img" aria-label="Interactive category distributions"></svg><div class="center"><small id="centerLabel">Records</small><strong id="centerCount">—</strong><span id="centerDetail">All records</span></div></div>
-<div class="mapgrid hidden" id="map"></div>
-</div><div class="panelnote" id="note">Choose a view above. Figures do not imply financial or scientific impact attribution.</div></section>
-<aside class="sidebar"><div class="sidebarhead"><strong>Explore</strong><button type="button" class="smallaction" id="reset">Reset</button></div>
-<div id="controls" class="controls">
-<label class="control" id="ctl0">Ring 1<select id="ring0"></select></label>
-<label class="control" id="ctl1">Ring 2<select id="ring1"></select></label>
-<label class="control" id="ctl2">Ring 3<select id="ring2"></select></label>
-<label class="control" id="ctl3">Ring 4<select id="ring3"></select></label>
-</div>
-<div class="options"><button id="sort" type="button">Largest first</button><button id="rings" type="button">4 rings</button></div>
-<div id="legend" class="legend" aria-label="Metric categories"></div>
-</aside>
-</div><div class="footer">Public aggregate data · individual identities withheld · independent categories are not linked cross-tabs</div>
-</div>
+<main class="main">
+<div class="toolbar"><h2 id="chartName">Department distribution</h2>
+<div class="choices" role="group" aria-label="Choose chart"><button class="choice" data-choice="department" aria-pressed="true">Department</button><button class="choice" data-choice="classification" aria-pressed="false">Class</button><button class="choice" data-choice="status" aria-pressed="false">Status</button><button class="choice" data-choice="cluster" aria-pressed="false">Cluster</button><button class="choice" data-choice="year" aria-pressed="false">Year</button><button class="choice" data-choice="type" aria-pressed="false">Type</button></div></div>
+<div class="chartRow"><div class="chartHolder"><div class="donut"><svg id="chart" viewBox="0 0 680 680" role="img" aria-label="Distribution chart"></svg><div class="middle"><small id="centerLabel">Records</small><strong id="centerCount">—</strong><span id="centerName">All categories</span></div></div></div>
+<div class="legendBox"><div class="legendTitle"><span id="legendName">Departments</span><button class="choice" id="reset" type="button">Reset</button></div><div id="legend"></div></div></div>
+<div class="note" id="note">Select a slice to see its count. Clockwise, largest first.</div>
+</main><footer>Public aggregate distributions only · no individual records · publication acknowledgments do not confirm direct HPC usage</footer></div>
 <script>
 'use strict';
 (()=>{
 const $=id=>document.getElementById(id),SVG='http://www.w3.org/2000/svg';
-const colors=[['#5c9eff','#3d7fd4','#8cbaff','#4566b1','#afcffb','#7398c9'],['#2cbdaf','#159b92','#75d8bd','#3a8f85','#a1e0c9'],['#e6a85e','#d58e46','#f3c681','#b87555'],['#ad91e4','#906dd1','#c4a9fa','#7157a9']];
-let store={},view='overview',dims=[],ringN=4,sort='desc',pin=null;
-const fmt=n=>Number(n||0).toLocaleString('en-US');
-const pct=(n,d)=>d?(n/d*100).toFixed(1)+'%':'0%';
-const sv=(tag,attrs={})=>{const e=document.createElementNS(SVG,tag);Object.entries(attrs).forEach(([k,v])=>e.setAttribute(k,v));return e};
+const palette=['#5c9eff','#387fd2','#8fbaff','#4768b2','#6aa8de','#29b8ae','#6bd5c1','#c29df0','#9373d3','#e8aa65','#d88b4c','#b0cee7'];
+const modes={department:{set:'users',i:0,label:'Departments',title:'Department distribution'},classification:{set:'users',i:1,label:'Classification',title:'Classification distribution'},status:{set:'users',i:2,label:'Status',title:'Account status'},cluster:{set:'papers',i:0,label:'Clusters',title:'Cluster acknowledgments'},year:{set:'papers',i:1,label:'Years',title:'Publications by year'},type:{set:'papers',i:2,label:'Publication types',title:'Publication types'}};
+let data={},mode='department',selected=null;
+const f=n=>Number(n||0).toLocaleString('en-US'),pct=(n,d)=>d?(100*n/d).toFixed(1)+'%':'0%';
+const s=(tag,attrs)=>{const e=document.createElementNS(SVG,tag);for(const [k,v] of Object.entries(attrs))e.setAttribute(k,v);return e};
 const pt=(r,a)=>[340+r*Math.cos(a),340+r*Math.sin(a)];
 function arc(ri,ro,a,b){b=Math.min(b,a+2*Math.PI-.00001);const A=pt(ro,a),B=pt(ro,b),C=pt(ri,b),D=pt(ri,a),large=b-a>Math.PI?1:0;return 'M'+A.join(' ')+' A'+ro+' '+ro+' 0 '+large+' 1 '+B.join(' ')+' L'+C.join(' ')+' A'+ri+' '+ri+' 0 '+large+' 0 '+D.join(' ')+' Z'}
-function check(groups,total){if(!Number.isInteger(total)||total<1)throw Error('Invalid total');for(const d of groups){const n=d.values.reduce((s,x)=>s+Number(x.count),0);if(n!==total)throw Error('Invalid counts in '+d.label)}}
-const dataset=()=>view==='users'?store.users:store.papers;
-function rank(d){const arr=[...d.values];if(d.column==='Year')arr.sort((a,b)=>Number(a.name)-Number(b.name));else if(sort==='alpha')arr.sort((a,b)=>a.name.localeCompare(b.name));else arr.sort((a,b)=>b.count-a.count||a.name.localeCompare(b.name));return arr}
-function changeView(v){view=v;pin=null;sort='desc';if(v==='users'||v==='papers'){const ds=dataset();dims=ds.dimensions.map((_,i)=>i);ringN=ds.dimensions.length}else{dims=[];ringN=0}buildControls();render()}
-function buildControls(){
- const active=view==='users'||view==='papers';$('controls').classList.toggle('hidden',!active);$('sort').classList.toggle('hidden',!active);$('rings').classList.toggle('hidden',!active);
- if(active){const ds=dataset();for(let i=0;i<4;i++){const ctl=$('ctl'+i),sel=$('ring'+i);ctl.hidden=i>=ringN||i>=ds.dimensions.length;sel.replaceChildren();if(i>=ds.dimensions.length)continue;ds.dimensions.forEach((d,j)=>{const option=document.createElement('option');option.value=j;option.textContent=d.label;sel.append(option)});sel.value=dims[i]??0;sel.onchange=()=>{dims[i]=Number(sel.value);pin=null;render()}}$('rings').textContent=ringN+' rings'}
- $('sort').textContent=sort==='alpha'?'A–Z':'Largest first';
-}
-function choose(i,name){pin=pin?.i===i&&pin.name===name?null:{i,name};render()}
 function render(){
- document.querySelectorAll('.tab').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.view===view)));
- $('overview').classList.toggle('hidden',view!=='overview');$('circle').classList.toggle('hidden',!(view==='users'||view==='papers'));$('map').classList.toggle('hidden',view!=='map');
- $('clear').classList.toggle('hidden',view==='overview');
- const titles={overview:['Research support at a glance','Four verified indicators · no invented score'],users:['Mill user population','Departments, classification, status and advisor availability'],papers:['Publication evidence','Cluster acknowledgment, year and publication type'],map:['Publication landscape','Explore independent publication summaries']};
- $('title').textContent=titles[view][0];$('description').textContent=titles[view][1];
- $('panelTitle').textContent=view==='overview'?'Reported activity':view==='users'?'Mill user composition':view==='papers'?'Publication composition':'Publication map';
- $('panelDesc').textContent=view==='overview'?'Counts and ratios—not attributed HPC value':view==='map'?'Year · Cluster · Type (no inferred links)':'Independent aggregate distributions';
- const legend=$('legend');legend.replaceChildren();
- if(view==='overview'){$('note').textContent='These indicators describe reported users and publications; they are not verified system usage or financial ROI.';const el=document.createElement('p');el.className='description';el.textContent='Select Mill users, Publications or Publication map to explore the supporting data.';legend.append(el);return}
- if(view==='map'){renderMap();return}
- const ds=dataset(),total=ds.total;
- const focused=pin?ds.dimensions[dims[pin.i]].values.find(x=>x.name===pin.name):null;
- $('centerLabel').textContent=focused?'Selected category':'Records';$('centerCount').textContent=fmt(focused?focused.count:total);$('centerDetail').textContent=focused?focused.name:'All categories';
- $('note').textContent=focused?'Selected: '+focused.name+' · '+pct(focused.count,total)+' of total. Other rings remain unchanged.':'Select a slice to inspect its count. Other rings remain unchanged.';
- const chart=$('chart');chart.replaceChildren();const radii=[[96,143],[150,197],[204,251],[258,305]];
- for(let i=0;i<ringN;i++){const d=ds.dimensions[dims[i]],items=rank(d);let a=-Math.PI/2;
- const h=document.createElement('div');h.className='legendTitle';const label=document.createElement('span');label.textContent='Ring '+(i+1)+' · '+d.label;const size=document.createElement('span');size.textContent=fmt(total);h.append(label,size);legend.append(h);
- for(let j=0;j<items.length;j++){const x=items[j],sweep=x.count/total*2*Math.PI,b=a+sweep,color=colors[i][j%colors[i].length],on=pin?.i===i&&pin.name===x.name;
- if(sweep>0){const path=sv('path',{d:arc(...radii[i],a,b),fill:color,class:'slice',role:'button',tabindex:0,'aria-label':d.label+': '+x.name+' '+x.count});if(pin?.i===i&&!on)path.style.opacity='.25';if(on){path.style.stroke='#f6faff';path.style.strokeWidth='3'}path.onclick=()=>choose(i,x.name);path.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();choose(i,x.name)}};const tooltip=sv('title');tooltip.textContent=x.name+': '+fmt(x.count)+' ('+pct(x.count,total)+')';path.append(tooltip);chart.append(path)}a=b;
- const row=document.createElement('button');row.className='legendRow';row.setAttribute('aria-pressed',String(!!on));const sw=document.createElement('i');sw.className='swatch';sw.style.background=color;const name=document.createElement('span');name.className='name';name.textContent=x.name;const val=document.createElement('span');val.className='value';val.textContent=fmt(x.count)+' · '+pct(x.count,total);row.append(sw,name,val);row.onclick=()=>choose(i,x.name);legend.append(row)
- }}
+const m=modes[mode],ds=data[m.set],dimension=ds.dimensions[m.i],total=ds.total;
+const items=[...dimension.values].sort((a,b)=>mode==='year'?Number(a.name)-Number(b.name):b.count-a.count||a.name.localeCompare(b.name));
+$('chartName').textContent=m.title;$('legendName').textContent=m.label;
+document.querySelectorAll('[data-choice]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.choice===mode)));
+const picked=items.find(x=>x.name===selected);
+$('centerLabel').textContent=picked?'Selected':'Records';$('centerCount').textContent=f(picked?picked.count:total);$('centerName').textContent=picked?picked.name:'All categories';
+const chart=$('chart'),legend=$('legend');chart.replaceChildren();legend.replaceChildren();let a=-Math.PI/2;
+for(let i=0;i<items.length;i++){const x=items[i],end=a+x.count/total*2*Math.PI,color=palette[i%palette.length],on=x.name===selected;
+if(x.count){const path=s('path',{d:arc(205,305,a,end),fill:color,class:'slice',tabindex:0,role:'button','aria-label':x.name+': '+f(x.count)});if(selected&&!on)path.style.opacity='.27';if(on){path.style.stroke='#fff';path.style.strokeWidth='3'}const tip=s('title',{});tip.textContent=x.name+' · '+f(x.count)+' · '+pct(x.count,total);path.append(tip);path.onclick=()=>pick(x.name);path.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();pick(x.name)}};chart.append(path)}a=end;
+const row=document.createElement('button');row.type='button';row.className='entry';row.setAttribute('aria-pressed',String(!!on));const dot=document.createElement('i');dot.className='dot';dot.style.background=color;const name=document.createElement('span');name.className='name';name.textContent=x.name;const count=document.createElement('span');count.className='stat';count.textContent=f(x.count)+' · '+pct(x.count,total);row.append(dot,name,count);row.onclick=()=>pick(x.name);legend.append(row)}
+$('note').textContent=picked?'Selected: '+picked.name+' ('+pct(picked.count,total)+'). Click again to clear.':mode==='year'?'Years sorted earliest to latest clockwise.':'Select a slice to inspect its count. Largest first, clockwise.';
 }
-function renderMap(){
- const d=store.papers,cols=d.dimensions,area=$('map'),legend=$('legend');area.replaceChildren();
- const head=document.createElement('p');head.className='description';head.textContent='Select a node to inspect a count. Columns are separate summaries, not connected individual papers.';legend.append(head);
- for(let i=0;i<cols.length;i++){const col=cols[i],lane=document.createElement('div');lane.className='maplane';
- const h=document.createElement('h3');h.textContent=col.label;const p=document.createElement('p');p.textContent='Publication count';lane.append(h,p);
- const ordered=col.column==='Year'?[...col.values].sort((a,b)=>Number(a.name)-Number(b.name)):[...col.values].sort((a,b)=>b.count-a.count);
- for(const x of ordered){const btn=document.createElement('button');btn.className='mapItem';const chosen=pin?.i===i&&pin.name===x.name;btn.setAttribute('aria-pressed',String(!!chosen));const dot=document.createElement('i');dot.className='mapDot';let size=8+Math.sqrt(x.count/d.total)*28;dot.style.width=size+'px';dot.style.height=size+'px';dot.style.background=['#67a6f7','#67c6b8','#e9ae66'][i];const name=document.createElement('span');name.textContent=x.name;const count=document.createElement('b');count.textContent=fmt(x.count);btn.append(dot,name,count);btn.onclick=()=>{pin=chosen?null:{i,name};render()};lane.append(btn)}
- area.append(lane);
- }
- $('note').textContent=pin?'Selected: '+pin.name+' · '+fmt(cols[pin.i].values.find(x=>x.name===pin.name).count)+' publication records.':'Nodes represent counts only; links are not inferred.';
-}
-async function init(){
- try{const [u,p]=await Promise.all([fetch('../v2/data/user_aggregates.json',{cache:'no-store'}),fetch('../v2/data/publication_aggregates.json',{cache:'no-store'})]);if(!u.ok||!p.ok)throw Error('Published metric files unavailable');const users=await u.json(),papers=await p.json();check(users.dimensions,users.source_total);check(papers.dimensions,papers.included_total);
- store={users:{total:users.source_total,dimensions:users.dimensions},papers:{total:papers.included_total,dimensions:papers.dimensions}};
- const active=users.dimensions.find(d=>d.column==='Status').values.find(v=>v.name==='Active').count;
- $('kUsers').textContent=fmt(users.source_total);$('kActive').textContent=fmt(active);$('activePct').textContent=pct(active,users.source_total)+'% of source rows';$('kPapers').textContent=fmt(papers.included_total);$('kDuplicates').textContent=fmt(papers.duplicate_count);
- $('activeRate').textContent=pct(active,users.source_total);$('paperRate').textContent=pct(papers.included_total,papers.source_total);
- const mill=papers.dimensions.find(d=>d.column==='Cluster acknowledged').values.filter(v=>/Mill/.test(v.name)).reduce((s,x)=>s+x.count,0);
- $('millPapers').textContent=fmt(mill);const years=papers.dimensions.find(d=>d.column==='Year').values.map(x=>Number(x.name)).filter(Number.isFinite);$('yearRange').textContent=Math.min(...years)+'–'+Math.max(...years);
- changeView('overview');
- }catch(e){$('title').textContent='Metrics unavailable';$('description').textContent=e.message;console.error(e)}
-}
-document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{if(store.users)changeView(b.dataset.view)});
-document.querySelectorAll('.metric').forEach(b=>b.onclick=()=>{if(store.users)changeView(b.dataset.card)});
-$('clear').onclick=()=>{pin=null;render()};
-$('reset').onclick=()=>changeView(view);
-$('sort').onclick=()=>{sort=sort==='desc'?'alpha':'desc';buildControls();render()};
-$('rings').onclick=()=>{ringN=ringN===dataset().dimensions.length?1:ringN+1;pin=null;buildControls();render()};
-$('full').onclick=()=>{if(document.fullscreenElement)document.exitFullscreen?.();else document.documentElement.requestFullscreen?.()};
-init();
+function pick(name){selected=selected===name?null:name;render()}
+function check(group,total){if(!Number.isInteger(total)||total<1)throw Error('Invalid count');for(const d of group){if(d.values.reduce((sum,x)=>sum+Number(x.count),0)!==total)throw Error('Counts do not reconcile: '+d.label)}}
+async function load(){try{const [ur,pr]=await Promise.all([fetch('../v2/data/user_aggregates.json',{cache:'no-store'}),fetch('../v2/data/publication_aggregates.json',{cache:'no-store'})]);if(!ur.ok||!pr.ok)throw Error('Published aggregate files unavailable');
+const u=await ur.json(),p=await pr.json();check(u.dimensions,u.source_total);check(p.dimensions,p.included_total);
+data={users:{total:u.source_total,dimensions:u.dimensions},papers:{total:p.included_total,dimensions:p.dimensions}};
+const active=u.dimensions.find(d=>d.column==='Status').values.find(v=>v.name==='Active').count;
+$('users').textContent=f(u.source_total);$('active').textContent=f(active);$('activeShare').textContent=pct(active,u.source_total)+'% of source rows';$('papers').textContent=f(p.included_total);$('duplicates').textContent=f(p.duplicate_count);render();
+}catch(e){$('chartName').textContent='Data unavailable';$('note').textContent=e.message;console.error(e)}}
+document.querySelectorAll('[data-choice]').forEach(b=>b.onclick=()=>{if(data.users){mode=b.dataset.choice;selected=null;render()}});
+$('reset').onclick=()=>{selected=null;if(data.users)render()};load();
 })();
-</script>
-</body>
-</html>
+</script></body></html>
