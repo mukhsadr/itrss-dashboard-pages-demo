@@ -276,6 +276,48 @@
       }
     }
   }
+
+  function populateResearchFocus(){
+    const select=$('graphFocus'),previous=select.value;
+    select.replaceChildren();
+    const base=document.createElement('option');base.value='';base.textContent='All researchers';select.append(base);
+    if(!works.length||!authors.length)return;
+    const valid=new Set(works.map(w=>String(w.record_id||'')));
+    const counts=new Map(),labels=new Map();
+    for(const row of authors){
+      const id=String(row.author_id||''),pid=String(row.record_id||'');
+      if(!id||!valid.has(pid))continue;
+      if(!counts.has(id))counts.set(id,new Set());
+      counts.get(id).add(pid);labels.set(id,String(row.author_name||id));
+    }
+    const ranked=[...counts].sort((a,b)=>b[1].size-a[1].size||
+      (labels.get(a[0])||a[0]).localeCompare(labels.get(b[0])||b[0]));
+    for(const [id,papers] of ranked){
+      const option=document.createElement('option');option.value=id;
+      option.textContent=(labels.get(id)||id)+' · '+papers.size+' papers';
+      select.append(option);
+    }
+    select.value=counts.has(previous)?previous:'';
+  }
+  function setResearchPayload(data){
+    if(!data||!Array.isArray(data.works)||!Array.isArray(data.authors))
+      throw Error('Expected works and authors arrays');
+    const validWorks=data.works.every(w=>w&&typeof w.record_id==='string'&&typeof w.title==='string');
+    const validAuthors=data.authors.every(a=>a&&typeof a.record_id==='string'&&typeof a.author_id==='string');
+    if(!validWorks||!validAuthors||!data.works.length||!data.authors.length)
+      throw Error('Missing OpenAlex record_id, author_id, or publication metadata');
+    works=data.works;
+    authors=data.authors;
+    communityGroups=(data.communities&&typeof data.communities==='object'&&!Array.isArray(data.communities))?data.communities:{};
+    populateResearchFocus();
+    const from=$('graphYearFrom'),to=$('graphYearTo');
+    const years=[...new Set(works.map(w=>Number(w.year)).filter(Boolean))].sort((a,b)=>a-b);
+    for(const [sel,label] of [[from,'From any year'],[to,'Through any year']]){
+      sel.replaceChildren();
+      const initial=document.createElement('option');initial.value='';initial.textContent=label;sel.append(initial);
+      for(const year of years){const item=document.createElement('option');item.value=String(year);item.textContent=String(year);sel.append(item)}
+    }
+  }
   function setInfo(text){$('graphInfo').textContent=text}
   function focus(id){
     selected=selected===id?null:id;
@@ -297,14 +339,22 @@
     const canvas=$('graphCanvas'),source=$('graphSource').value;currentSource=source;
     canvas.replaceChildren();$('graphKpis').replaceChildren();
     if(source==='papers'&&!published.length){setInfo('Waiting for public publication bibliography');return}
-    if(source==='research'&&(!works.length||!authors.length)){
-      current=[];currentEdges=[];$('graphSelected').textContent='OpenAlex CSVs are required for real coauthorship communities.';
-      graphDetail(null);setInfo('The Streamlit archive contains source code only. Select both enriched_works.csv and authors.csv to see the original research network.');return;
+    const needsResearch=(source==='research'||source==='entities')&&(!works.length||!authors.length);
+    $('graphEmpty').style.display=needsResearch?'flex':'none';
+    if(needsResearch){
+      current=[];currentEdges=[];
+      $('graphCaption').textContent='Original OpenAlex research network · input required';
+      $('graphSelected').textContent='Choose research_graph_public.json from your laptop';
+      graphDetail(null);
+      setInfo('This original coauthorship canvas needs the exported OpenAlex works and author IDs, not invented similarity links.');return;
     }
     const result=source==='mill'?buildMill():source==='papers'?buildPapers():source==='entities'?buildEntities():buildResearch();
     current=result.nodes;currentEdges=result.edges;
-    if(source==='papers'||source==='entities')forceLayout(current,currentEdges);
+    if(source==='papers'||source==='entities'||source==='research')forceLayout(current,currentEdges);
     $('graphGrants').disabled=!(source==='entities'&&works.length&&authors.length);
+    $('graphPaperLimit').disabled=source!=='entities';
+    $('graphGrantLimit').disabled=source!=='entities';
+    $('graphFocus').disabled=(source==='papers'||source==='mill');
     for(const [label,value] of result.stats){
       const item=document.createElement('div');item.className='graphKpi';
       const small=document.createElement('small');small.textContent=label;
@@ -372,10 +422,8 @@
         const extra=await fetch('data/research_graph_public.json?graph='+Date.now(),{cache:'no-store'});
         if(extra.ok){
           const data=await extra.json();
-          if(Array.isArray(data.works)&&Array.isArray(data.authors)&&
-             data.works.every(w=>w&&typeof w.record_id==='string')&&
-             data.authors.every(a=>a&&typeof a.author_id==='string')){
-            works=data.works;authors=data.authors;
+          if(Array.isArray(data.works)&&Array.isArray(data.authors)){
+            setResearchPayload(data);
           }
         }
       }catch(error){/* The optional public OpenAlex dataset has not been deployed. */}
@@ -388,20 +436,43 @@
       draw();
     }catch(err){setInfo('Research graph data could not be loaded: '+err.message)}
   }
-  function readLocalFiles(files){
-    const selected=[...files];const work=selected.find(f=>/enriched_works\.csv$/i.test(f.name));
+
+  async function readLocalFiles(files){
+    const selected=[...files];
+    const jsonFile=selected.find(f=>/\.json$/i.test(f.name));
+    if(jsonFile){
+      try{
+        if(jsonFile.size>30*1024*1024)throw Error('Research JSON exceeds 30 MB');
+        const data=JSON.parse(await jsonFile.text());
+        setResearchPayload(data);
+        $('graphSource').value='research';
+        $('graphSearch').value='';
+        draw();
+        window.dispatchEvent(new CustomEvent('dashboard:graph-loaded',{
+          detail:{works:works.length,authors:authors.length,name:jsonFile.name}
+        }));
+      }catch(error){setInfo('Could not read research JSON: '+error.message)}
+      return;
+    }
+    const work=selected.find(f=>/enriched_works\.csv$/i.test(f.name));
     const author=selected.find(f=>/authors\.csv$/i.test(f.name));
-    if(!work||!author){setInfo('Select both enriched_works.csv and authors.csv');return}
-    Promise.all([work.text(),author.text()]).then(([w,a])=>{
-      works=parseCSV(w);authors=parseCSV(a);
-      if(!works.length||!authors.length)throw Error('Missing source records');
+    if(!work||!author){
+      setInfo('Choose research_graph_public.json, or both enriched_works.csv and authors.csv.');return;
+    }
+    try{
+      const raw=await Promise.all([work.text(),author.text()]);
+      const ww=parseCSV(raw[0]),aa=parseCSV(raw[1]);
+      setResearchPayload({works:ww,authors:aa,communities:{}});
       $('graphSource').value='research';draw();
-      window.dispatchEvent(new CustomEvent('dashboard:graph-loaded',{detail:{works:works.length,authors:authors.length}}));
-    }).catch(e=>setInfo('Unable to load original network: '+e.message));
+      window.dispatchEvent(new CustomEvent('dashboard:graph-loaded',{
+        detail:{works:works.length,authors:authors.length,name:'Original CSV files'}
+      }));
+    }catch(error){setInfo('Could not read OpenAlex CSVs: '+error.message)}
   }
   $('graphSource').addEventListener('change',()=>{selected=null;draw()});
   $('graphSearch').addEventListener('input',draw);
   $('graphLimit').addEventListener('change',draw);
+  for(const id of ['graphFocus','graphPaperLimit','graphGrantLimit'])$(id).addEventListener('change',draw);
   for(const id of ['graphYearFrom','graphYearTo','graphFacility','graphStrength','graphMinShared','graphGrants'])$(id).addEventListener('change',draw);
   $('graphFit').addEventListener('click',fitGraph);
   $('graphZoomIn').addEventListener('click',()=>zoomGraph(.8));
@@ -412,8 +483,9 @@
   canvas.addEventListener('pointermove',e=>{if(!drag)return;const r=canvas.getBoundingClientRect();viewport.x=drag.ox-(e.clientX-drag.x)*viewport.w/r.width;viewport.y=drag.oy-(e.clientY-drag.y)*viewport.h/r.height;applyGraphView()});
   for(const type of ['pointerup','pointercancel','lostpointercapture'])canvas.addEventListener(type,()=>{drag=null});
   $('graphImport').addEventListener('click',()=>{$('graphFiles').value='';$('graphFiles').click()});
+  $('graphEmptyImport').addEventListener('click',()=>{$('graphImport').click()});
   $('graphFiles').addEventListener('change',e=>readLocalFiles(e.target.files));
-  $('graphReset').addEventListener('click',()=>{selected=null;$('graphSearch').value='';$('graphYearFrom').value='';$('graphYearTo').value='';$('graphFacility').value='all';draw()});
+  $('graphReset').addEventListener('click',()=>{selected=null;$('graphSearch').value='';$('graphFocus').value='';$('graphYearFrom').value='';$('graphYearTo').value='';$('graphFacility').value='all';draw()});
   window.addEventListener('dashboard:load-users',event=>{
     // The graph is always grounded in a copy of the Mill user dataset shown in this browser.
     cohorts=parseCSV(event.detail.text);if(cohorts.some(x=>x.Count))draw();
