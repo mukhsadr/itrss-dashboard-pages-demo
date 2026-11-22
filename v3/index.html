@@ -1,89 +1,109 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0b1423"><title>ITRSS</title>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0b1423"><title>ITRSS Metrics</title>
 <style>
-:root{color-scheme:dark;--bg:#0b1423;--card:#17283d;--line:#344b66;--text:#ecf4ff;--muted:#adc2d9}
-*{box-sizing:border-box}
-html,body{height:100%;margin:0;background:var(--bg);color:var(--text);font-family:system-ui,-apple-system,"Segoe UI",sans-serif}
-button{font:inherit;cursor:pointer}
-button:focus-visible,path:focus-visible{outline:3px solid #b9dbff;outline-offset:2px}
-main{width:min(100%,980px);height:100dvh;min-height:360px;margin:auto;padding:clamp(12px,2vw,24px);display:grid;grid-template-rows:auto minmax(0,1fr);gap:clamp(12px,2vh,22px)}
-nav{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:clamp(5px,1vw,12px)}
-.metric{padding:clamp(9px,1.7vw,17px) 4px;background:var(--card);border:1px solid var(--line);border-radius:13px;color:var(--text);display:flex;flex-direction:column;align-items:center;gap:4px;min-width:0}
-.metric[aria-pressed=true]{background:#244867;border:2px solid #7ebdf5}
-.metric span{font-size:clamp(10px,1.4vw,15px);font-weight:650}
-.metric strong{font-size:clamp(19px,3vw,34px);font-variant-numeric:tabular-nums;letter-spacing:-.04em;line-height:1.1}
-.canvas{position:relative;min-height:0;display:flex;align-items:center;justify-content:center;background:#112036;border:1px solid #273c56;border-radius:18px;overflow:hidden}
-.donut{height:min(100%,720px);width:min(100%,720px);aspect-ratio:1;position:relative}
-svg{width:100%;height:100%;display:block}
-.slice{cursor:pointer;stroke:#112036;stroke-width:1;transition:opacity .12s}
-.slice:hover{filter:brightness(1.15)}
-.middle{position:absolute;inset:34%;display:flex;justify-content:center;align-items:center;flex-direction:column;gap:5px;text-align:center;pointer-events:none;overflow:hidden}
-.middle strong{font-size:clamp(27px,5.5vw,62px);font-variant-numeric:tabular-nums;letter-spacing:-.045em;line-height:1.05;white-space:nowrap}
-.middle span{font-size:clamp(10px,1.3vw,16px);color:#bdd0e5;max-width:100%;overflow-wrap:anywhere;line-height:1.15}
-#error{position:absolute;bottom:8px;color:#f7c5ab;font-size:12px;text-align:center;max-width:80%}
-@media(max-width:600px){main{gap:10px;padding:8px}.metric{border-radius:8px}.canvas{border-radius:10px}.middle{inset:34%}.middle strong{font-size:clamp(25px,8vw,43px)}.middle span{font-size:11px}}
-</style></head><body><main>
-<nav aria-label="Metrics">
-<button type="button" class="metric" data-metric="users" aria-pressed="true"><span>Users</span><strong id="users">—</strong></button>
-<button type="button" class="metric" data-metric="active" aria-pressed="false"><span>Active</span><strong id="active">—</strong></button>
-<button type="button" class="metric" data-metric="papers" aria-pressed="false"><span>Papers</span><strong id="papers">—</strong></button>
-<button type="button" class="metric" data-metric="duplicates" aria-pressed="false"><span>Duplicates</span><strong id="duplicates">—</strong></button>
-</nav>
-<section class="canvas" aria-label="Interactive metric visualization"><div class="donut">
-<svg id="chart" viewBox="0 0 680 680" role="img" aria-label="Category distribution"></svg>
-<div class="middle"><strong id="number">—</strong><span id="label">Users</span></div>
-</div><div id="error" role="status"></div></section>
+:root{color-scheme:dark;--bg:#0b1423;--card:#17283d;--line:#354963;--text:#edf5ff;--muted:#a8bed6}
+*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font:14px/1.3 system-ui,-apple-system,"Segoe UI",sans-serif}
+button{font:inherit;cursor:pointer}button:focus-visible,.slice:focus-visible{outline:2px solid #c6e5ff;outline-offset:2px}
+main{max-width:1050px;margin:auto;height:100dvh;min-height:440px;padding:clamp(9px,1.5vw,18px);display:grid;grid-template-rows:auto auto minmax(0,1fr);gap:clamp(8px,1.2vh,14px)}
+.modes{display:flex;justify-content:center;gap:8px}
+.mode{padding:7px 22px;border-radius:9px;border:1px solid var(--line);background:#182a41;color:#d1e5fb;font-size:13px;font-weight:650}
+.mode[aria-pressed=true]{background:#28577d;border-color:#8dc9fc;color:white}
+.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}
+.metric{min-width:0;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:9px 4px;color:var(--text);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
+.metric[aria-pressed=true]{border-color:#a6d3ff;background:#234868}
+.metric span{font-size:clamp(10px,1.1vw,13px);font-weight:650;text-align:center}
+.metric strong{font-size:clamp(20px,2.7vw,32px);line-height:1.1;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
+.canvas{min-height:0;background:#112036;border:1px solid #263b56;border-radius:15px;display:flex;justify-content:center;align-items:center;position:relative;overflow:hidden}
+.donut{height:min(100%,710px);width:min(100%,710px);aspect-ratio:1;position:relative}
+svg{height:100%;width:100%;display:block}.slice{stroke:#112036;stroke-width:1;cursor:pointer;transition:opacity .1s}.slice:hover{filter:brightness(1.18)}
+.center{position:absolute;inset:32%;display:flex;flex-direction:column;justify-content:center;align-items:center;pointer-events:none;gap:3px;text-align:center;overflow:hidden}
+.center strong{font-size:clamp(25px,4.4vw,54px);line-height:1.05;letter-spacing:-.05em;white-space:nowrap;font-variant-numeric:tabular-nums}
+.center span{max-width:100%;color:#bdd0e8;font-size:clamp(10px,1.2vw,14px);overflow-wrap:anywhere}
+#status{position:absolute;bottom:7px;font-size:11px;color:#f7bea7}
+@media(max-width:580px){main{padding:7px;gap:7px;min-height:340px}.mode{padding:6px 13px;font-size:12px}.metric{border-radius:8px}.canvas{border-radius:9px}.center strong{font-size:clamp(22px,8vw,40px)}}
+</style></head><body>
+<main>
+<nav class="modes" aria-label="Data mode"><button type="button" class="mode" data-mode="users" aria-pressed="true">Mill Users</button><button type="button" class="mode" data-mode="papers" aria-pressed="false">Publications</button></nav>
+<section class="metrics" id="metrics" aria-label="Metrics">
+<button class="metric" type="button" data-kpi="0"><span id="label0">Users</span><strong id="val0">—</strong></button>
+<button class="metric" type="button" data-kpi="1"><span id="label1">Active</span><strong id="val1">—</strong></button>
+<button class="metric" type="button" data-kpi="2"><span id="label2">Departments</span><strong id="val2">—</strong></button>
+<button class="metric" type="button" data-kpi="3"><span id="label3">Advisors</span><strong id="val3">—</strong></button>
+</section>
+<section class="canvas" aria-label="Interactive concentric rings"><div class="donut">
+<svg id="chart" viewBox="0 0 680 680" role="img" aria-label="Four-ring user distribution or three-ring publication distribution"></svg>
+<div class="center"><strong id="number">—</strong><span id="centerLabel">Users</span></div>
+</div><div id="status" role="status"></div></section>
 </main>
 <script>
 'use strict';
 (()=>{
 const $=id=>document.getElementById(id),SVG='http://www.w3.org/2000/svg';
-const palette=['#609fff','#347fd1','#92c0ff','#456aaa','#82a1ca','#2ebbad','#69d6bf','#e8ad62','#d18d4d','#ae96ed','#896ccf','#c6a9f4'];
-let data=null,mode='users',selected=null;
-const fmt=n=>Number(n||0).toLocaleString('en-US');
+const palettes=[
+['#5c9eff','#3d80d8','#8ebcff','#4568ae','#a5cef3','#666aba','#388dbd','#86a5d4'],
+['#2cbdaf','#159f94','#75d8bd','#3a8f85','#a1e0c9','#5eb3a2','#258477'],
+['#e6a85e','#d58e46','#f3c681','#b87555','#ffd59e'],
+['#ad91e4','#906dd1','#c4a9fa','#7157a9','#b39fe2']];
+const fmt=x=>Number(x||0).toLocaleString('en-US');
+const el=(name,attrs={})=>{const e=document.createElementNS(SVG,name);for(const [k,v] of Object.entries(attrs))e.setAttribute(k,v);return e};
 const pt=(r,a)=>[340+r*Math.cos(a),340+r*Math.sin(a)];
-function shape(a,b){b=Math.min(b,a+Math.PI*2-.00001);const A=pt(303,a),B=pt(303,b),C=pt(183,b),D=pt(183,a),big=b-a>Math.PI?1:0;return 'M'+A.join(' ')+' A303 303 0 '+big+' 1 '+B.join(' ')+' L'+C.join(' ')+' A183 183 0 '+big+' 0 '+D.join(' ')+' Z'}
-function svg(tag,attrs){const el=document.createElementNS(SVG,tag);for(const [k,v] of Object.entries(attrs))el.setAttribute(k,v);return el}
-function context(){
- const u=data.u,p=data.p;
- if(mode==='users')return {total:u.source_total,values:u.dimensions.find(d=>d.column==='Descr').values};
- if(mode==='active')return {total:u.source_total,values:u.dimensions.find(d=>d.column==='Status').values};
- if(mode==='papers')return {total:p.included_total,values:p.dimensions.find(d=>d.column==='Cluster acknowledged').values};
- return {total:p.source_total,values:[{name:'Included',count:p.included_total},{name:'Duplicates',count:p.duplicate_count}]}
+function pathFor(ri,ro,a,b){b=Math.min(b,a+2*Math.PI-.00001);const [x1,y1]=pt(ro,a),[x2,y2]=pt(ro,b),[x3,y3]=pt(ri,b),[x4,y4]=pt(ri,a),big=b-a>Math.PI?1:0;return 'M'+x1+' '+y1+' A'+ro+' '+ro+' 0 '+big+' 1 '+x2+' '+y2+' L'+x3+' '+y3+' A'+ri+' '+ri+' 0 '+big+' 0 '+x4+' '+y4+' Z'}
+let source=null,mode='users',selected=null,kpi=null;
+function current(){return mode==='users'?{total:source.u.source_total,dims:source.u.dimensions}: {total:source.p.included_total,dims:source.p.dimensions}}
+function kpis(){
+if(mode==='users'){
+ const u=source.u,active=u.dimensions.find(d=>d.column==='Status').values.find(v=>v.name==='Active').count;
+ const advisor=u.dimensions.find(d=>d.column==='Advisor').values.find(v=>v.name==='Advisor recorded').count;
+ return [{label:'Users',value:u.source_total,ring:0,name:null},{label:'Active',value:active,ring:2,name:'Active'},{label:'Departments',value:u.dimensions[0].values.length,ring:0,name:null},{label:'Advisors',value:advisor,ring:3,name:'Advisor recorded'}];
 }
-function choose(name){selected=selected===name?null:name;render()}
+const p=source.p,clusters=p.dimensions[0].values,mill=clusters.filter(v=>v.name.includes('Mill')).reduce((n,v)=>n+v.count,0);
+return [{label:'Papers',value:p.included_total,ring:0,name:null},{label:'Mill linked',value:mill,ring:0,name:null},{label:'Years',value:p.dimensions[1].values.length,ring:1,name:null},{label:'Duplicates',value:p.duplicate_count,ring:0,name:null}];
+}
+function switchMode(m){mode=m;selected=null;kpi=null;render()}
+function choose(ring,name){selected=selected&&selected.ring===ring&&selected.name===name?null:{ring,name};kpi=null;render()}
 function render(){
- if(!data)return;
- const ctx=context(),arr=[...ctx.values].sort((a,b)=>b.count-a.count||a.name.localeCompare(b.name));
- const chosen=arr.find(x=>x.name===selected);
- document.querySelectorAll('[data-metric]').forEach(btn=>btn.setAttribute('aria-pressed',String(btn.dataset.metric===mode)));
- $('number').textContent=fmt(chosen?chosen.count:ctx.total);
- $('label').textContent=chosen?chosen.name:({users:'Users',active:'Active',papers:'Papers',duplicates:'Duplicates'})[mode];
- const chart=$('chart');chart.replaceChildren();
- let a=-Math.PI/2;
- for(let i=0;i<arr.length;i++){const x=arr[i],next=a+2*Math.PI*x.count/ctx.total,on=selected===x.name;
- if(x.count){const p=svg('path',{d:shape(a,next),fill:palette[i%palette.length],class:'slice',role:'button',tabindex:'0','aria-label':x.name+': '+fmt(x.count)});
- if(selected&&!on)p.style.opacity='.2';if(on){p.style.stroke='#f3faff';p.style.strokeWidth='3'}
- const title=svg('title',{});title.textContent=x.name+' · '+fmt(x.count);p.append(title);
- p.addEventListener('click',()=>choose(x.name));p.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();choose(x.name)}});chart.append(p)}
- a=next;
+if(!source)return;
+const d=current(),cards=kpis(),total=d.total;
+document.querySelectorAll('[data-mode]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mode===mode)));
+cards.forEach((c,i)=>{$('label'+i).textContent=c.label;$('val'+i).textContent=fmt(c.value)});
+document.querySelectorAll('[data-kpi]').forEach(b=>b.setAttribute('aria-pressed',String(Number(b.dataset.kpi)===kpi)));
+let focused=selected?d.dims[selected.ring].values.find(v=>v.name===selected.name):null;
+$('number').textContent=fmt(focused?focused.count:total);
+$('centerLabel').textContent=focused?focused.name:mode==='users'?'Users':'Papers';
+const chart=$('chart');chart.replaceChildren();
+const radii=mode==='users'?[[96,143],[150,197],[204,251],[258,305]]:[[112,164],[173,225],[234,286]];
+for(let i=0;i<d.dims.length;i++){
+ const dim=d.dims[i],values=[...dim.values];
+ if(dim.column==='Year')values.sort((a,b)=>Number(a.name)-Number(b.name));
+ else values.sort((a,b)=>b.count-a.count||a.name.localeCompare(b.name));
+ let angle=-Math.PI/2;
+ for(let j=0;j<values.length;j++){
+ const v=values[j],next=angle+v.count/total*2*Math.PI,on=selected?.ring===i&&selected?.name===v.name;
+ if(v.count>0){const shape=el('path',{d:pathFor(...radii[i],angle,next),fill:palettes[i][j%palettes[i].length],class:'slice',role:'button',tabindex:0,'aria-label':dim.label+' / '+v.name+': '+fmt(v.count)});
+ if(selected?.ring===i&&!on)shape.style.opacity='.22';
+ if(on){shape.style.stroke='#fff';shape.style.strokeWidth='2.6'}
+ const tip=el('title');tip.textContent=dim.label+' / '+v.name+': '+fmt(v.count);shape.append(tip);
+ shape.onclick=()=>choose(i,v.name);shape.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();choose(i,v.name)}};chart.append(shape)}
+ angle=next;
  }
 }
-function check(d,total){if(!Number.isInteger(total)||total<=0)throw Error('Invalid total');for(const x of d)if(x.values.reduce((n,v)=>n+Number(v.count),0)!==total)throw Error('Invalid categories')}
-async function init(){
- try{
- const [ur,pr]=await Promise.all([fetch('../v2/data/user_aggregates.json',{cache:'no-store'}),fetch('../v2/data/publication_aggregates.json',{cache:'no-store'})]);
- if(!ur.ok||!pr.ok)throw Error('Data unavailable');
- const [u,p]=await Promise.all([ur.json(),pr.json()]);check(u.dimensions,u.source_total);check(p.dimensions,p.included_total);
- if(p.included_total+p.duplicate_count!==p.source_total)throw Error('Publication totals mismatch');
- data={u,p};
- $('users').textContent=fmt(u.source_total);
- $('active').textContent=fmt(u.dimensions.find(d=>d.column==='Status').values.find(x=>x.name==='Active')?.count||0);
- $('papers').textContent=fmt(p.included_total);$('duplicates').textContent=fmt(p.duplicate_count);
- render();
- }catch(e){$('error').textContent=e.message;console.error(e)}
 }
-document.querySelectorAll('[data-metric]').forEach(b=>b.addEventListener('click',()=>{mode=b.dataset.metric;selected=null;render()}));
-init();
+function validate(groups,total){if(!Number.isInteger(total)||total<=0)throw Error('Invalid count');for(const d of groups)if(d.values.reduce((n,v)=>n+Number(v.count),0)!==total)throw Error('Count mismatch')}
+async function load(){try{
+const [ur,pr]=await Promise.all([fetch('../v2/data/user_aggregates.json',{cache:'no-store'}),fetch('../v2/data/publication_aggregates.json',{cache:'no-store'})]);
+if(!ur.ok||!pr.ok)throw Error('Data unavailable');
+const [u,p]=await Promise.all([ur.json(),pr.json()]);
+validate(u.dimensions,u.source_total);validate(p.dimensions,p.included_total);
+if(u.dimensions.length!==4||p.dimensions.length!==3)throw Error('Unexpected ring count');
+source={u,p};render();
+}catch(e){$('status').textContent=e.message;console.error(e)}}
+document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{if(source)switchMode(b.dataset.mode)});
+document.querySelectorAll('[data-kpi]').forEach(b=>b.onclick=()=>{
+if(!source)return;const i=Number(b.dataset.kpi),c=kpis()[i];kpi=i;
+if(c.name){selected={ring:c.ring,name:c.name};}
+else selected=null;
+render();
+});
+load();
 })();
 </script></body></html>
