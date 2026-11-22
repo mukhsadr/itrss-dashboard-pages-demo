@@ -1,52 +1,30 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0b1423"><title>ITRSS Metrics</title>
 <style>
-:root{color-scheme:dark;--bg:#0b1220;--card:#121e30;--line:#293d55;--text:#eaf2fe;--muted:#9fb4cf}
-*{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font:14px/1.3 system-ui,-apple-system,"Segoe UI",sans-serif}
-button{font:inherit;cursor:pointer}button:focus-visible,.slice:focus-visible{outline:2px solid #c6e5ff;outline-offset:2px}
-main{max-width:1050px;margin:auto;height:100dvh;min-height:440px;padding:clamp(9px,1.5vw,18px);display:grid;grid-template-rows:auto auto minmax(0,1fr);gap:clamp(8px,1.2vh,14px)}
-.modes{display:flex;justify-content:center;gap:8px}
-.mode{min-height:40px;padding:8px 19px;border-radius:10px;border:1px solid #354b68;background:#17283f;color:#bcd3ea;font-size:13px;font-weight:650;transition:background .15s,border-color .15s}
-.mode[aria-pressed=true]{background:#254c75;border-color:#6eaff0;color:white}
-.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}
-.metric{min-width:0;min-height:65px;background:var(--card);border:1px solid var(--line);border-radius:17px;padding:10px 4px;color:var(--text);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;transition:background .16s,border-color .16s,transform .16s}
-.metric[aria-pressed=true]{border-color:#79bbf4;background:#203c59}.metric:hover{background:#1d324d}
-.metric span{font-size:clamp(10px,1.1vw,13px);font-weight:650;text-align:center}
-.metric strong{font-size:clamp(20px,2.7vw,32px);line-height:1.1;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
-.canvas{min-height:0;background:#112036;border:1px solid #263b56;border-radius:15px;display:flex;justify-content:center;align-items:center;position:relative;overflow:hidden}
-.donut{height:min(100%,710px);width:min(100%,710px);aspect-ratio:1;position:relative}
-svg{height:100%;width:100%;display:block}.slice{stroke:#112036;stroke-width:1;cursor:pointer;transition:opacity .1s}.slice:hover{filter:brightness(1.18)}
-.center{position:absolute;inset:36%;display:flex;flex-direction:column;justify-content:center;align-items:center;pointer-events:none;gap:3px;text-align:center;overflow:hidden}
-.center strong{font-size:clamp(19px,2.05vw,32px);line-height:1.05;letter-spacing:-.045em;white-space:nowrap;font-variant-numeric:tabular-nums;max-width:100%}
-.center span{max-width:100%;color:#bdd0e8;font-size:clamp(9px,.75vw,11px);line-height:1.15;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
-#status{position:absolute;bottom:7px;font-size:11px;color:#f7bea7}
-@media(max-width:580px){main{padding:7px;gap:7px;min-height:340px}.mode{padding:6px 13px;font-size:12px}.metric{border-radius:8px}.canvas{border-radius:9px}.center strong{font-size:clamp(18px,5.2vw,27px)}}
-
-/* Keep the number entirely inside the donut hole at every screen size. */
-.canvas{background:#121e30;border-color:#263b55;box-shadow:none}
-.metric{background:#121e30;border-color:#293c53}
-.metric:hover{border-color:#7ca9d5}
-.slice{transition:opacity .16s,filter .16s,stroke-width .16s;stroke:#121e30;stroke-width:1.5;filter:none}
-.donut{height:min(100%,760px);width:min(100%,760px)}
-@media(max-width:580px){.center{inset:35%}.center span{font-size:9px}}
-
-/* Material-inspired restrained colors, selection surfaces and phone touch targets. */
-.center{background:#121e30;border-radius:50%;inset:34.8%}
-.center strong{font-size:clamp(21px,2.25vw,36px)}
-.center span{color:#b8c4df}
-.modes{gap:10px}
-.slice:hover{filter:brightness(1.15)}
-@media(prefers-reduced-motion:reduce){.slice,.metric,.mode{transition:none}}
-@media(max-width:580px){.mode{min-height:44px}.metric{min-height:58px;border-radius:14px}.center{inset:35%}}
-
-/* Chart-first: original local ring contrast and lighter visual chrome. */
-main{max-width:1120px;grid-template-rows:auto auto minmax(0,1fr);gap:10px}
-.canvas{border-radius:12px}
-.metric{border-radius:11px;min-height:58px;padding:7px 4px}
-.mode{min-height:38px}
-.center span{color:#a5bdd7}
-#status{left:50%;transform:translateX(-50%);bottom:12px;white-space:nowrap;font-size:11px;color:#a5bdd7;pointer-events:none}
-@media(max-width:600px){#status{bottom:5px;white-space:normal;text-align:center;width:95%;font-size:9px}}
+:root{color-scheme:dark;--bg:#0b1220;--panel:#121e30;--line:#26374c;--text:#e9f1fc}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;background:var(--bg);color:var(--text);font:14px/1.3 Inter,system-ui,-apple-system,"Segoe UI",sans-serif}
+button{font:inherit;cursor:pointer}button:focus-visible,.slice:focus-visible{outline:2px solid #dcefff;outline-offset:2px}
+main{width:100%;max-width:none;height:100dvh;min-height:330px;margin:0;padding:7px 10px;display:grid;grid-template-rows:36px 62px minmax(0,1fr);gap:7px}
+.modes{display:flex;align-items:center;justify-content:center;gap:6px}
+.mode{min-height:33px;padding:6px 16px;border:1px solid #344a66;border-radius:8px;background:#192a41;color:#c7d9ed;font-size:12px;font-weight:650}
+.mode[aria-pressed=true]{background:#264b70;border-color:#78b4f1;color:white}
+.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}
+.metric{min-width:0;min-height:0;background:#121e30;border:1px solid #26374c;border-radius:9px;padding:5px 4px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:2px;color:#e9f1fc}
+.metric:hover{background:#1c314a}.metric[aria-pressed=true]{background:#1d3b58;border-color:#81bdf5}
+.metric span{font-size:clamp(10px,1vw,12px);color:#a9bfd6;font-weight:600}.metric strong{font-size:clamp(18px,2.3vw,27px);letter-spacing:-.035em;line-height:1.1;font-variant-numeric:tabular-nums}
+.canvas{position:relative;min-height:0;overflow:hidden;display:flex;justify-content:center;align-items:center;background:#121e30;border:1px solid #26374c;border-radius:11px}
+.donut{position:relative;width:auto;height:100%;max-width:100%;aspect-ratio:1;flex:none}
+svg{display:block;width:100%;height:100%;overflow:visible}
+.slice{stroke:#121e30;stroke-width:1.4;cursor:pointer;transition:opacity .15s,stroke-width .15s,filter .15s}
+.slice:hover,.slice.hovered{stroke:#edf7ff;stroke-width:3}
+.center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:27%;height:27%;background:transparent;border:0;border-radius:0;box-shadow:none;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:3px;text-align:center;pointer-events:none;overflow:hidden}
+.center strong{font-size:clamp(19px,2.1vw,34px);font-weight:760;letter-spacing:-.055em;line-height:1;white-space:nowrap;max-width:100%}
+.center span{font-size:clamp(9px,.85vw,12px);color:#9fb7d2;line-height:1.12;max-width:100%;overflow-wrap:anywhere}
+.ringKey{position:absolute;top:10px;left:12px;display:flex;flex-wrap:wrap;gap:11px;font-size:10px;color:#9db5d0;font-weight:600;pointer-events:none}
+.ringKey span{display:flex;gap:5px;align-items:center}.ringKey i{width:8px;height:8px;display:inline-block;border-radius:2px}
+#status{position:absolute;left:50%;bottom:7px;transform:translateX(-50%);max-width:95%;text-align:center;font-size:10px;color:#a6bdd8;pointer-events:none}
+@media(max-width:600px){main{padding:5px;gap:5px;grid-template-rows:33px 54px minmax(0,1fr)}.mode{min-height:30px;font-size:11px;padding:5px 12px}.metric{border-radius:7px}.metric strong{font-size:clamp(17px,5vw,23px)}.metric span{font-size:10px}.center strong{font-size:clamp(17px,5vw,28px)}.center span{font-size:9px}.ringKey{top:5px;left:6px;gap:6px;font-size:9px}#status{bottom:4px;font-size:9px}}
+@media(prefers-reduced-motion:reduce){.slice{transition:none}}
 </style></head><body>
 <main>
 <nav class="modes" aria-label="Data mode"><button type="button" class="mode" data-mode="users" aria-pressed="true">Mill Users</button><button type="button" class="mode" data-mode="papers" aria-pressed="false">Publications</button></nav>
@@ -59,7 +37,7 @@ main{max-width:1120px;grid-template-rows:auto auto minmax(0,1fr);gap:10px}
 <section class="canvas" aria-label="Interactive concentric rings"><div class="donut">
 <svg id="chart" viewBox="0 0 680 680" role="img" aria-label="Four-ring user distribution or three-ring publication distribution"></svg>
 <div class="center"><strong id="number">—</strong><span id="centerLabel">Users</span></div>
-</div><div id="status" role="status"></div></section>
+</div><div id="ringKey" class="ringKey" aria-hidden="true"></div><div id="status" role="status"></div></section>
 </main>
 <script>
 'use strict';
@@ -107,10 +85,13 @@ document.querySelectorAll('[data-kpi]').forEach(b=>b.setAttribute('aria-pressed'
 let focused=selected?d.dims[selected.ring].values.find(v=>v.name===selected.name):null;
 $('number').textContent=fmt(focused?focused.count:total);
 $('centerLabel').textContent=focused?focused.name:mode==='users'?'Users':'Papers';
-$('status').textContent=focused ? (focused.name+' · '+fmt(focused.count)+' · '+(focused.count/total*100).toFixed(1)+'% · other rings: '+(conditional?'within selection':'overall')) : '';
+$('status').textContent=focused ? (conditional?'Linked rings':'Selected · other rings: overall') : '';
 $('chart').setAttribute('aria-label',mode==='users'?'Mill users: four independent distributions. Select a slice to inspect its count.':'Publications: three independent distributions. Select a slice to inspect its count.');
 const chart=$('chart');chart.replaceChildren();
-const radii=mode==='users'?[[103,144],[155,196],[207,248],[259,301]]:[[116,164],[177,225],[238,286]];
+ const key=$('ringKey');key.replaceChildren();
+ const names=mode==='users'?['Department','Class','Status','Advisor']:['Cluster','Year','Type'];
+ names.forEach((name,i)=>{const item=document.createElement('span'),dot=document.createElement('i');dot.style.background=palettes[i][0];item.append(dot,document.createTextNode(name));key.append(item)});
+const radii=mode==='users'?[[96,143],[150,197],[204,251],[258,305]]:[[113,162],[173,222],[233,282]];
 for(let i=0;i<d.dims.length;i++){
  const dim=d.dims[i],filtered=conditional?filteredDimension(i,d.dims[selected.ring],focusCount):null;
  const values=filtered??[...dim.values],denom=filtered?focusCount:total;
@@ -121,12 +102,36 @@ for(let i=0;i<d.dims.length;i++){
  const v=values[j],next=angle+(denom?v.count/denom:0)*2*Math.PI,on=selected?.ring===i&&selected?.name===v.name;
  if(v.count>0){const shape=el('path',{d:pathFor(...radii[i],angle,next),fill:palettes[i][j%palettes[i].length],class:'slice',role:'button',tabindex:0,'aria-label':dim.label+' / '+v.name+': '+fmt(v.count)});
  if(selected?.ring===i&&!on)shape.style.opacity='.3';
- if(on){shape.style.stroke='#edf7ff';shape.style.strokeWidth='3';shape.style.filter='brightness(1.16)'}
+ if(on){shape.style.stroke='#edf7ff';shape.style.strokeWidth='3';shape.style.filter='none'}
  const tip=el('title');tip.textContent=dim.label+' · '+v.name+' · '+fmt(v.count)+' of '+fmt(denom)+' ('+(denom?100*v.count/denom:0).toFixed(1)+'%)'+(filtered?' within '+selected.name:' overall');shape.append(tip);
- shape.onclick=()=>choose(i,v.name);shape.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();choose(i,v.name)}};chart.append(shape)}
+ shape.dataset.ring=String(i);shape.dataset.category=v.name;
+ shape.onmouseenter=()=>hoverSlice(i,v.name,v.count,denom,true);
+ shape.onmouseleave=()=>hoverSlice(i,v.name,v.count,denom,false);
+ shape.onfocus=()=>hoverSlice(i,v.name,v.count,denom,true);
+ shape.onblur=()=>hoverSlice(i,v.name,v.count,denom,false);
+ shape.onclick=()=>choose(i,v.name);
+ shape.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();choose(i,v.name)}};chart.append(shape)}
  angle=next;
  }
 }
+}
+function hoverSlice(ring,name,count,denom,active){
+ document.querySelectorAll('#chart .slice').forEach(path=>{
+  if(path.dataset.ring===String(ring)){
+   const match=path.dataset.category===name;
+   path.style.opacity=active&&!match?'0.22':'1';
+   path.classList.toggle('hovered',active&&match);
+  }
+ });
+ if(active){
+  $('number').textContent=fmt(count);$('centerLabel').textContent=name;
+  $('status').textContent=fmt(count)+' · '+(denom?100*count/denom:0).toFixed(1)+'%';
+ }else{
+  const d=current(),f=selected?d.dims[selected.ring].values.find(v=>v.name===selected.name):null;
+  $('number').textContent=fmt(f?f.count:d.total);
+  $('centerLabel').textContent=f?f.name:mode==='users'?'Users':'Papers';
+  $('status').textContent=f?'Selected · other rings: overall':'';
+ }
 }
 function validate(groups,total){if(!Number.isInteger(total)||total<=0)throw Error('Invalid count');for(const d of groups)if(d.values.reduce((n,v)=>n+Number(v.count),0)!==total)throw Error('Count mismatch')}
 async function load(){try{
