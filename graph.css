@@ -1,0 +1,56 @@
+
+/* V5: Three clear visualizations, one calm presentation/edit control. */
+#graphSection {display:none}
+body.presentation-mode.presentation-graph #graphSection,
+body.presentation-mode.presentation-details.presentation-graph #graphSection {display:block}
+body.presentation-mode.presentation-graph .shell>main.main,
+body.presentation-mode.presentation-graph #papersSection {display:none!important}
+body.presentation-mode.presentation-papers #graphSection {display:none!important}
+.graphSection {max-width:1440px;margin:20px auto 24px;color:#d8e7f5}
+.graphHeading {display:flex;align-items:center;justify-content:space-between;gap:16px}
+.graphHeading h2{font-size:clamp(19px,2.4vw,26px);margin:0}
+.graphHeading p{font-size:13px;color:#9eb1c6;margin:6px 0 14px}
+.graphStage{position:relative;background:radial-gradient(ellipse at 50% 38%,#16283e,#0a1525 72%);
+  border:1px solid #283e57;border-radius:16px;padding:12px 20px;min-height:430px}
+.graphKpis{display:flex;justify-content:center;flex-wrap:wrap;gap:12px}
+.graphKpi{display:flex;flex-direction:column;align-items:center;min-width:115px;
+  padding:8px 16px;border:1px solid #2e425a;background:#18283b88;border-radius:12px}
+.graphKpi small{font-size:10px;color:#9fb4d0;letter-spacing:.045em;text-transform:uppercase}
+.graphKpi strong{font-size:25px;color:#f0f7ff;font-variant-numeric:tabular-nums}
+#graphCanvas{display:block;width:100%;height:auto;max-height:min(75vh,710px);min-height:390px;overflow:visible}
+#graphCanvas [data-node] {cursor:pointer;transition:opacity .18s ease;outline:none}
+#graphCanvas [data-node]:focus-visible circle,#graphCanvas [data-node].selected circle {stroke:#fff;stroke-width:3.5}
+#graphCanvas [data-edge]{transition:opacity .18s ease}
+#graphCanvas text{pointer-events:none;paint-order:stroke;stroke:#0e1a2b;stroke-width:2px;stroke-linejoin:round}
+.graphFoot {display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:9px;
+  font:12px system-ui;color:#9bb2ca;margin:2px 4px 4px}
+#graphSelected{color:#f0f6ff;font-weight:600}
+.graphControls{display:flex;flex-wrap:wrap;align-items:end;gap:12px;padding:12px 0 18px}
+.graphControls label{color:#b4c7e0;font-size:12px;display:flex;flex-direction:column;gap:5px;min-width:120px}
+.graphControls select,.graphControls input{background:#18273b;border:1px solid #35506d;color:#edf4fa;
+  font:13px system-ui;border-radius:8px;padding:10px;max-width:240px}
+.graphControls button{background:#223b58;border:1px solid #3b5d80;color:#e7f3ff;font:600 12px system-ui;
+  padding:10px 13px;border-radius:8px;cursor:pointer}
+#graphInfo{font:12px/1.5 system-ui;color:#acc2dd;margin:6px 4px}
+body.presentation-mode:not(.presentation-details) .graphHeading,
+body.presentation-mode:not(.presentation-details) .graphControls{display:none}
+body.presentation-mode.presentation-details .graphHeading,
+body.presentation-mode.presentation-details .graphControls{display:flex}
+body.presentation-mode.presentation-graph .graphStage{margin:6px auto}
+body.presentation-mode.presentation-graph .graphSection{max-width:1300px}
+body.presentation-mode.presentation-graph #graphCanvas{max-height:min(75vh,760px)}
+body.presentation-mode.presentation-details.presentation-graph .graphStage{max-width:1280px}
+body.presentation-mode.presentation-details #graphInfo {display:block}
+body.presentation-mode:not(.presentation-details) #graphInfo{display:none}
+.presentationToolbar .presentationModes{display:flex;gap:3px;border:1px solid #38536e;border-radius:10px;padding:3px}
+.presentationToolbar .presentationModes button{border:0;background:transparent}
+.presentationToolbar .presentationModes button.active{background:#2a78a6}
+@media(max-width:700px) {
+  .graphStage{padding:10px 5px;min-height:350px}
+  #graphCanvas{min-height:300px}
+  .graphFoot{justify-content:center}
+  .graphKpi{min-width:85px;padding:6px 9px}
+  .graphKpi strong{font-size:19px}
+  .graphControls{flex-direction:column;align-items:stretch}
+  .graphControls select,.graphControls input{max-width:100%}
+}
