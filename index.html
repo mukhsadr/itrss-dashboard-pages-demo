@@ -1,5 +1,5 @@
-<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>ITRSS Research Metrics · v6</title><link rel="stylesheet" href="styles.css?v=1795367000"><link rel="stylesheet" href="papers.css?v=1795367000"><link rel="stylesheet" href="presentation.css?v=6"><link rel="stylesheet" href="graph.css?v=5"></head><body class="presentation-mode"><div id="publicBanner" style="position:sticky;top:0;z-index:9999;background:#6937b9;color:white;text-align:center;padding:12px;font:600 15px system-ui">PUBLIC METRICS · 1,607 GROUPED MILL RECORDS · 247 PUBLICATION ENTRIES · INTERNAL NOTES EXCLUDED</div><nav id="presentationToolbar" class="presentationToolbar" aria-label="Dashboard display controls">
-  <span class="presentationBrand">ITRSS <strong>Research Metrics</strong> · v6</span>
+<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>ITRSS Research Metrics · v6</title><link rel="stylesheet" href="styles.css?v=1795367000"><link rel="stylesheet" href="papers.css?v=1795367000"><link rel="stylesheet" href="presentation.css?v=6"><link rel="stylesheet" href="graph.css?v=7"></head><body class="presentation-mode"><div id="publicBanner" style="position:sticky;top:0;z-index:9999;background:#6937b9;color:white;text-align:center;padding:12px;font:600 15px system-ui">PUBLIC METRICS · 1,607 GROUPED MILL RECORDS · 247 PUBLICATION ENTRIES · INTERNAL NOTES EXCLUDED</div><nav id="presentationToolbar" class="presentationToolbar" aria-label="Dashboard display controls">
+  <span class="presentationBrand">ITRSS <strong>Research Metrics</strong> · v7</span>
   <div class="presentationActions">
     <span class="presentationModes"><button id="presentationToggle" type="button" class="active" aria-pressed="true">Present</button><button id="presentationDetails" type="button" aria-pressed="false">Edit</button></span>
     <div class="presentationOnly">
@@ -31,22 +31,55 @@
   <div class="paperList"><h2>Matching publication records</h2><p id="paperRecordCount">Waiting for data</p><div id="paperRecords"></div><p class="paperNote">Public bibliographic metadata only. Internal research notes and evidence-tracking fields have been excluded. Acknowledgments are not proof of direct cluster usage. Duplicates are excluded by default.</p></div>
 </section>
 
-<section id="graphSection" class="graphSection" aria-label="Relationship metrics visualization">
-  <div class="graphHeading"><div><h2>Relationship graph</h2><p>Real Mill cohorts · optionally inspect local research collaborations</p></div></div>
+<section id="graphSection" class="graphSection" aria-label="Interactive research literature explorer">
+  <div class="graphHeading">
+    <div><div class="eyebrow">RESEARCH OUTPUTS · LITERATURE EXPLORER</div>
+      <h2>Research Canvas</h2>
+      <p>Explore related publications, researchers, and research communities using actual bibliography metadata</p></div>
+  </div>
   <div class="graphControls">
-    <label>Graph source<select id="graphSource"><option value="mill">Mill category relationships</option><option value="research">Research coauthor network</option></select></label>
-    <label>Search nodes<input id="graphSearch" type="search" placeholder="Find a department or researcher"></label>
-    <label>Researcher limit<select id="graphLimit"><option value="20">20</option><option value="40" selected>40</option><option value="60">60</option><option value="80">80</option></select></label>
-    <button id="graphImport" type="button">Open research CSV files</button>
+    <label>Canvas view
+      <select id="graphSource">
+        <option value="papers" selected>Related papers · public bibliography</option>
+        <option value="entities">Researchers · Papers · Grants</option>
+        <option value="research">Research communities · OpenAlex</option>
+        <option value="mill">Mill category relationships</option>
+      </select>
+    </label>
+    <label>Search title, author, DOI
+      <input id="graphSearch" type="search" placeholder="Search research…" autocomplete="off">
+    </label>
+    <label>Start year<select id="graphYearFrom"><option value="">From any year</option></select></label>
+    <label>End year<select id="graphYearTo"><option value="">Through any year</option></select></label>
+    <label>Facility
+      <select id="graphFacility"><option value="all">All facilities</option><option value="Foundry">Foundry</option><option value="Mill">Mill</option><option value="Foundry + Mill">Foundry + Mill</option></select>
+    </label>
+    <label>Maximum nodes
+      <select id="graphLimit"><option value="30">30</option><option value="60" selected>60</option><option value="90">90</option><option value="120">120</option></select>
+    </label>
+    <label>Title similarity
+      <select id="graphStrength"><option value="0.08">Broad links</option><option value="0.10" selected>Balanced links</option><option value="0.18">Strong links</option><option value="0.30">Very strong links</option></select>
+    </label>
+    <label class="graphGrantsControl"><input id="graphGrants" type="checkbox"> Candidate grants (OpenAlex only)</label>
+    <button id="graphImport" type="button">Open OpenAlex CSV files</button>
     <input id="graphFiles" type="file" accept=".csv,text/csv" multiple hidden>
-    <button id="graphReset" type="button">Reset graph</button>
+    <button id="graphReset" type="button">Reset filters</button>
   </div>
   <div class="graphStage">
-    <div id="graphKpis" class="graphKpis" aria-label="Relationship statistics"></div>
-    <svg id="graphCanvas" viewBox="0 0 1080 690" role="img" aria-label="Interactive relationship graph derived from source records"></svg>
-    <div class="graphFoot"><span id="graphCaption">Loading source metrics…</span><span id="graphSelected">Click a node to highlight related categories</span></div>
+    <div id="graphKpis" class="graphKpis" aria-label="Research graph metrics"></div>
+    <div class="graphLayout">
+      <div class="graphVisualArea">
+        <div class="graphTools" aria-label="Graph navigation">
+          <button id="graphZoomIn" type="button" title="Zoom in" aria-label="Zoom in">+</button>
+          <button id="graphZoomOut" type="button" title="Zoom out" aria-label="Zoom out">−</button>
+          <button id="graphFit" type="button" title="Fit all nodes">Fit</button>
+        </div>
+        <svg id="graphCanvas" viewBox="0 0 1080 690" role="img" aria-label="Research literature graph. Click nodes to focus, drag to pan and scroll to zoom."></svg>
+        <div class="graphFoot"><span id="graphCaption">Loading the public bibliography…</span><span id="graphSelected">Select a node to see its connections</span></div>
+      </div>
+      <aside id="graphDetail" class="graphDetail" aria-label="Selected research details"><h3>Explore the network</h3><p>Select a paper or researcher to inspect connections.</p></aside>
+    </div>
   </div>
   <p id="graphInfo" role="status" aria-live="polite"></p>
 </section>
-
-<footer><span>Public interface · Original data exports require disclosure review</span><span>Missing values shown as “Not specified”</span></footer></div><script src="app.js?v=5"></script><script src="papers.js?v=7"></script><script src="presentation.js?v=6"></script><script src="graph.js?v=5"></script></body></html>
+<footer><span>Public interface · Original data exports require disclosure review</span><span>Missing values shown as “Not specified”</span></footer></div><script src="app.js?v=5"></script><script src="papers.js?v=7"></script><script src="presentation.js?v=7"></script><script src="graph.js?v=7"></script></body></html>
