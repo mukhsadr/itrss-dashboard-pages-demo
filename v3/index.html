@@ -45,6 +45,10 @@ svg{display:block;height:100%;width:100%}
 @media(max-width:650px){.app{grid-template-rows:42px minmax(0,1fr);gap:3px;padding:3px}.top{padding:0 3px}.brand{display:none}.tabs button{padding:5px 10px;font-size:11px}.action{padding:6px 9px}.stage{border-radius:8px}.center strong{font-size:clamp(18px,5.7vw,30px)}.center span{font-size:9px}.key{left:7px;bottom:7px;gap:5px 8px;font-size:9px}.hint{font-size:9px;top:6px;left:7px}.notice{font-size:9px;bottom:4px;right:5px}.drawer{right:5px;top:5px;bottom:5px;padding:10px}}
 @media(prefers-reduced-motion:reduce){.arc{transition:none}}
 
+.modeNotice{position:absolute;left:50%;top:10px;transform:translateX(-50%);z-index:1;font-size:11px;color:#c7dafa;background:#223954;border:1px solid #49688b;border-radius:7px;padding:5px 10px;text-align:center;max-width:50%;pointer-events:none}
+.modeNotice.linked{background:#153f3c;border-color:#39ac9b;color:#c8fff0}
+body[data-canvas="cream"] .modeNotice:not(.linked){color:#244566;background:#e2e8f1}
+@media(max-width:650px){.modeNotice{top:9px;left:50%;max-width:60%;font-size:9px;padding:3px 4px}}
 /* Compact theme editor. Ring geometry stays identical to the local chart. */
 body{--page-bg:#0b1220;--canvas-bg:#121e30;--canvas-border:#25384e;--ring-divider:#121e30;background:var(--page-bg)}
 body[data-page="slate"]{--page-bg:#172335}
@@ -76,11 +80,11 @@ body[data-canvas="cream"] .hint,body[data-canvas="cream"] .key,body[data-canvas=
 @media(max-width:650px){.themePanel{top:5px;right:5px;padding:11px}.selectionStrip{left:5px;top:25px;max-width:85%}.chip{font-size:9px;padding:3px 5px}}
 </style></head>
 <body><div class="app">
-<header class="top"><div class="brand">S&T ITRSS</div>
+<header class="top"><div class="brand">S&T ITRSS <span style="font-size:10px;font-weight:500;opacity:.8">v24</span></div>
 <nav class="tabs" aria-label="Dataset"><button type="button" data-mode="users" aria-pressed="true">Mill Users</button><button type="button" data-mode="papers" aria-pressed="false">Publications</button></nav>
 <div class="actions"><button class="action" id="localFile" type="button" title="Load a local CSV or publication JSON. It stays in this browser.">Load file</button><input id="filePicker" type="file" accept=".csv,.json,text/csv,application/json" hidden><button class="action" id="theme" type="button" aria-expanded="false">Theme</button><button class="action" id="reset" type="button" title="Clear selection">Reset</button><button class="action" id="explore" type="button" aria-expanded="false">Explore</button></div></header>
 <main class="stage" id="stage">
-<div class="hint" id="hint">Select a slice</div><div class="selectionStrip" id="selectionStrip" aria-label="Active filters"></div>
+<div class="hint" id="hint">Public summary · click a slice to load local data</div><div id="modeNotice" class="modeNotice" role="status">PUBLIC SUMMARY — Rings show independent totals. Load your local file to enable linked filtering.</div><div class="selectionStrip" id="selectionStrip" aria-label="Active filters"></div>
 <div class="donut"><svg id="chart" viewBox="0 0 680 680" role="img" aria-label="Interactive concentric category chart"></svg><div class="center"><strong id="number">—</strong><span id="label">Users</span></div></div>
 <div class="key" id="key"></div><div class="notice" id="notice"></div>
 <section id="themePanel" class="themePanel" hidden aria-label="Appearance">
@@ -199,6 +203,7 @@ function distribution(i){
 function refreshSelected(ring,name){
  if(!localRows()&&!linked){
   pendingSelection={mode,ring,name};
+  $('modeNotice').textContent='SELECT A LOCAL FILE · true linked filtering requires row-level data';
   $('hint').textContent='Select your local '+(mode==='users'?'Mill CSV':'publications JSON')+' to activate linked filtering';
   $('filePicker').value='';
   $('filePicker').click();
@@ -256,6 +261,8 @@ function render(){
    theta=next;
   }
  }
+ const modeNotice=$('modeNotice');modeNotice.classList.toggle('linked',!!localRows());
+ modeNotice.textContent=localRows()?'LOCAL DATA · linked filtering enabled · '+num(filteredRows().length)+' / '+num(d.total)+' records':'PUBLIC SUMMARY · load local file for linked rings';
  const selectedFocus=picked?d.dims[picked.ring].values.find(x=>x.name===picked.name):null;
  $('notice').textContent=localRows()?'Linked filtering · '+num(filteredRows().length)+' selected':selectedFocus?(linkedMode?'Linked rings':'Load local file to link rings'):'Public totals · click a ring to link your own data';
  $('detailTitle').textContent=selectedFocus?picked.name:'Explore';
@@ -334,12 +341,16 @@ $('filePicker').onchange=async e=>{
   if(pendingSelection?.mode===mode){
     const p=pendingSelection;
     const cols=mode==='users'?localColumns:paperColumns;
-    if(filteredRows()&&localRows().some(row=>value(row,cols[p.ring])===p.name)){
+    if(localRows().some(row=>value(row,cols[p.ring])===p.name)){
       filters[mode][p.ring]=p.name;
       picked={ring:p.ring,name:p.name};inspectRing=p.ring;
     }
   }
-  pendingSelection=null;render();
+  if(pendingSelection&&!picked){
+    const label=pendingSelection.name;
+    pendingSelection=null;render();
+    $('hint').textContent='Loaded local file. Public group “'+label+'” does not match a raw CSV category; choose a slice again.';
+  }else{pendingSelection=null;render();}
  }catch(error){pendingSelection=null;$('hint').textContent=error.message;console.error(error)}
 };
 
