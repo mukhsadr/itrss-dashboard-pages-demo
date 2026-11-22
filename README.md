@@ -1,79 +1,73 @@
-# ITRSS Research Metrics Dashboard · v8
+# ITRSS Research Metrics Dashboard · v9
 
-**Live website:** https://mukhsadr.github.io/itrss-dashboard-pages-demo/  
-**Public repository:** https://github.com/mukhsadr/itrss-dashboard-pages-demo
+**Live:** https://mukhsadr.github.io/itrss-dashboard-pages-demo/  
+**Source:** https://github.com/mukhsadr/itrss-dashboard-pages-demo
 
-## Published metrics (automatically loaded on any device)
+## Live metrics: two ring charts + original Research Canvas
 
-### Mill users
+- **Mill users** — privacy-grouped real counts from the original 1,607-user report. Four linked concentric rings. No individual user IDs or advisor names in the public export.
+- **Publications** — 247 original public bibliographic records, including 17 flagged duplicates (230 included by default). Three linked concentric rings. Titles, public links and bibliographic fields are available, but internal notes and evidence tracking were excluded.
+- **Graph / Research Canvas** — corrected to follow the actual local `research_canvas.py` design, **not a title-similarity graph**.
 
-- Real source report total: **1,607 Mill user records**, represented by **48 grouped cohorts** with a `Count` weight
-- Four interlinked SVG rings (department, classification, status, advisor-recorded category)
-- No direct user IDs or individual advisor names in the public dataset; smaller groups combined for privacy
-- These transformations reduce exposure but are not a guarantee of anonymity. Institutional data-release approval remains important.
+## Graph models (faithful to the original source)
 
-### Publications
+The default is **Research communities**, connecting researchers by *shared papers* according to OpenAlex author IDs. The original Streamlit app uses **NetworkX weighted greedy-modularity** to detect communities, and `nx.spring_layout(seed=17)` for positions. The public exporter computes the **exact original community assignments** and includes them in `research_graph_public.json`. The browser uses these community colors and a separate interactive SVG force layout; node coordinates may differ from the Streamlit/Plotly rendering.
 
-- **247 source entries** from `Foundry_Mill_acknowledgments.xlsx` via the locally supplied `publications.json`
-- **17 entries explicitly flagged as duplicates**, excluded by default → **230 included entries**
-- Three interlinked rings: cluster acknowledged, publication year, and publication type
-- Public GitHub dataset: `data/publications.json` (automatically fetched by the website)
-- Published fields: Year, Cluster acknowledged, Type, Title, Authors, Venue, DOI, DOI / record link, Counted as duplicate
-- Intentionally omitted from the public dataset: internal `#`, `Date`, `MS&T author (OpenAlex)`, `Evidence sources`, and `Note` fields
-- All 247 published record links point to public DOI, Scholars' Mine, or NASA ADS pages. Metadata is taken from the supplied source; it is not independently audited against every publisher.
-- An acknowledgment is not proof of direct cluster usage, and a duplicate flag reflects the supplied workbook's annotation.
+The second view is **Researchers · Papers · Grants** with author-to-paper edges from OpenAlex author-record IDs and optional grant-metadata candidate edges. Grant metadata **is not verified award funding**. The third optional view shows the already-published grouped Mill category relationships.
 
-### Research Canvas · third interactive metric
+The Graph **Edit** controls support researcher focus, title/author/DOI search, publication-year range, single infrastructure category, minimum shared papers, researcher limit, paper limit and grant limit. **Present** focuses on the network. Click nodes to inspect research works, coauthors and connected records. Drag to pan; use wheel or +/- to zoom and Fit to reset.
 
-The Graph tab now opens as a **Research Rabbit-style related-paper constellation** built automatically from the published `data/publications.json`. No Streamlit server is required on GitHub Pages.
+Differences from the Streamlit source: this static browser port supports a single facility selection (rather than a multi-select), does not run Python/Streamlit live, and uses an SVG force layout rather than Plotly's original NetworkX spring positions. The underlying coauthorship/selection data model follows the supplied source.
 
-**Four graph views:**
+### Load your real OpenAlex network now (private browser session)
 
-1. **Related papers (default)** — paper-to-paper links based on shared title terms or a matching explicitly listed author. These are bibliographic similarities, **not citations, co-citations or verified relationships**.
-2. **Researchers · Papers · Grants** — public listed-author-to-paper links by default. Once complete OpenAlex data is supplied, the view uses researcher IDs and can optionally show **unverified candidate grant mentions**.
-3. **Research communities** — coauthorship from `enriched_works.csv` and `authors.csv`, after import. The original Python Streamlit canvas uses NetworkX greedy modularity; this browser adaptation uses deterministic label propagation, so community assignments can differ.
-4. **Mill category relationships** — existing privacy-grouped real Mill counts.
+The **Graph** tab will show a **Load research_graph_public.json** prompt until the reviewed dataset is published. Click it, and select the file that you exported on your computer:
 
-**Interaction:** filters for year, facility, title/author/DOI, node count, relatedness strength and minimum shared papers; click a node to inspect connected publications; drag to pan, wheel/+/- to zoom, and Fit to reset. The **Present** mode emphasizes the centered graph and **Edit** reveals controls and the inspector.
+```text
+C:\Users\adams\Downloads\research_graph_public.json
+```
 
-The source archive `itrss_research_canvas.zip` contains `research_canvas.py` and its requirements, **not** the actual OpenAlex exports. The deployed public bibliography supports the first two views today; the full original coauthor and grant metadata is not yet on the website.
+The imported JSON remains **in the browser tab**, and is not uploaded to GitHub.
 
-#### Publishing a reviewed OpenAlex graph for automatic loading
-
-A strict allowlist converter is available at `tools/export_research_graph_public.py`. On your WSL machine:
+Your previous converter wrote 186 works and 858 authorship entries. Since the exporter was updated to compute NetworkX community groups, **rerun it** to create the correct coloring:
 
 ```bash
 cd ~/Projects/hpc-publication-ai/mill-research-graph/mill_graph_pipeline
 
-python3 /path/to/itrss-dashboard-pages-demo/tools/export_research_graph_public.py \
+curl -fsSL https://raw.githubusercontent.com/mukhsadr/itrss-dashboard-pages-demo/main/tools/export_research_graph_public.py \
+  -o export_research_graph_public.py
+
+source .venv-dashboard/bin/activate
+
+python3 export_research_graph_public.py \
   --root ./output \
   --out /mnt/c/Users/adams/Downloads/research_graph_public.json
 ```
 
-It reads the original `output/enriched_works.csv` and `output/authors.csv`, retaining public-facing identifiers, titles, year, facility, DOI/source URL and author names/IDs. Rows without a DOI or source URL are excluded. Use `--include-candidate-grants` **only after reviewing those unverified references**.
+This includes only allowed publication/author fields, not all original pipeline columns. Grants are excluded unless explicitly requested. **The output remains unreviewed until inspected.**
 
-**The script does not publish anything.** Review the output and obtain any necessary institutional authorization. Once an approved `research_graph_public.json` is committed to `data/research_graph_public.json`, the website will load the richer OpenAlex network automatically from any laptop. Otherwise, it can be imported in the browser from local CSVs.
+### Automatic load on every laptop
 
+After the JSON is reviewed and its public release is authorized, commit it as:
 
-## Presentation and editing
+```text
+data/research_graph_public.json
+```
 
-- **Present:** clean, centered rings or graph, click-to-filter, fullscreen
-- **Edit:** change ring attributes, sorting, inspect publication entries, show legends, import local files
-- Switching tabs or modes preserves the currently loaded data and active filters until refresh
-- Selecting `Open local CSV / JSON` temporarily replaces the public dataset **only inside your browser session**; it does not publish those files
+The Graph tab already checks that path and will load the file automatically. **That file is not yet in this repository**—the generated output on a local WSL computer does not become accessible to this GitHub-connected chat without an upload.
 
-## Deployment
+## Disclosure boundaries
 
-Static website (HTML/CSS/JS), deployed to GitHub Pages via `.github/workflows/deploy-pages.yml` on changes to `main`.
+This is a **public GitHub Pages** site. Anyone can download its committed data. The grouped user report and published bibliography are already present; no complete private user data, original internal research graph CSVs, or unpublished award candidate files are uploaded by this v9 update. Public identifiers or author names can still be personal data; evaluate institutional release rules before publishing any further OpenAlex exports.
 
-Local preview:
+## Deployment and preview
+
+GitHub Actions deploys `main` automatically. If the browser is showing a cached version, use **Ctrl+Shift+R** or open the URL with `?v=9`.
+
+Local preview from the repository:
 
 ```bash
 python3 -m http.server 8766
 ```
 
-Open http://localhost:8766 . If an older version is cached, use **Ctrl+Shift+R** and the live site `?v=8` URL.
-
-## Data release boundary
-
-This repository is **public**: everything committed here, including `data/publications.json` and `data/callie.csv`, can be downloaded by anyone. The original full institutional user report, internal publication evidence notes, and the Python research graph exports have **not** been committed here. Do not publish restricted or nonpublic institutional files without appropriate authorization.
+Open http://localhost:8766 .
