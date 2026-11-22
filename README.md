@@ -1,50 +1,34 @@
-# ITRSS Research Metrics Dashboard · Presentation v4
+# ITRSS Research Metrics Dashboard · v4
 
-**Website:** https://mukhsadr.github.io/itrss-dashboard-pages-demo/  
-**GitHub:** https://github.com/mukhsadr/itrss-dashboard-pages-demo
+**Dashboard:** https://mukhsadr.github.io/itrss-dashboard-pages-demo/
 
-## What it does
+## Default live dataset: real grouped Mill report (not synthetic)
 
-The public site contains the original plain-JavaScript, linked-filter concentric-ring visualizations:
+The public site automatically loads `data/callie.csv`, derived from the user's 1,607-row local report. This is a *privacy-grouped aggregate*, not a row-level export.
 
-- **Mill users:** four rings for department, classification, status, and advisor.
-- **Publications:** three rings for cluster, year, and publication type.
-- **Click a ring segment** to filter the dataset and redraw the *other* rings. Click the same slice again to clear that filter. Multiple rings can be filtered together.
-- **Presentation mode (v4):** select **Present** to show a clean, enlarged, centered ring chart. Switch between Mill users and Publications, choose **Show labels & controls**, reset filters, or enter fullscreen. **Exit presentation** returns to the original detailed dashboard.
+- **Original total:** 1,607 records
+- **Published groups:** 48, with a `Count` weight; real counts from source, not invented records
+- **Disclosure controls:** removed all `User` IDs and advisor names; advisor reduced to recorded/not recorded; academic classifications grouped by type; departments with fewer than 30 records combined into Other departments; every remaining 4-field combination with fewer than five records merged into a single Other grouped categories cohort (194 records)
+- **Display:** 4 linked concentric rings, weighted totals, click-to-filter, hover highlight, center metric, and a simple full-screen presentation default.
 
-## Open the original de-identified data in your browser
+The source was already pseudonymized in the `User` field, but it retained advisor identities and small unique groups. This public export intentionally does **not** reproduce every original fine-grained category. These transformations reduce disclosure risk but are **not a guarantee of anonymity or an institutional publication approval**. Review with the institutional data owner before broader dissemination.
 
-The website starts with **fictional demo records**. To see the original counts *without publishing individual records*, open the website, choose **Present → Mill users → Open local CSV**, and select the exported CSV from your own computer.
+## Publications
 
-For the publication rings choose **Present → Publications → Open local JSON**, and select your `publications.json` export.
+The original `data/publications.json` export has **not yet been supplied** in this conversation. There are no fabricated publication records on the public site. Select **Publications → Open local JSON** to explore the real file in your browser session without posting it to GitHub. The empty public JSON is a placeholder, not a zero-publications finding.
 
-These files are parsed entirely in the browser using the File API. **The file contents are not sent to GitHub, uploaded to an API, or committed to this repository.** They are held only in the current page session. Reloading the page returns to the synthetic demo. With a file selected, all ring filters work against that actual file's rows, including linked updates across rings.
+## Presentation UI
 
-The current local WSL sources are:
+Page opens in centered chart-only presentation mode. Use the toolbar to toggle between the Mill user and publication charts, show or hide details, clear filters, enter fullscreen, or load a local source file.
 
-```text
-~/Projects/itrss-metrics-dashboard/data/callie.csv
-~/Projects/itrss-metrics-dashboard/data/publications.json
-```
+The local private dataset is at `~/Projects/itrss-metrics-dashboard/data/callie.csv`, and the publication export at `~/Projects/itrss-metrics-dashboard/data/publications.json`. These are **not** the public grouped export.
 
-Copy them to your Windows Downloads directory if needed:
-
-```bash
-cp ~/Projects/itrss-metrics-dashboard/data/{callie.csv,publications.json} /mnt/c/Users/adams/Downloads/
-```
-
-**Important:** Replacing `User` IDs does not ensure privacy when other attributes (such as advisors, statuses, department descriptions, small combinations, publication titles or authors) could identify people. Do not commit the original files to this publicly accessible repository without an institutional disclosure review. For an always-on dashboard with full internal data accessible to teammates, deploy behind approved campus authentication rather than using public GitHub Pages.
-
-## Development
-
-This is a static HTML/CSS/JS site without a build step.
+## Local serving
 
 ```bash
 python3 -m http.server 8766
 ```
 
-Then visit http://localhost:8766 .
+Then browse to http://localhost:8766 .
 
-GitHub Actions workflow `.github/workflows/deploy-pages.yml` deploys from `main`. In **Settings → Pages**, use **GitHub Actions** as the publishing source.
-
-The local Streamlit research collaboration canvas is a separate Python service and is not hosted on GitHub Pages.
+This static site deploys through `.github/workflows/deploy-pages.yml` on GitHub Actions. The separate local Streamlit canvas is not included on public GitHub Pages.
