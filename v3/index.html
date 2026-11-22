@@ -80,11 +80,11 @@ body[data-canvas="cream"] .hint,body[data-canvas="cream"] .key,body[data-canvas=
 @media(max-width:650px){.themePanel{top:5px;right:5px;padding:11px}.selectionStrip{left:5px;top:25px;max-width:85%}.chip{font-size:9px;padding:3px 5px}}
 </style></head>
 <body><div class="app">
-<header class="top"><div class="brand">S&T ITRSS <span style="font-size:10px;font-weight:500;opacity:.8">v27</span></div>
+<header class="top"><div class="brand">S&T ITRSS <span style="font-size:10px;font-weight:500;opacity:.8">v28</span></div>
 <nav class="tabs" aria-label="Dataset"><button type="button" data-mode="users" aria-pressed="true">Mill Users</button><button type="button" data-mode="papers" aria-pressed="false">Publications</button></nav>
-<div class="actions"><button class="action" id="localFile" type="button" title="Optionally choose a local CSV/JSON for exact multi-ring filtering without leaving this page">Load data</button><input id="filePicker" type="file" accept=".csv,.json,text/csv,application/json" hidden><button class="action" id="theme" type="button" aria-expanded="false">Theme</button><button class="action" id="reset" type="button" title="Clear selection">Reset</button><button class="action" id="explore" type="button" aria-expanded="false">Explore</button></div></header>
+<div class="actions"><button class="action" id="localFile" type="button" title="Optionally choose a local CSV/JSON for exact multi-ring filtering without leaving this page">Connect once</button><button class="action" id="forgetData" type="button" title="Delete saved browser data" hidden>Forget data</button><input id="filePicker" type="file" accept=".csv,.json,text/csv,application/json" hidden><button class="action" id="theme" type="button" aria-expanded="false">Theme</button><button class="action" id="reset" type="button" title="Clear selection">Reset</button><button class="action" id="explore" type="button" aria-expanded="false">Explore</button></div></header>
 <main class="stage" id="stage">
-<div class="hint" id="hint">Public summary · click a slice to load local data</div><div id="modeNotice" class="modeNotice" role="status">PUBLIC SUMMARY — Click for details; Load data for linked filtering.</div><div class="selectionStrip" id="selectionStrip" aria-label="Active filters"></div>
+<div class="hint" id="hint">Public summary · click a slice to load local data</div><div id="modeNotice" class="modeNotice" role="status">PUBLIC SUMMARY — Connect once to enable live linked filtering.</div><div class="selectionStrip" id="selectionStrip" aria-label="Active filters"></div>
 <div class="donut"><svg id="chart" viewBox="0 0 680 680" role="img" aria-label="Interactive concentric category chart"></svg><div class="center"><strong id="number">—</strong><span id="label">Users</span></div></div>
 <div class="key" id="key"></div><div class="notice" id="notice"></div>
 <section id="themePanel" class="themePanel" hidden aria-label="Appearance">
@@ -139,6 +139,46 @@ const point=(r,t)=>[340+r*Math.cos(t),340+r*Math.sin(t)];
 function arc(ri,ro,a,b){b=Math.min(b,a+Math.PI*2-.000001);const [x1,y1]=point(ro,a),[x2,y2]=point(ro,b),[x3,y3]=point(ri,b),[x4,y4]=point(ri,a),large=b-a>Math.PI?1:0;return 'M'+x1+' '+y1+' A'+ro+' '+ro+' 0 '+large+' 1 '+x2+' '+y2+' L'+x3+' '+y3+' A'+ri+' '+ri+' 0 '+large+' 0 '+x4+' '+y4+' Z'}
 let data=null,mode='users',picked=null,hover=null,linked=null,drawerOpen=false,inspectRing=0,search='',pendingSelection=null;
 let localUsers=null,localPapers=null,filters={users:[null,null,null,null],papers:[null,null,null]};
+
+const DB_NAME='itrss-v3-browser-datasets-v1';
+function openPrivateDB(){
+ return new Promise((resolve,reject)=>{
+  if(!('indexedDB' in window))return reject(Error('IndexedDB unavailable'));
+  const r=indexedDB.open(DB_NAME,1);
+  r.onupgradeneeded=()=>{r.result.createObjectStore('datasets')};
+  r.onsuccess=()=>resolve(r.result);
+  r.onerror=()=>reject(r.error||Error('IndexedDB failed'));
+ });
+}
+async function savePrivateDataset(key,rows){
+ const db=await openPrivateDB();
+ try{await new Promise((resolve,reject)=>{
+  const tx=db.transaction('datasets','readwrite');
+  tx.objectStore('datasets').put(rows,key);
+  tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error||Error('Save failed'));
+  tx.onabort=()=>reject(tx.error||Error('Save aborted'));
+ })}finally{db.close()}
+}
+async function readPrivateDataset(key){
+ const db=await openPrivateDB();
+ try{return await new Promise((resolve,reject)=>{
+  const req=db.transaction('datasets','readonly').objectStore('datasets').get(key);
+  req.onsuccess=()=>resolve(req.result||null);req.onerror=()=>reject(req.error||Error('Read failed'));
+ })}finally{db.close()}
+}
+async function forgetPrivateDatasets(){
+ const db=await openPrivateDB();
+ try{await new Promise((resolve,reject)=>{
+  const tx=db.transaction('datasets','readwrite');
+  tx.objectStore('datasets').clear();
+  tx.oncomplete=resolve;tx.onerror=()=>reject(tx.error||Error('Erase failed'));
+ })}finally{db.close()}
+}
+function updateDataControls(){
+ $('localFile').textContent=localRows()?'Replace data':'Connect once';
+ $('forgetData').hidden=!(localUsers||localPapers);
+}
+
 const localColumns=['Descr','Classficiation','Status','Advisor'];
 const paperColumns=['Cluster acknowledged','Year','Type'];
 const value=(row,col)=>(String(row[col]??'').trim()||'Not specified');
@@ -220,7 +260,7 @@ function info(){
  $('hint').textContent=localRows()?(num(filteredRows().length)+' / '+num(d.total)+' records · linked rings'):focus?(d.names[picked.ring]+' · '+percent(focus.count,d.total).toFixed(1)+'%'):'Click a segment to inspect';
 }
 function render(){
- if(!data)return;const d=current(),linkedMode=jointEnabled();
+ if(!data)return;const d=current(),linkedMode=jointEnabled();updateDataControls();
  document.querySelectorAll('[data-mode]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mode===mode)));
  $('drawer').hidden=!drawerOpen;$('explore').setAttribute('aria-expanded',String(drawerOpen));
  const chips=$('selectionStrip');chips.replaceChildren();
@@ -257,9 +297,9 @@ function render(){
   }
  }
  const modeNotice=$('modeNotice');modeNotice.classList.toggle('linked',!!localRows());
- modeNotice.textContent=localRows()?'LOCAL DATA · linked filtering enabled · '+num(filteredRows().length)+' / '+num(d.total)+' records':'PUBLIC SUMMARY · click for details · Load data for cross-ring filtering';
+ modeNotice.textContent=localRows()?'LIVE LINKED · '+num(filteredRows().length)+' / '+num(d.total)+' records · browser private':'PUBLIC SUMMARY · Connect once for live cross-ring filtering';
  const selectedFocus=picked?d.dims[picked.ring].values.find(x=>x.name===picked.name):null;
- $('notice').textContent=localRows()?'Linked filtering · '+num(filteredRows().length)+' selected':selectedFocus?(linkedMode?'Linked rings':'Other rings are overall totals'):'Load data for exact linked filtering';
+ $('notice').textContent=localRows()?'All rings linked · saved on this device':selectedFocus?(linkedMode?'Linked rings':'Other rings are overall totals'):'Connect once · live URL remembers your data';
  $('detailTitle').textContent=selectedFocus?picked.name:'Explore';
  $('detailCount').textContent=num(localRows()?filteredRows().length:selectedFocus?selectedFocus.count:d.total);
  $('detailShare').textContent=localRows()?(liveFilters().filter(Boolean).join(' · ')||'All local records')+' · '+percent(filteredRows().length,d.total).toFixed(1)+'%':selectedFocus?percent(selectedFocus.count,d.total).toFixed(1)+'% of all records · '+(linkedMode?'linked':'other rings overall'):'Select a category';
@@ -296,6 +336,12 @@ async function load(){
  const [users,papers]=await Promise.all([ur.json(),pr.json()]);validate(users.dimensions,users.source_total);validate(papers.dimensions,papers.included_total);
  if(users.dimensions.length!==4||papers.dimensions.length!==3)throw Error('Unexpected ring counts');
  data={users,papers};render();
+ try{
+  const [cachedUsers,cachedPapers]=await Promise.all([readPrivateDataset('users'),readPrivateDataset('papers')]);
+  if(Array.isArray(cachedUsers)&&cachedUsers.length&&cachedUsers.every(row=>localColumns.every(c=>typeof row[c]==='string')))localUsers=cachedUsers;
+  if(Array.isArray(cachedPapers)&&cachedPapers.length&&cachedPapers.every(row=>paperColumns.every(c=>typeof row[c]==='string')))localPapers=cachedPapers;
+ }catch(e){console.warn('Saved browser data unavailable',e)}
+ render();
  // On the loopback-only V3 preview, load local category records automatically.
  // Hosted GitHub Pages never requests or receives these private records.
  if(['127.0.0.1','localhost'].includes(location.hostname)){
@@ -334,6 +380,11 @@ $('clear').onclick=()=>{picked=null;hover=null;filters[mode].fill(null);render()
 $('ringSelect').onchange=v=>{inspectRing=Number(v.target.value);updateList()};
 $('search').oninput=v=>{search=v.target.value;updateList()};
 $('localFile').onclick=()=>{pendingSelection=null;$('filePicker').value='';$('filePicker').click()};
+$('forgetData').onclick=async()=>{
+ if(!confirm('Erase saved category data from this browser?'))return;
+ try{await forgetPrivateDatasets()}catch(e){$('hint').textContent=e.message;return}
+ localUsers=null;localPapers=null;picked=null;hover=null;filters.users.fill(null);filters.papers.fill(null);render();
+};
 $('filePicker').onchange=async e=>{
  const file=e.target.files?.[0];if(!file)return;
  try{
@@ -343,13 +394,15 @@ $('filePicker').onchange=async e=>{
    const parsed=csvParse(await file.text());
    if(!localColumns.every(col=>parsed.columns.includes(col)))throw Error('Expected Descr, Classficiation, Status, Advisor');
    if(!parsed.rows.length)throw Error('No data rows');
-   localUsers=parsed.rows;
+   localUsers=parsed.rows.map(row=>Object.fromEntries(localColumns.map(c=>[c,value(row,c)])));
+   try{await savePrivateDataset('users',localUsers)}catch(e){console.warn('Browser storage unavailable; session-only data',e)}
   }else{
    if(!/\.json$/i.test(file.name))throw Error('Choose local publications.json for Publications mode');
    const payload=JSON.parse(await file.text());if(!Array.isArray(payload.rows)||!Array.isArray(payload.columns))throw Error('Expected a publications JSON containing rows and columns');
    if(!paperColumns.every(col=>payload.columns.includes(col)))throw Error('Publication columns missing');
    const dup=row=>/^(yes|true|1|y)$/i.test(value(row,'Counted as duplicate'));
-   localPapers=payload.rows.filter(row=>!dup(row));
+   localPapers=payload.rows.filter(row=>!dup(row)).map(row=>Object.fromEntries(paperColumns.map(c=>[c,value(row,c)])));
+   try{await savePrivateDataset('papers',localPapers)}catch(e){console.warn('Browser storage unavailable; session-only data',e)}
    if(!localPapers.length)throw Error('No included publication records');
   }
   filters[mode].fill(null);picked=null;hover=null;inspectRing=0;drawerOpen=false;
