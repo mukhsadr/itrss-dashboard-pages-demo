@@ -266,8 +266,31 @@
     const p=document.createElement('p');p.textContent=node?(node.note||'')+' '+[node.year,node.cluster,node.authors].filter(Boolean).join(' · '):
       'Select a paper or researcher to highlight connected nodes. Drag to pan, scroll to zoom.';box.append(p);
     if(node?.url){try{const u=new URL(node.url);if(/^https?:$/.test(u.protocol)){
-      const link=document.createElement('a');link.href=u.href;link.rel='noopener noreferrer';link.target='_blank';link.textContent='Open publication';box.append(link)
+      const link=document.createElement('a');link.href=u.href;link.rel='noopener noreferrer';link.target='_blank';
+      link.textContent=node.kind==='researcher'?'Open researcher in OpenAlex':'Open publication source';box.append(link)
     }}catch{}}
+    if(node?.kind==='researcher'&&Array.isArray(node.workIDs)){
+      const worksByID=new Map(works.map(w=>[String(w.record_id),w]));
+      const ids=node.workIDs.filter(id=>worksByID.has(id))
+        .sort((a,b)=>(Number(worksByID.get(b).year)||0)-(Number(worksByID.get(a).year)||0));
+      const hdr=document.createElement('h4');hdr.textContent=ids.length+' papers in filtered corpus';box.append(hdr);
+      for(const pid of ids.slice(0,12)){
+        const w=worksByID.get(pid),item=document.createElement('div');item.className='graphRelatedItem';
+        const url=String(w.source_url||'').trim()||(w.doi?'https://doi.org/'+w.doi:'');
+        if(url){try{const u=new URL(url);if(/^https?:$/.test(u.protocol)){
+          const a=document.createElement('a');a.href=u.href;a.target='_blank';a.rel='noopener noreferrer';
+          a.textContent=String(w.title||pid)+' ('+String(w.year||'')+')';item.append(a);
+        }else item.textContent=w.title}catch{item.textContent=w.title}}
+        else item.textContent=w.title;
+        box.append(item);
+      }
+      const coauthorIDs=new Set(ids.flatMap(pid=>authors.filter(a=>String(a.record_id)===pid).map(a=>String(a.author_id))));
+      coauthorIDs.delete(node.author_id);
+      const co=document.createElement('p');co.textContent=coauthorIDs.size+' coauthors in filtered publications';box.append(co);
+    }
+    if(node?.kind==='grant'){
+      const warn=document.createElement('p');warn.textContent='Candidate grant reference from extracted metadata, not confirmed award support.';box.append(warn);
+    }
     if(node){
       const hits=currentEdges.filter(e=>e.a===node.id||e.b===node.id).slice(0,10);
       const label=document.createElement('h4');label.textContent=hits.length+' connections';box.append(label);
