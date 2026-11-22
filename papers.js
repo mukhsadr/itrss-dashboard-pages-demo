@@ -58,5 +58,21 @@ for(let j=0;j<items.length;j++){const item=items[j],sw=item.n/n*Math.PI*2,end=an
 const btn=document.createElement('button');btn.className='legendRow';const swatch=document.createElement('span');swatch.className='swatch';swatch.style.background=color;const label=document.createElement('span');label.className='name';label.textContent=item.name;const value=document.createElement('span');value.className='pct';value.textContent=item.n+' · '+pct(item.n,n);btn.append(swatch,label,value);btn.onclick=()=>select(i,item.name);group.append(btn)}legend.append(group)}renderRecords(current)}
 function select(i,name){chosen[i]=chosen[i]===name?null:name;render()}
 async function load(){try{const resp=await fetch('data/publications.json?t='+Date.now(),{cache:'no-store'});if(!resp.ok)throw Error('publication JSON unavailable');const data=await resp.json();rows=data.rows;cols=data.columns.filter(x=>x&&x!=='#');const preferred=['Cluster acknowledged','Year','Type'];dims=preferred.map((k,i)=>cols.includes(k)?k:cols[i]);chosen=[null,null,null];controlSetup();$('paperLoaded').textContent=rows.length+' source records · '+cols.length+' columns';render()}catch(e){$('paperLoaded').textContent='Could not load publications: '+e.message;}}
+window.addEventListener('dashboard:load-papers',event=>{
+  try{
+    const data=JSON.parse(event.detail.text);
+    if(!data||!Array.isArray(data.columns)||!Array.isArray(data.rows)||data.columns.length<3)
+      throw Error('Expected an export with columns and rows arrays');
+    rows=data.rows;cols=data.columns.filter(x=>x&&x!=='#');
+    const preferred=['Cluster acknowledged','Year','Type'];
+    dims=preferred.map((k,i)=>cols.includes(k)?k:cols[i]);
+    chosen=[null,null,null];controlSetup();
+    $('paperLoaded').textContent=rows.length.toLocaleString()+' local records · '+cols.length+' columns';
+    render();
+    window.dispatchEvent(new CustomEvent('dashboard:local-data-loaded',{detail:{name:event.detail.name}}));
+  }catch(error){
+    window.dispatchEvent(new CustomEvent('dashboard:local-data-error',{detail:{message:'Publication JSON could not be loaded: '+error.message}}));
+  }
+});
 $('paperSort').onchange=e=>{sort=e.target.value;render()};$('paperDup').onchange=e=>{includeDup=e.target.checked;chosen=[null,null,null];render()};$('paperClear').onclick=()=>{chosen=[null,null,null];render()};$('paperReload').onclick=load;load();
 })();
