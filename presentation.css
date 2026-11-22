@@ -91,3 +91,15 @@ body.presentation-mode.presentation-details.presentation-papers #papersSection:n
 body.presentation-mode.presentation-details.presentation-papers #papersSection:not(.publication-awaiting)>.paperList{display:block}
 body.presentation-mode.presentation-details.presentation-papers #papersSection:not(.publication-awaiting){max-width:1420px}
 body.presentation-mode.presentation-details .ringsCaption{display:flex}
+
+/* Original publication import: a visible action in both Present and Edit. */
+.paperPendingIcon {font-size:34px;line-height:1;color:#8fbeef;margin:0 auto 14px}
+.paperImportPrimary {display:inline-flex;justify-content:center;align-items:center;cursor:pointer;
+  margin:14px auto 8px;padding:12px 22px;border:1px solid #7bbfff;border-radius:10px;
+  background:#2074aa;color:#fff;font:700 14px system-ui}
+.paperImportPrimary:hover,.paperImportPrimary:focus-visible{
+  background:#348ec7;outline:2px solid #9dd6ff;outline-offset:2px}
+.paperDropHint{font:12px/1.6 system-ui!important;color:#a4bad1!important;margin:7px auto 0}
+body.presentation-mode.presentation-papers #papersSection.publication-awaiting .publicationAwaitingMessage.drag-over{
+  background:#193954;border-color:#87d3ff;box-shadow:0 0 0 2px #3288c8aa
+}
