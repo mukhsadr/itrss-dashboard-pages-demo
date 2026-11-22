@@ -51,41 +51,69 @@
     const total=cohorts.reduce((s,r)=>s+Number(r.Count||1),0);
     return {nodes,edges,caption:'Real grouped source data · departments → classification → status',stats:[['Source records',total],['Grouped cohorts',cohorts.length],['Connections',edges.length]]};
   }
+
   function buildResearch(){
-    const byId=new Map(works.map(w=>[w.record_id,w]).filter(([id])=>id));
+    const search=$('graphSearch').value.trim().toLowerCase();
+    const yearFrom=Number($('graphYearFrom').value)||1900,yearTo=Number($('graphYearTo').value)||2100;
+    const facility=$('graphFacility').value;
+    const authorMatches=new Set(authors.filter(a=>String(a.author_name||'').toLowerCase().includes(search))
+      .map(a=>String(a.record_id||'')));
+    const visible=works.filter(w=>{
+      const year=Number(w.year)||0;
+      if(year&&(year<yearFrom||year>yearTo))return false;
+      if(facility!=='all'&&w.cluster!==facility)return false;
+      if(!search)return true;
+      return authorMatches.has(String(w.record_id||''))||
+        [w.title,w.doi,w.venue,w.grant_ids].some(v=>String(v||'').toLowerCase().includes(search));
+    });
+    const valid=new Map(visible.map(w=>[String(w.record_id||''),w]).filter(([id])=>id));
     const authorPapers=new Map(),names=new Map(),paperAuthors=new Map();
     for(const a of authors){
-      const pid=a.record_id,aid=a.author_id;
-      if(!byId.has(pid)||!aid)continue;
+      const pid=String(a.record_id||''),aid=String(a.author_id||'');
+      if(!valid.has(pid)||!aid)continue;
       names.set(aid,a.author_name||aid);
       if(!authorPapers.has(aid))authorPapers.set(aid,new Set());
       authorPapers.get(aid).add(pid);
       if(!paperAuthors.has(pid))paperAuthors.set(pid,new Set());
       paperAuthors.get(pid).add(aid);
     }
-    const max=Number($('graphLimit').value)||40;
-    const search=$('graphSearch').value.trim().toLowerCase();
-    const ranked=[...authorPapers].sort((a,b)=>b[1].size-a[1].size).slice(0,max);
-    const ids=new Set(ranked.map(([id])=>id));
-    const nodes=ranked.map(([id,p])=>({id,kind:'researcher',label:names.get(id),count:p.size}));
-    const pairs=new Map();
-    for(const aids of paperAuthors.values()){
-      const kept=[...aids].filter(id=>ids.has(id)).sort();
-      for(let i=0;i<kept.length;i++)for(let j=i+1;j<kept.length;j++){
-        const key=kept[i]+'|||'+kept[j];pairs.set(key,(pairs.get(key)||0)+1);
+    const limit=Number($('graphLimit').value)||60;
+    const ranked=[...authorPapers].sort((a,b)=>b[1].size-a[1].size).slice(0,limit);
+    const keep=new Set(ranked.map(([id])=>id));
+    const collabs=new Map();
+    for(const group of paperAuthors.values()){
+      const sorted=[...group].filter(a=>keep.has(a)).sort();
+      for(let i=0;i<sorted.length;i++)for(let j=i+1;j<sorted.length;j++){
+        const key=sorted[i]+'|||'+sorted[j];collabs.set(key,(collabs.get(key)||0)+1);
       }
     }
-    const edges=[...pairs].map(([key,count])=>{const [a,b]=key.split('|||');return {a,b,count}});
-    // Deterministic radial layout: a researcher with more papers is nearer the center.
+    const edges=[...collabs].filter(([,count])=>count>=Number($('graphMinShared').value||1)).map(([key,count])=>{
+      const [a,b]=key.split('|||');return {a,b,count,relation:'Shared publications'};
+    });
+    let group=new Map(ranked.map(([id])=>[id,id]));
+    for(let iteration=0;iteration<12;iteration++){
+      const next=new Map(group);
+      for(const [id] of ranked){
+        const score=new Map();
+        for(const e of edges)if(e.a===id||e.b===id){
+          const neighbor=e.a===id?e.b:e.a,label=group.get(neighbor);
+          score.set(label,(score.get(label)||0)+e.count);
+        }
+        if(score.size)next.set(id,[...score].sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0]))[0][0]);
+      }
+      group=next;
+    }
+    const communities=[...new Set(group.values())].sort();
+    const colors=['#45d6c2','#8b9cff','#e9a65b','#ff7caa','#80c6ff','#b4e66e','#df99f9','#61b0ad'];
+    const nodes=ranked.map(([id,p])=>({id,kind:'researcher',label:names.get(id),count:p.size,
+      community:communities.indexOf(group.get(id))+1,color:colors[communities.indexOf(group.get(id))%colors.length]}));
     nodes.forEach((node,i)=>{
-      const angle=i*2.399963229728653;
-      const r=58+300*Math.sqrt((i+1)/Math.max(1,nodes.length));
+      const angle=i*2.399963229728653,r=58+300*Math.sqrt((i+1)/Math.max(1,nodes.length));
       node.x=530+Math.cos(angle)*r;node.y=340+Math.sin(angle)*r*.76;
     });
-    const matching=search?nodes.filter(n=>n.label.toLowerCase().includes(search)):nodes;
-    return {nodes,edges,caption:'Coauthorship extracted from local OpenAlex exports · no grant funding claims',stats:[['Researchers',nodes.length],['Source papers',byId.size],['Coauthor links',edges.length]],suggested:matching[0]?.id||null};
+    return {nodes,edges,caption:'OpenAlex coauthorship · color = detected research community',
+      stats:[['Researchers',nodes.length],['Publications',visible.length],['Coauthor links',edges.length],['Communities',communities.length]]};
   }
-
   const STOP=new Set('the and for with from into using through onto on of in by an a to as at this that study studies investigation based new under over across toward via role effects effect analysis case development multi computational theoretical high properties research method methods system systems two three between their model models approach impact identification how which have been are will can'.split(' '));
   function namedAuthors(raw){
     return String(raw||'').split(/\s+(?:&|and)\s+|;/i)
@@ -242,6 +270,7 @@
     const result=source==='mill'?buildMill():source==='papers'?buildPapers():source==='entities'?buildEntities():buildResearch();
     current=result.nodes;currentEdges=result.edges;
     if(source==='papers'||source==='entities')forceLayout(current,currentEdges);
+    $('graphGrants').disabled=!(source==='entities'&&works.length&&authors.length);
     for(const [label,value] of result.stats){
       const item=document.createElement('div');item.className='graphKpi';
       const small=document.createElement('small');small.textContent=label;
@@ -327,7 +356,7 @@
   $('graphSource').addEventListener('change',()=>{selected=null;draw()});
   $('graphSearch').addEventListener('input',draw);
   $('graphLimit').addEventListener('change',draw);
-  for(const id of ['graphYearFrom','graphYearTo','graphFacility','graphStrength','graphGrants'])$(id).addEventListener('change',draw);
+  for(const id of ['graphYearFrom','graphYearTo','graphFacility','graphStrength','graphMinShared','graphGrants'])$(id).addEventListener('change',draw);
   $('graphFit').addEventListener('click',fitGraph);
   $('graphZoomIn').addEventListener('click',()=>zoomGraph(.8));
   $('graphZoomOut').addEventListener('click',()=>zoomGraph(1.25));
