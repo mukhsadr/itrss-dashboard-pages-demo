@@ -2,7 +2,8 @@
 (()=>{
   const $=id=>document.getElementById(id), NS='http://www.w3.org/2000/svg';
   const fmt=n=>Number(n||0).toLocaleString(), esc=s=>String(s||'');
-  let cohorts=[], works=[], authors=[], selected=null, current=[], currentEdges=[], currentSource='mill';
+  let cohorts=[], works=[], authors=[], published=[], selected=null, current=[], currentEdges=[], currentSource='papers';
+  let viewport={x:0,y:0,w:1080,h:690},drag=null;
   const kindColor={department:'#669eff',classification:'#40c6b5',status:'#f0b36c',researcher:'#72c7ff',paper:'#c6b5ed'};
   function parseCSV(text){
     const data=[];let col='',record=[],quote=false;
@@ -83,6 +84,135 @@
     });
     const matching=search?nodes.filter(n=>n.label.toLowerCase().includes(search)):nodes;
     return {nodes,edges,caption:'Coauthorship extracted from local OpenAlex exports · no grant funding claims',stats:[['Researchers',nodes.length],['Source papers',byId.size],['Coauthor links',edges.length]],suggested:matching[0]?.id||null};
+  }
+
+  const STOP=new Set('the and for with from into using through onto on of in by an a to as at this that study studies investigation based new under over across toward via role effects effect analysis case development multi computational theoretical high properties research method methods system systems two three between their model models approach impact identification how which have been are will can'.split(' '));
+  function namedAuthors(raw){
+    return String(raw||'').split(/\s+(?:&|and)\s+|;/i)
+      .map(a=>a.replace(/\bet al\.?\s*$/i,'').trim()).filter(Boolean);
+  }
+  function titleTokens(title){return new Set((String(title||'').toLowerCase().match(/[a-z]{4,}/g)||[]).filter(t=>!STOP.has(t)))}
+  function publicPapers(){
+    const search=$('graphSearch').value.trim().toLowerCase();
+    const from=Number($('graphYearFrom').value)||1900, to=Number($('graphYearTo').value)||2100;
+    const facility=$('graphFacility').value,limit=Number($('graphLimit').value)||60;
+    return published.filter(p=>{
+      const year=Number(p.Year)||0;
+      if(year&&(year<from||year>to))return false;
+      if(facility!=='all'&&p['Cluster acknowledged']!==facility)return false;
+      return !search||[p.Title,p.Authors,p.Year,p.DOI,p.Venue].some(v=>String(v||'').toLowerCase().includes(search));
+    }).sort((a,b)=>(Number(b.Year)||0)-(Number(a.Year)||0)||String(a.Title).localeCompare(String(b.Title))).slice(0,limit);
+  }
+  function paperURL(p){
+    const candidate=String(p['DOI / record link']||'').trim()||('https://doi.org/'+String(p.DOI||'').trim());
+    try{const url=new URL(candidate);return /^https?:$/.test(url.protocol)?url.href:null}catch{return null}
+  }
+  function buildPapers(){
+    const data=publicPapers(),n=data.length,words=data.map(p=>titleTokens(p.Title)),df=new Map();
+    for(const ts of words)for(const t of ts)df.set(t,(df.get(t)||0)+1);
+    const idf=t=>1+Math.log((n+1)/((df.get(t)||0)+1));
+    const norms=words.map(ts=>Math.sqrt([...ts].reduce((sum,t)=>sum+idf(t)*idf(t),0))||1);
+    const threshold=Number($('graphStrength').value)||.10;
+    const candidates=[];
+    for(let i=0;i<n;i++)for(let j=i+1;j<n;j++){
+      let dot=0;
+      for(const t of words[i])if(words[j].has(t))dot+=idf(t)*idf(t);
+      const score=dot/(norms[i]*norms[j]);
+      const sharedAuthor=namedAuthors(data[i].Authors).some(a=>namedAuthors(data[j].Authors).some(b=>a.toLowerCase()===b.toLowerCase()));
+      if(score>=threshold||sharedAuthor)candidates.push({a:'p:'+published.indexOf(data[i]),b:'p:'+published.indexOf(data[j]),count:Math.max(score,sharedAuthor?.48:0),relation:sharedAuthor?'Same listed author':'Shared title terms'});
+    }
+    candidates.sort((a,b)=>b.count-a.count);
+    const degree=new Map(),edges=[];
+    for(const e of candidates){
+      if((degree.get(e.a)||0)>=5||(degree.get(e.b)||0)>=5)continue;
+      degree.set(e.a,(degree.get(e.a)||0)+1);degree.set(e.b,(degree.get(e.b)||0)+1);edges.push(e);
+    }
+    const nodes=data.map((p,i)=>({id:'p:'+published.indexOf(p),label:p.Title||'Untitled publication',kind:'paper',count:1,
+      year:p.Year,cluster:p['Cluster acknowledged'],authors:p.Authors,url:paperURL(p),note:'Public bibliographic record',
+      color:({'Foundry':'#45d6c2','Mill':'#7caaff','Foundry + Mill':'#c3a0f5'}[p['Cluster acknowledged']]||'#a8beec')}));
+    return {nodes,edges,caption:'Publication similarity · shared title terms and explicitly listed authors (not citations)',
+      stats:[['Visible papers',nodes.length],['Related links',edges.length],['Bibliography',published.length]]};
+  }
+  function buildEntities(){
+    const full=works.length&&authors.length,limit=Number($('graphLimit').value)||60;
+    const p=full?works.filter(w=>{
+      const q=$('graphSearch').value.toLowerCase(),year=Number(w.year)||0,from=Number($('graphYearFrom').value)||1900,to=Number($('graphYearTo').value)||2100;
+      return (!q||[w.title,w.doi,w.venue,w.grant_ids].some(v=>String(v||'').toLowerCase().includes(q)))&&(!year||(year>=from&&year<=to))&&($('graphFacility').value==='all'||w.cluster===$('graphFacility').value);
+    }).slice(0,Math.max(5,Math.floor(limit*.55))):publicPapers().slice(0,Math.max(5,Math.floor(limit*.55)));
+    const nodes=[],edges=[],map=new Map(),authorIndex=new Map();
+    if(full){
+      for(const a of authors){const id=String(a.record_id||'');if(!authorIndex.has(id))authorIndex.set(id,[]);authorIndex.get(id).push(a)}
+    }
+    for(let i=0;i<p.length;i++){
+      const w=p[i],id=full?'work:'+String(w.record_id):'p:'+published.indexOf(w);
+      if(full&&!w.record_id)continue;
+      const paper={id,label:full?w.title:w.Title,kind:'paper',count:1,year:full?w.year:w.Year,
+        authors:full?'See linked researcher nodes':w.Authors,url:full?(w.source_url||''):paperURL(w),
+        cluster:full?w.cluster:w['Cluster acknowledged'],color:'#92baf4',grant_ids:full?w.grant_ids:''};
+      nodes.push(paper);
+      const authorsFor=full?authorIndex.get(String(w.record_id))||[]:namedAuthors(w.Authors).map(a=>({author_id:a.toLowerCase(),author_name:a}));
+      for(const a of authorsFor){
+        const key=String(a.author_id||'');if(!key)continue;
+        const aid='a:'+key, label=String(a.author_name||key);
+        if(!map.has(aid))map.set(aid,{id:aid,kind:'researcher',label,count:0,color:'#61cfe4'});
+        map.get(aid).count++;edges.push({a:aid,b:id,count:1,relation:'Authored'});
+      }
+    }
+    const allowed=new Set([...map.values()].sort((a,b)=>b.count-a.count).slice(0,Math.max(2,limit-nodes.length)).map(n=>n.id));
+    nodes.push(...[...map.values()].filter(a=>allowed.has(a.id)));
+    const allEdges=edges.filter(e=>allowed.has(e.a));
+    if(full&&$('graphGrants').checked){
+      const seen=new Map();
+      for(const paper of nodes.filter(n=>n.kind==='paper')){
+        for(const grant of String(paper.grant_ids||'').split(';').map(x=>x.trim()).filter(Boolean)){
+          if(!seen.has(grant)&&seen.size<12){const node={id:'g:'+grant,label:grant,kind:'grant',count:0,color:'#f2bd68',note:'Unverified metadata grant mention'};seen.set(grant,node);nodes.push(node)}
+          if(seen.has(grant)){seen.get(grant).count++;allEdges.push({a:paper.id,b:seen.get(grant).id,count:1,relation:'Unverified grant reference'})}
+        }
+      }
+    }
+    return {nodes,edges:allEdges,caption:full?'OpenAlex author/paper graph · grant links are unverified metadata candidates':'Public bibliographic names only · “et al.” omits coauthors',
+      stats:[['Researchers',allowed.size],['Paper nodes',p.length],['Links',allEdges.length]]};
+  }
+  function forceLayout(nodes,edges){
+    if(!nodes.length)return;
+    for(let i=0;i<nodes.length;i++){
+      const theta=i*2.3999632297,r=90+250*Math.sqrt((i+1)/nodes.length);
+      nodes[i].x=540+Math.cos(theta)*r;nodes[i].y=340+Math.sin(theta)*r*.74;
+    }
+    const byId=new Map(nodes.map(n=>[n.id,n]));
+    for(let t=0;t<90;t++){
+      const v=new Map(nodes.map(n=>[n.id,{x:0,y:0}]));
+      for(let i=0;i<nodes.length;i++)for(let j=i+1;j<nodes.length;j++){
+        const a=nodes[i],b=nodes[j],dx=a.x-b.x,dy=a.y-b.y,dist=Math.max(12,Math.hypot(dx,dy)),f=780/(dist*dist);
+        v.get(a.id).x+=dx*f;v.get(a.id).y+=dy*f;v.get(b.id).x-=dx*f;v.get(b.id).y-=dy*f;
+      }
+      for(const e of edges){
+        const a=byId.get(e.a),b=byId.get(e.b);if(!a||!b)continue;
+        const dx=b.x-a.x,dy=b.y-a.y,d=Math.max(1,Math.hypot(dx,dy)),f=(d-118)*.016;
+        v.get(a.id).x+=dx/d*f;v.get(a.id).y+=dy/d*f;
+        v.get(b.id).x-=dx/d*f;v.get(b.id).y-=dy/d*f;
+      }
+      for(const n of nodes){
+        const d=v.get(n.id);n.x=Math.max(50,Math.min(1030,n.x+Math.max(-18,Math.min(18,d.x+(540-n.x)*.003))));
+        n.y=Math.max(50,Math.min(640,n.y+Math.max(-18,Math.min(18,d.y+(340-n.y)*.003))));
+      }
+    }
+  }
+  function graphDetail(node){
+    const box=$('graphDetail');if(!box)return;box.replaceChildren();
+    const h=document.createElement('h3');h.textContent=node?node.label:'Explore the network';box.append(h);
+    const p=document.createElement('p');p.textContent=node?(node.note||'')+' '+[node.year,node.cluster,node.authors].filter(Boolean).join(' · '):
+      'Select a paper or researcher to highlight connected nodes. Drag to pan, scroll to zoom.';box.append(p);
+    if(node?.url){try{const u=new URL(node.url);if(/^https?:$/.test(u.protocol)){
+      const link=document.createElement('a');link.href=u.href;link.rel='noopener noreferrer';link.target='_blank';link.textContent='Open publication';box.append(link)
+    }}catch{}}
+    if(node){
+      const hits=currentEdges.filter(e=>e.a===node.id||e.b===node.id).slice(0,10);
+      const label=document.createElement('h4');label.textContent=hits.length+' connections';box.append(label);
+      for(const e of hits){const other=current.find(n=>n.id===(e.a===node.id?e.b:e.a));if(!other)continue;
+        const button=document.createElement('button');button.className='graphRelatedItem';button.type='button';button.textContent=other.label;button.onclick=()=>focus(other.id);box.append(button);
+      }
+    }
   }
   function setInfo(text){$('graphInfo').textContent=text}
   function focus(id){
