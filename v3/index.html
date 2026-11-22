@@ -1,167 +1,185 @@
 <!doctype html>
-<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0b1423"><title>ITRSS Metrics</title>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0b1220"><title>ITRSS · Explore</title>
 <style>
-:root{color-scheme:dark;--bg:#0b1220;--panel:#121e30;--line:#26374c;--text:#e9f1fc}
-*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;background:var(--bg);color:var(--text);font:14px/1.3 Inter,system-ui,-apple-system,"Segoe UI",sans-serif}
-button{font:inherit;cursor:pointer}button:focus-visible,.slice:focus-visible{outline:2px solid #dcefff;outline-offset:2px}
-main{width:100%;max-width:none;height:100dvh;min-height:330px;margin:0;padding:7px 10px;display:grid;grid-template-rows:36px 62px minmax(0,1fr);gap:7px}
-.modes{display:flex;align-items:center;justify-content:center;gap:6px}
-.mode{min-height:33px;padding:6px 16px;border:1px solid #344a66;border-radius:8px;background:#192a41;color:#c7d9ed;font-size:12px;font-weight:650}
-.mode[aria-pressed=true]{background:#264b70;border-color:#78b4f1;color:white}
-.metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:7px}
-.metric{min-width:0;min-height:0;background:#121e30;border:1px solid #26374c;border-radius:9px;padding:5px 4px;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:2px;color:#e9f1fc}
-.metric:hover{background:#1c314a}.metric[aria-pressed=true]{background:#1d3b58;border-color:#81bdf5}
-.metric span{font-size:clamp(10px,1vw,12px);color:#a9bfd6;font-weight:600}.metric strong{font-size:clamp(18px,2.3vw,27px);letter-spacing:-.035em;line-height:1.1;font-variant-numeric:tabular-nums}
-.canvas{position:relative;min-height:0;overflow:hidden;display:flex;justify-content:center;align-items:center;background:#121e30;border:1px solid #26374c;border-radius:11px}
-.donut{position:relative;width:auto;height:100%;max-width:100%;aspect-ratio:1;flex:none}
-svg{display:block;width:100%;height:100%;overflow:visible}
-.slice{stroke:#121e30;stroke-width:1.4;cursor:pointer;transition:opacity .15s,stroke-width .15s,filter .15s}
-.slice:hover,.slice.hovered{stroke:#edf7ff;stroke-width:3}
-.center{position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:27%;height:27%;background:transparent;border:0;border-radius:0;box-shadow:none;display:flex;flex-direction:column;justify-content:center;align-items:center;gap:3px;text-align:center;pointer-events:none;overflow:hidden}
-.center strong{font-size:clamp(19px,2.1vw,34px);font-weight:760;letter-spacing:-.055em;line-height:1;white-space:nowrap;max-width:100%}
-.center span{font-size:clamp(9px,.85vw,12px);color:#9fb7d2;line-height:1.12;max-width:100%;overflow-wrap:anywhere}
-.ringKey{position:absolute;top:10px;left:12px;display:flex;flex-wrap:wrap;gap:11px;font-size:10px;color:#9db5d0;font-weight:600;pointer-events:none}
-.ringKey span{display:flex;gap:5px;align-items:center}.ringKey i{width:8px;height:8px;display:inline-block;border-radius:2px}
-#status{position:absolute;left:50%;bottom:7px;transform:translateX(-50%);max-width:95%;text-align:center;font-size:10px;color:#a6bdd8;pointer-events:none}
-@media(max-width:600px){main{padding:5px;gap:5px;grid-template-rows:33px 54px minmax(0,1fr)}.mode{min-height:30px;font-size:11px;padding:5px 12px}.metric{border-radius:7px}.metric strong{font-size:clamp(17px,5vw,23px)}.metric span{font-size:10px}.center strong{font-size:clamp(17px,5vw,28px)}.center span{font-size:9px}.ringKey{top:5px;left:6px;gap:6px;font-size:9px}#status{bottom:4px;font-size:9px}}
-@media(prefers-reduced-motion:reduce){.slice{transition:none}}
-</style></head><body>
-<main>
-<nav class="modes" aria-label="Data mode"><button type="button" class="mode" data-mode="users" aria-pressed="true">Mill Users</button><button type="button" class="mode" data-mode="papers" aria-pressed="false">Publications</button></nav>
-<section class="metrics" id="metrics" aria-label="Metrics">
-<button class="metric" type="button" data-kpi="0"><span id="label0">Users</span><strong id="val0">—</strong></button>
-<button class="metric" type="button" data-kpi="1"><span id="label1">Active</span><strong id="val1">—</strong></button>
-<button class="metric" type="button" data-kpi="2"><span id="label2">Departments</span><strong id="val2">—</strong></button>
-<button class="metric" type="button" data-kpi="3"><span id="label3">Advisors</span><strong id="val3">—</strong></button>
-</section>
-<section class="canvas" aria-label="Interactive concentric rings"><div class="donut">
-<svg id="chart" viewBox="0 0 680 680" role="img" aria-label="Four-ring user distribution or three-ring publication distribution"></svg>
-<div class="center"><strong id="number">—</strong><span id="centerLabel">Users</span></div>
-</div><div id="ringKey" class="ringKey" aria-hidden="true"></div><div id="status" role="status"></div></section>
-</main>
+:root{color-scheme:dark;--bg:#0b1220;--panel:#121e30;--line:#2c4058;--text:#e9f2ff;--muted:#9fb7d2}
+*{box-sizing:border-box}html,body{margin:0;height:100%;background:var(--bg);color:var(--text);font:14px/1.35 Inter,system-ui,-apple-system,"Segoe UI",sans-serif}
+button,input,select{font:inherit}button{cursor:pointer}button:focus-visible,input:focus-visible,select:focus-visible,.arc:focus-visible{outline:2px solid #b9e0ff;outline-offset:2px}
+.app{height:100dvh;min-height:350px;display:grid;grid-template-rows:44px minmax(0,1fr);gap:4px;padding:5px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:8px;min-width:0;padding:0 8px}
+.brand{font-size:12px;letter-spacing:.035em;font-weight:800;color:#8eb8e7;white-space:nowrap}
+.tabs{display:flex;gap:4px;padding:3px;background:#17273b;border:1px solid #293e58;border-radius:10px}
+.tabs button{background:transparent;border:0;border-radius:7px;color:#b5cce4;font-size:12px;font-weight:650;min-height:30px;padding:5px 13px}
+.tabs button[aria-pressed=true]{background:#2c5279;color:#f4f9ff}
+.actions{display:flex;align-items:center;gap:5px}
+.action{border:1px solid #3a5270;background:#192c44;border-radius:8px;padding:7px 10px;color:#d3e7fa;font-size:11px;min-height:31px}
+.action[aria-pressed=true]{background:#305779;border-color:#7ab0e5}
+.stage{position:relative;overflow:hidden;min-height:0;background:#121e30;border:1px solid #25384e;border-radius:12px;display:flex;align-items:center;justify-content:center}
+.donut{position:relative;height:100%;width:auto;max-width:100%;aspect-ratio:1;flex:none}
+svg{display:block;height:100%;width:100%}
+.arc{cursor:pointer;stroke:#121e30;stroke-width:1.4;transition:opacity .14s,stroke-width .14s}
+.arc:hover,.arc.hovered{stroke:#f1f8ff;stroke-width:3}
+.center{position:absolute;top:50%;left:50%;width:26.5%;height:26.5%;transform:translate(-50%,-50%);pointer-events:none;text-align:center;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;overflow:hidden}
+.center strong{font-size:clamp(19px,2.3vw,37px);font-variant-numeric:tabular-nums;line-height:1.05;letter-spacing:-.055em}
+.center span{max-width:100%;font-size:clamp(9px,.86vw,12px);color:#b0c5dd;overflow-wrap:anywhere;line-height:1.1}
+.key{position:absolute;bottom:12px;left:14px;display:flex;flex-wrap:wrap;gap:7px 14px;font-size:11px;color:#9fb5cf;pointer-events:none}
+.key span{display:flex;gap:6px;align-items:center}.key i{display:inline-block;width:9px;height:9px;border-radius:2px}
+.hint{position:absolute;top:12px;left:14px;color:#829bb7;font-size:11px;pointer-events:none}
+.notice{position:absolute;bottom:9px;right:12px;font-size:10px;color:#a1b4c9;pointer-events:none;max-width:42%;text-align:right}
+.drawer{position:absolute;right:12px;top:12px;bottom:12px;width:min(320px,calc(100% - 24px));background:#182b42;border:1px solid #3b5270;border-radius:13px;box-shadow:0 12px 40px #050b14c7;display:flex;flex-direction:column;min-height:0;padding:14px;gap:9px;z-index:2}
+.drawer[hidden]{display:none}
+.drawerHeader{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.drawerHeader strong{font-size:15px;line-height:1.2}
+.close{color:#cedef1;background:#253b55;border:1px solid #48617e;padding:5px 9px;border-radius:7px}
+.count{font-size:27px;font-weight:750;line-height:1.05;font-variant-numeric:tabular-nums;letter-spacing:-.03em}
+.sub{font-size:12px;color:#a9bed8}
+.drawerControls{display:grid;grid-template-columns:1fr auto;gap:6px}
+.drawer select,.drawer input{width:100%;min-width:0;background:#122035;color:#ecf4ff;border:1px solid #435975;border-radius:7px;padding:8px 9px}
+.drawer .clear{font-size:11px;border-radius:7px;padding:8px;color:#dae8fa;background:#2a3e57;border:1px solid #455d7b}
+.drawer input{font-size:12px}
+.list{min-height:0;overflow-y:auto;flex:1;border-top:1px solid #334b65;padding-top:5px;scrollbar-color:#617c99 transparent}
+.item{width:100%;background:transparent;color:#e5f1ff;border:0;border-radius:6px;text-align:left;display:flex;align-items:center;gap:8px;padding:7px 4px;font-size:12px}
+.item:hover,.item[aria-pressed=true]{background:#2c4d70}
+.swatch{width:9px;height:9px;flex:none;border-radius:2px}
+.item .name{min-width:0;flex:1;overflow-wrap:anywhere}
+.item .value{white-space:nowrap;font-variant-numeric:tabular-nums;color:#afc6e2;font-size:11px}
+@media(max-width:650px){.app{grid-template-rows:42px minmax(0,1fr);gap:3px;padding:3px}.top{padding:0 3px}.brand{display:none}.tabs button{padding:5px 10px;font-size:11px}.action{padding:6px 9px}.stage{border-radius:8px}.center strong{font-size:clamp(18px,5.7vw,30px)}.center span{font-size:9px}.key{left:7px;bottom:7px;gap:5px 8px;font-size:9px}.hint{font-size:9px;top:6px;left:7px}.notice{font-size:9px;bottom:4px;right:5px}.drawer{right:5px;top:5px;bottom:5px;padding:10px}}
+@media(prefers-reduced-motion:reduce){.arc{transition:none}}
+</style></head>
+<body><div class="app">
+<header class="top"><div class="brand">S&T ITRSS</div>
+<nav class="tabs" aria-label="Dataset"><button type="button" data-mode="users" aria-pressed="true">Mill Users</button><button type="button" data-mode="papers" aria-pressed="false">Publications</button></nav>
+<div class="actions"><button class="action" id="reset" type="button" title="Clear selection">Reset</button><button class="action" id="explore" type="button" aria-expanded="false">Explore</button></div></header>
+<main class="stage" id="stage">
+<div class="hint" id="hint">Select a slice</div>
+<div class="donut"><svg id="chart" viewBox="0 0 680 680" role="img" aria-label="Interactive concentric category chart"></svg><div class="center"><strong id="number">—</strong><span id="label">Users</span></div></div>
+<div class="key" id="key"></div><div class="notice" id="notice"></div>
+<aside class="drawer" id="drawer" hidden aria-label="Explore categories">
+<div class="drawerHeader"><strong id="detailTitle">Explore</strong><button type="button" class="close" id="close">Close</button></div>
+<div class="count" id="detailCount">—</div><div class="sub" id="detailShare">Select any segment</div>
+<div class="drawerControls"><select id="ringSelect" aria-label="Ring"></select><button type="button" class="clear" id="clear">Clear</button></div>
+<input id="search" type="search" placeholder="Find category" aria-label="Find category">
+<div class="list" id="list"></div>
+</aside></main></div>
 <script>
 'use strict';
 (()=>{
-const $=id=>document.getElementById(id),SVG='http://www.w3.org/2000/svg';
-const palettes=[
+const $=id=>document.getElementById(id),NS='http://www.w3.org/2000/svg';
+const colors=[
 ['#5c9eff','#3c7fdb','#8ebdff','#4568ae','#a1ceef','#6669ba','#378dc0','#86a3d0'],
-['#2cbdaf','#159f94','#75d8bd','#3a8f85','#a1e0c9','#5eb3a2','#248478'],
+['#2cbdaf','#159f94','#75d8bd','#3a8f85','#a1e0c9','#5eb3a2','#248478','#b1cfc1'],
 ['#e6a85e','#d58e46','#f3c681','#b87555','#ffd59e','#caac71','#f0a27d','#ad805b'],
 ['#ad91e4','#906dd1','#c4a9fa','#7157a9','#b39fe2','#9979bf','#d0b7ef','#71539a']];
-const fmt=x=>Number(x||0).toLocaleString('en-US');
-const el=(name,attrs={})=>{const e=document.createElementNS(SVG,name);for(const [k,v] of Object.entries(attrs))e.setAttribute(k,v);return e};
-const pt=(r,a)=>[340+r*Math.cos(a),340+r*Math.sin(a)];
-function pathFor(ri,ro,a,b){b=Math.min(b,a+2*Math.PI-.00001);const [x1,y1]=pt(ro,a),[x2,y2]=pt(ro,b),[x3,y3]=pt(ri,b),[x4,y4]=pt(ri,a),big=b-a>Math.PI?1:0;return 'M'+x1+' '+y1+' A'+ro+' '+ro+' 0 '+big+' 1 '+x2+' '+y2+' L'+x3+' '+y3+' A'+ri+' '+ri+' 0 '+big+' 0 '+x4+' '+y4+' Z'}
-let source=null,mode='users',selected=null,kpi=null,linked=null;
-function current(){return mode==='users'?{total:source.u.source_total,dims:source.u.dimensions}: {total:source.p.included_total,dims:source.p.dimensions}}
-function filteredDimension(target,sourceDim,total){
-  if(!linked||mode!=='users'||!selected||selected.ring===target||!sourceDim)return null;
-  const from=sourceDim.column,to=current().dims[target].column;
-  const values=linked.conditionals?.[from]?.[selected.name]?.[to];
-  if(!Array.isArray(values)||values.length===0)return null;
-  const items=values.map(v=>({name:v.name,count:Number(v.count)}));
-  const valid=items.every(v=>typeof v.name==='string'&&Number.isInteger(v.count)&&v.count>=linked.min_cell_count);
-  return valid&&items.reduce((sum,v)=>sum+v.count,0)===total?items:null;
+const shortUser=['Department','Class','Status','Advisor'],shortPaper=['Cluster','Year','Type'];
+const num=n=>Number(n||0).toLocaleString('en-US'),percent=(n,d)=>d?100*n/d:0;
+const E=(name,attrs={})=>{const el=document.createElementNS(NS,name);Object.entries(attrs).forEach(([k,v])=>el.setAttribute(k,v));return el};
+const point=(r,t)=>[340+r*Math.cos(t),340+r*Math.sin(t)];
+function arc(ri,ro,a,b){b=Math.min(b,a+Math.PI*2-.000001);const [x1,y1]=point(ro,a),[x2,y2]=point(ro,b),[x3,y3]=point(ri,b),[x4,y4]=point(ri,a),large=b-a>Math.PI?1:0;return 'M'+x1+' '+y1+' A'+ro+' '+ro+' 0 '+large+' 1 '+x2+' '+y2+' L'+x3+' '+y3+' A'+ri+' '+ri+' 0 '+large+' 0 '+x4+' '+y4+' Z'}
+let data=null,mode='users',picked=null,hover=null,linked=null,drawerOpen=false,inspectRing=0,search='';
+function current(){return mode==='users'?{total:data.users.source_total,dims:data.users.dimensions,names:shortUser}:{total:data.papers.included_total,dims:data.papers.dimensions,names:shortPaper}}
+function getConditional(sourceRing,name,focusTotal,targetRing){
+ if(!linked||mode!=='users'||sourceRing===targetRing)return null;
+ const d=current().dims,values=linked.conditionals?.[d[sourceRing].column]?.[name]?.[d[targetRing].column];
+ if(!Array.isArray(values)||!values.length)return null;
+ const result=values.map(x=>({name:x.name,count:Number(x.count)}));
+ if(result.some(x=>typeof x.name!=='string'||!Number.isInteger(x.count)||x.count<linked.min_cell_count)||result.reduce((a,x)=>a+x.count,0)!==focusTotal)return null;
+ return result;
 }
-function kpis(){
-if(mode==='users'){
- const u=source.u,active=u.dimensions.find(d=>d.column==='Status').values.find(v=>v.name==='Active').count;
- const advisor=u.dimensions.find(d=>d.column==='Advisor').values.find(v=>v.name==='Advisor recorded').count;
- return [{label:'Users',value:u.source_total,ring:0,name:null},{label:'Active',value:active,ring:2,name:'Active'},{label:'Departments',value:u.dimensions[0].values.length,ring:0,name:null},{label:'Advisors',value:advisor,ring:3,name:'Advisor recorded'}];
+function jointEnabled(){
+ if(mode!=='users'||!picked||!linked)return false;
+ const d=current(),n=d.dims[picked.ring].values.find(x=>x.name===picked.name)?.count;
+ return Number.isInteger(n)&&d.dims.every((_,i)=>i===picked.ring||!!getConditional(picked.ring,picked.name,n,i));
 }
-const p=source.p,clusters=p.dimensions[0].values,mill=clusters.filter(v=>v.name.includes('Mill')).reduce((n,v)=>n+v.count,0);
-return [{label:'Papers',value:p.included_total,ring:0,name:null},{label:'Mill linked',value:mill,ring:0,name:null},{label:'Years',value:p.dimensions[1].values.length,ring:1,name:null},{label:'Duplicates',value:p.duplicate_count,ring:0,name:null}];
+function distribution(i){
+ const d=current(),total=d.total,focus= picked?d.dims[picked.ring].values.find(v=>v.name===picked.name):null;
+ const joint=jointEnabled()&&i!==picked.ring,conditional=joint?getConditional(picked.ring,picked.name,focus.count,i):null;
+ const values=conditional??d.dims[i].values,denom=conditional?focus.count:total;
+ const items=[...values].sort((a,b)=>d.dims[i].column==='Year'?Number(a.name)-Number(b.name):b.count-a.count||a.name.localeCompare(b.name));
+ return {items,denom,conditional:!!conditional};
 }
-function switchMode(m){mode=m;selected=null;kpi=null;render()}
-function choose(ring,name){selected=selected&&selected.ring===ring&&selected.name===name?null:{ring,name};kpi=null;render()}
+function refreshSelected(ring,name){picked=picked&&picked.ring===ring&&picked.name===name?null:{ring,name};inspectRing=ring;hover=null;drawerOpen=true;render()}
+function setDrawer(state){drawerOpen=state;render()}
+function info(){
+ const d=current(),focus= picked?d.dims[picked.ring].values.find(x=>x.name===picked.name):null;
+ if(hover){$('number').textContent=num(hover.count);$('label').textContent=hover.name;$('hint').textContent=d.names[hover.ring]+' · '+percent(hover.count,hover.denom).toFixed(1)+'%';return}
+ $('number').textContent=num(focus?focus.count:d.total);
+ $('label').textContent=focus?focus.name:mode==='users'?'Users':'Papers';
+ $('hint').textContent=focus?(d.names[picked.ring]+' · '+percent(focus.count,d.total).toFixed(1)+'%'):'Select a slice';
+}
 function render(){
-if(!source)return;
-const d=current(),cards=kpis(),total=d.total;
-const focusCount=selected?d.dims[selected.ring].values.find(v=>v.name===selected.name)?.count:null;
-const conditional=!!(mode==='users'&&selected&&linked&&Number.isInteger(focusCount)&&d.dims.every((_,i)=>i===selected.ring||filteredDimension(i,d.dims[selected.ring],focusCount)));
-document.querySelectorAll('[data-mode]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mode===mode)));
-cards.forEach((c,i)=>{$('label'+i).textContent=c.label;$('val'+i).textContent=fmt(c.value)});
-document.querySelectorAll('[data-kpi]').forEach(b=>b.setAttribute('aria-pressed',String(Number(b.dataset.kpi)===kpi)));
-let focused=selected?d.dims[selected.ring].values.find(v=>v.name===selected.name):null;
-$('number').textContent=fmt(focused?focused.count:total);
-$('centerLabel').textContent=focused?focused.name:mode==='users'?'Users':'Papers';
-$('status').textContent=focused ? (conditional?'Linked rings':'Selected · other rings: overall') : '';
-$('chart').setAttribute('aria-label',mode==='users'?'Mill users: four independent distributions. Select a slice to inspect its count.':'Publications: three independent distributions. Select a slice to inspect its count.');
-const chart=$('chart');chart.replaceChildren();
- const key=$('ringKey');key.replaceChildren();
- const names=mode==='users'?['Department','Class','Status','Advisor']:['Cluster','Year','Type'];
- names.forEach((name,i)=>{const item=document.createElement('span'),dot=document.createElement('i');dot.style.background=palettes[i][0];item.append(dot,document.createTextNode(name));key.append(item)});
-const radii=mode==='users'?[[96,143],[150,197],[204,251],[258,305]]:[[113,162],[173,222],[233,282]];
-for(let i=0;i<d.dims.length;i++){
- const dim=d.dims[i],filtered=conditional?filteredDimension(i,d.dims[selected.ring],focusCount):null;
- const values=filtered??[...dim.values],denom=filtered?focusCount:total;
- if(dim.column==='Year')values.sort((a,b)=>Number(a.name)-Number(b.name));
- else values.sort((a,b)=>b.count-a.count||a.name.localeCompare(b.name));
- let angle=-Math.PI/2;
- for(let j=0;j<values.length;j++){
- const v=values[j],next=angle+(denom?v.count/denom:0)*2*Math.PI,on=selected?.ring===i&&selected?.name===v.name;
- if(v.count>0){const shape=el('path',{d:pathFor(...radii[i],angle,next),fill:palettes[i][j%palettes[i].length],class:'slice',role:'button',tabindex:0,'aria-label':dim.label+' / '+v.name+': '+fmt(v.count)});
- if(selected?.ring===i&&!on)shape.style.opacity='.3';
- if(on){shape.style.stroke='#edf7ff';shape.style.strokeWidth='3';shape.style.filter='none'}
- const tip=el('title');tip.textContent=dim.label+' · '+v.name+' · '+fmt(v.count)+' of '+fmt(denom)+' ('+(denom?100*v.count/denom:0).toFixed(1)+'%)'+(filtered?' within '+selected.name:' overall');shape.append(tip);
- shape.dataset.ring=String(i);shape.dataset.category=v.name;
- shape.onmouseenter=()=>hoverSlice(i,v.name,v.count,denom,true);
- shape.onmouseleave=()=>hoverSlice(i,v.name,v.count,denom,false);
- shape.onfocus=()=>hoverSlice(i,v.name,v.count,denom,true);
- shape.onblur=()=>hoverSlice(i,v.name,v.count,denom,false);
- shape.onclick=()=>choose(i,v.name);
- shape.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();choose(i,v.name)}};chart.append(shape)}
- angle=next;
- }
-}
-}
-function hoverSlice(ring,name,count,denom,active){
- document.querySelectorAll('#chart .slice').forEach(path=>{
-  if(path.dataset.ring===String(ring)){
-   const match=path.dataset.category===name;
-   path.style.opacity=active&&!match?'0.22':'1';
-   path.classList.toggle('hovered',active&&match);
-  }
- });
- if(active){
-  $('number').textContent=fmt(count);$('centerLabel').textContent=name;
-  $('status').textContent=fmt(count)+' · '+(denom?100*count/denom:0).toFixed(1)+'%';
- }else{
-  const d=current(),f=selected?d.dims[selected.ring].values.find(v=>v.name===selected.name):null;
-  $('number').textContent=fmt(f?f.count:d.total);
-  $('centerLabel').textContent=f?f.name:mode==='users'?'Users':'Papers';
-  $('status').textContent=f?'Selected · other rings: overall':'';
- }
-}
-function validate(groups,total){if(!Number.isInteger(total)||total<=0)throw Error('Invalid count');for(const d of groups)if(d.values.reduce((n,v)=>n+Number(v.count),0)!==total)throw Error('Count mismatch')}
-async function load(){try{
-const [ur,pr]=await Promise.all([fetch('../v2/data/user_aggregates.json',{cache:'no-store'}),fetch('../v2/data/publication_aggregates.json',{cache:'no-store'})]);
-if(!ur.ok||!pr.ok)throw Error('Data unavailable');
-const [u,p]=await Promise.all([ur.json(),pr.json()]);
-validate(u.dimensions,u.source_total);validate(p.dimensions,p.included_total);
-if(u.dimensions.length!==4||p.dimensions.length!==3)throw Error('Unexpected ring count');
-source={u,p};render();
- // Optional privacy-approved marginal conditionals for one selected Mill group.
- // No conditional file is shipped yet; missing file retains accurate independent distributions.
- try{
-   const res=await fetch('data/linked_user_counts.json',{cache:'no-store'});
-   if(res.ok){
-     const payload=await res.json();
-     if(payload.source_total===u.source_total&&payload.min_cell_count>=10
-       &&payload.conditionals&&typeof payload.conditionals==='object'){
-       linked=payload;render();
-     }
+ if(!data)return;const d=current(),linkedMode=jointEnabled();
+ document.querySelectorAll('[data-mode]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mode===mode)));
+ $('drawer').hidden=!drawerOpen;$('explore').setAttribute('aria-expanded',String(drawerOpen));
+ const key=$('key');key.replaceChildren();d.names.forEach((label,i)=>{const s=document.createElement('span'),dot=document.createElement('i');dot.style.background=colors[i][0];s.append(dot,document.createTextNode(label));key.append(s)});
+ const chart=$('chart');chart.replaceChildren();const ri=mode==='users'?[[96,143],[150,197],[204,251],[258,305]]:[[113,162],[173,222],[233,282]];
+ for(let i=0;i<d.dims.length;i++){
+  const {items,denom,conditional}=distribution(i);
+  let theta=-Math.PI/2;
+  for(let j=0;j<items.length;j++){
+   const v=items[j],next=theta+(denom?2*Math.PI*v.count/denom:0),chosen=picked&&picked.ring===i&&picked.name===v.name;
+   if(v.count){
+    const p=E('path',{d:arc(...ri[i],theta,next),fill:colors[i][j%colors[i].length],class:'arc',role:'button',tabindex:0,'aria-label':d.names[i]+' '+v.name+': '+num(v.count)});
+    p.dataset.ring=String(i);p.dataset.name=v.name;
+    if(picked&&picked.ring===i&&!chosen)p.style.opacity='.29';
+    if(chosen){p.style.stroke='#ecf7ff';p.style.strokeWidth='3'}
+    const t=E('title');t.textContent=v.name+' · '+num(v.count)+' · '+percent(v.count,denom).toFixed(1)+'%'+(conditional?' within selection':' overall');p.append(t);
+    p.onmouseenter=()=>spotlight(i,v.name,v.count,denom,true);p.onmouseleave=()=>spotlight(i,v.name,v.count,denom,false);
+    p.onfocus=()=>spotlight(i,v.name,v.count,denom,true);p.onblur=()=>spotlight(i,v.name,v.count,denom,false);
+    p.onclick=()=>refreshSelected(i,v.name);p.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();refreshSelected(i,v.name)}};
+    chart.append(p);
    }
- }catch(err){console.warn('Optional linked aggregates unavailable',err)}
-
-}catch(e){$('status').textContent=e.message;console.error(e)}}
-document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{if(source)switchMode(b.dataset.mode)});
-document.querySelectorAll('[data-kpi]').forEach(b=>b.onclick=()=>{
-if(!source)return;const i=Number(b.dataset.kpi),c=kpis()[i];kpi=i;
-if(c.name){selected={ring:c.ring,name:c.name};}
-else selected=null;
-render();
-});
+   theta=next;
+  }
+ }
+ const selectedFocus=picked?d.dims[picked.ring].values.find(x=>x.name===picked.name):null;
+ $('notice').textContent=selectedFocus?(linkedMode?'Linked rings':'Other rings · overall'):'';
+ $('detailTitle').textContent=selectedFocus?picked.name:'Explore';
+ $('detailCount').textContent=num(selectedFocus?selectedFocus.count:d.total);
+ $('detailShare').textContent=selectedFocus?percent(selectedFocus.count,d.total).toFixed(1)+'% of all records · '+(linkedMode?'linked':'other rings overall'):'Select a category';
+ const rs=$('ringSelect');rs.replaceChildren();d.names.forEach((name,i)=>{const o=document.createElement('option');o.value=String(i);o.textContent=name;rs.append(o)});rs.value=String(Math.min(inspectRing,d.dims.length-1));
+ updateList();info();
+}
+function updateList(){
+ if(!data)return;const d=current(),{items,denom}=distribution(inspectRing);const root=$('list');root.replaceChildren();
+ items.filter(v=>v.name.toLowerCase().includes(search.toLowerCase())).forEach((v,i)=>{
+  const row=document.createElement('button');row.type='button';row.className='item';row.setAttribute('aria-pressed',String(!!picked&&picked.ring===inspectRing&&picked.name===v.name));
+  const dot=document.createElement('i');dot.className='swatch';dot.style.background=colors[inspectRing][i%colors[inspectRing].length];
+  const name=document.createElement('span');name.className='name';name.textContent=v.name;
+  const count=document.createElement('span');count.className='value';count.textContent=num(v.count)+' · '+percent(v.count,denom).toFixed(1)+'%';
+  row.append(dot,name,count);row.onclick=()=>refreshSelected(inspectRing,v.name);root.append(row);
+ });
+}
+function spotlight(ring,name,count,denom,on){
+ hover=on?{ring,name,count,denom}:null;
+ document.querySelectorAll('#chart .arc').forEach(p=>{
+  if(Number(p.dataset.ring)!==ring)return;
+  const match=p.dataset.name===name;
+  p.classList.toggle('hovered',on&&match);
+  p.style.opacity=on&&!match?'.2':picked&&picked.ring===ring&&! (picked.name===p.dataset.name)?'.29':'1';
+ });
+ info();
+}
+function changeMode(m){mode=m;picked=null;hover=null;inspectRing=0;search='';$('search').value='';render()}
+function validate(groups,total){if(!Number.isInteger(total)||total<=0)throw Error('Invalid source total');for(const d of groups){if(d.values.reduce((a,v)=>a+Number(v.count),0)!==total)throw Error('Totals mismatch: '+d.column)}}
+async function load(){
+ try{
+ const [ur,pr]=await Promise.all([fetch('../v2/data/user_aggregates.json',{cache:'no-store'}),fetch('../v2/data/publication_aggregates.json',{cache:'no-store'})]);
+ if(!ur.ok||!pr.ok)throw Error('Aggregate data missing');
+ const [users,papers]=await Promise.all([ur.json(),pr.json()]);validate(users.dimensions,users.source_total);validate(papers.dimensions,papers.included_total);
+ if(users.dimensions.length!==4||papers.dimensions.length!==3)throw Error('Unexpected ring counts');
+ data={users,papers};render();
+ try{const r=await fetch('data/linked_user_counts.json',{cache:'no-store'});if(r.ok){const j=await r.json();
+ if(j.source_total===users.source_total&&j.min_cell_count>=10&&j.approved_for_public_release===true&&j.review_only!==true&&j.conditionals&&typeof j.conditionals==='object'){linked=j;render()}
+ }}catch(e){console.warn('Optional linked categories unavailable',e)}
+ }catch(e){$('hint').textContent=e.message;console.error(e)}
+}
+document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{if(data)changeMode(b.dataset.mode)});
+$('reset').onclick=()=>{picked=null;hover=null;render()};
+$('explore').onclick=()=>setDrawer(!drawerOpen);
+$('close').onclick=()=>setDrawer(false);
+$('clear').onclick=()=>{picked=null;hover=null;render()};
+$('ringSelect').onchange=v=>{inspectRing=Number(v.target.value);updateList()};
+$('search').oninput=v=>{search=v.target.value;updateList()};
+document.addEventListener('keydown',e=>{if(e.key==='Escape'&&drawerOpen)setDrawer(false)});
 load();
 })();
 </script></body></html>
