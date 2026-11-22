@@ -95,3 +95,25 @@ body.presentation-mode.presentation-graph .graphFoot {padding:4px 10px 10px}
   .graphTools button{height:29px;min-width:29px}
   .graphDetail{padding:10px}
 }
+
+/* Faithful Research Canvas intake: no invented coauthorship when source data is missing. */
+.graphVisualArea{min-height:410px}
+.graphEmpty{
+  position:absolute;inset:15px;z-index:3;display:flex;align-items:center;justify-content:center;
+  flex-direction:column;text-align:center;gap:12px;padding:28px;
+  border:1px solid #3a5874;border-radius:16px;background:radial-gradient(ellipse at center,#182f47f2,#0c192beF);
+  color:#e5efff;
+}
+.graphEmptyLogo{font-size:46px;line-height:1;color:#7cd2eb}
+.graphEmpty h3{font:700 clamp(17px,2.4vw,24px) system-ui;margin:0;max-width:560px}
+.graphEmpty p{font:13px/1.65 system-ui;color:#b5cbdf;max-width:570px;margin:0}
+.graphEmpty code{color:#9fd5f5;font-size:12px}
+.graphEmpty button{
+  cursor:pointer;font:700 14px system-ui;padding:12px 18px;border:1px solid #71c9e8;
+  color:#f5fbff;background:#237caa;border-radius:10px
+}
+.graphEmpty button:hover{background:#359bc2}
+.graphEmpty small{color:#91aac1;font:11px system-ui}
+.graphSection .graphControls label[hidden]{display:none!important}
+body.presentation-mode.presentation-graph:not(.presentation-details) .graphEmpty {inset:5px}
+body.presentation-mode.presentation-graph .graphTools{z-index:2}
