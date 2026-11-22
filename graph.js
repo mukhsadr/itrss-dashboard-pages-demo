@@ -52,68 +52,141 @@
     return {nodes,edges,caption:'Real grouped source data · departments → classification → status',stats:[['Source records',total],['Grouped cohorts',cohorts.length],['Connections',edges.length]]};
   }
 
-  function buildResearch(){
-    const search=$('graphSearch').value.trim().toLowerCase();
-    const yearFrom=Number($('graphYearFrom').value)||1900,yearTo=Number($('graphYearTo').value)||2100;
-    const facility=$('graphFacility').value;
-    const authorMatches=new Set(authors.filter(a=>String(a.author_name||'').toLowerCase().includes(search))
-      .map(a=>String(a.record_id||'')));
-    const visible=works.filter(w=>{
+
+  // Original Streamlit model: source-record IDs -> coauthor graph -> focus,
+  // year/facility/search filters -> weighted coauthor edges -> two network views.
+  // communityGroups comes from NetworkX greedy_modularity_communities at export.
+  let communityGroups={};
+  const ORIGINAL_PALETTE=['#45d6c2','#e9a65b','#8b9cff','#ff7caa','#80c6ff','#b4e66e','#df99f9','#ffc96c','#61b0ad','#ff9184','#91a5fa','#b8d8eb'];
+  const originalGrant=s=>{
+    const txt=String(s||'').toUpperCase().replace(/[–—]/g,'-')
+      .replace(/\b(NSF|GRANT|AWARD|MRI|DMREF)\b/g,'').replace(/\s+/g,' ').trim();
+    if(/\b(?:OAC|ACI)-?1919789\b/.test(txt)||txt==='1919789')return 'OAC-1919789';
+    return txt.replace(/\b(OAC|ACI|DMR|CHE)\s*-?\s*(\d{7})\b/g,'$1-$2');
+  };
+  function coreGraph(mode){
+    const byWork=new Map(works.filter(w=>w.record_id).map(w=>[String(w.record_id),w]));
+    const atp=new Map(),pta=new Map(),names=new Map(),candidate=new Map();
+    for(const row of authors){
+      const aid=String(row.author_id||'').trim(),pid=String(row.record_id||'').trim();
+      if(!aid||!byWork.has(pid))continue;
+      names.set(aid,String(row.author_name||aid));
+      if(!atp.has(aid))atp.set(aid,new Set());
+      if(!pta.has(pid))pta.set(pid,new Set());
+      atp.get(aid).add(pid);pta.get(pid).add(aid);
+    }
+    for(const [pid,w] of byWork){
+      const grants=new Set(String(w.grant_ids||'').split(';').map(originalGrant).filter(Boolean));
+      candidate.set(pid,grants);
+    }
+    const globalLinks=new Map();
+    for(const members of pta.values()){
+      const ids=[...members].sort();
+      for(let i=0;i<ids.length;i++)for(let j=i+1;j<ids.length;j++){
+        const k=ids[i]+'|||'+ids[j];globalLinks.set(k,(globalLinks.get(k)||0)+1);
+      }
+    }
+    const q=$('graphSearch').value.trim().toLowerCase(),
+      from=Number($('graphYearFrom').value)||1900,to=Number($('graphYearTo').value)||2100,
+      facility=$('graphFacility').value,
+      minShared=Number($('graphMinShared').value)||1,
+      topN=Number($('graphLimit').value)||120;
+    let valid=new Set();
+    for(const [pid,w] of byWork){
       const year=Number(w.year)||0;
-      if(year&&(year<yearFrom||year>yearTo))return false;
-      if(facility!=='all'&&w.cluster!==facility)return false;
-      if(!search)return true;
-      return authorMatches.has(String(w.record_id||''))||
-        [w.title,w.doi,w.venue,w.grant_ids].some(v=>String(v||'').toLowerCase().includes(search));
-    });
-    const valid=new Map(visible.map(w=>[String(w.record_id||''),w]).filter(([id])=>id));
-    const authorPapers=new Map(),names=new Map(),paperAuthors=new Map();
-    for(const a of authors){
-      const pid=String(a.record_id||''),aid=String(a.author_id||'');
-      if(!valid.has(pid)||!aid)continue;
-      names.set(aid,a.author_name||aid);
-      if(!authorPapers.has(aid))authorPapers.set(aid,new Set());
-      authorPapers.get(aid).add(pid);
-      if(!paperAuthors.has(pid))paperAuthors.set(pid,new Set());
-      paperAuthors.get(pid).add(aid);
+      if(!year||year<from||year>to)continue;
+      if(facility!=='all'&&w.cluster!==facility)continue;
+      valid.add(pid);
     }
-    const limit=Number($('graphLimit').value)||60;
-    const ranked=[...authorPapers].sort((a,b)=>b[1].size-a[1].size).slice(0,limit);
-    const keep=new Set(ranked.map(([id])=>id));
-    const collabs=new Map();
-    for(const group of paperAuthors.values()){
-      const sorted=[...group].filter(a=>keep.has(a)).sort();
-      for(let i=0;i<sorted.length;i++)for(let j=i+1;j<sorted.length;j++){
-        const key=sorted[i]+'|||'+sorted[j];collabs.set(key,(collabs.get(key)||0)+1);
+    if(q){
+      const matched=new Set();
+      for(const pid of valid){
+        const w=byWork.get(pid);
+        const attrs=[w.title,w.doi,w.venue,w.grant_ids];
+        if(attrs.some(v=>String(v||'').toLowerCase().includes(q)))matched.add(pid);
+      }
+      for(const [aid,name] of names)if(name.toLowerCase().includes(q))
+        for(const pid of atp.get(aid)||[])if(valid.has(pid))matched.add(pid);
+      valid=matched;
+    }
+    const focus=$('graphFocus').value;
+    if(focus&&atp.has(focus)){
+      const direct=new Set([focus]);
+      for(const [pair,count] of globalLinks)if(count>=minShared){
+        const [a,b]=pair.split('|||');
+        if(a===focus)direct.add(b);
+        if(b===focus)direct.add(a);
+      }
+      valid=new Set([...valid].filter(pid=>[...(pta.get(pid)||[])].some(aid=>direct.has(aid))));
+    }
+    const paperCounts=new Map();
+    for(const pid of valid)for(const aid of pta.get(pid)||[])
+      paperCounts.set(aid,(paperCounts.get(aid)||0)+1);
+    if(focus&&atp.has(focus))
+      paperCounts.set(focus,[...atp.get(focus)].filter(pid=>valid.has(pid)).length);
+    const ranked=[...paperCounts].sort((a,b)=>b[1]-a[1]||
+      String(names.get(a[0])||a[0]).localeCompare(String(names.get(b[0])||b[0]))).slice(0,topN);
+    const keep=new Set(ranked.map(([aid])=>aid));
+    const selected=new Set([...valid].filter(pid=>[...(pta.get(pid)||[])].some(aid=>keep.has(aid))));
+    const pairWeights=new Map();
+    for(const pid of selected){
+      const members=[...(pta.get(pid)||[])].filter(aid=>keep.has(aid)).sort();
+      for(let i=0;i<members.length;i++)for(let j=i+1;j<members.length;j++){
+        const pair=members[i]+'|||'+members[j];pairWeights.set(pair,(pairWeights.get(pair)||0)+1);
       }
     }
-    const edges=[...collabs].filter(([,count])=>count>=Number($('graphMinShared').value||1)).map(([key,count])=>{
-      const [a,b]=key.split('|||');return {a,b,count,relation:'Shared publications'};
+    const coauthorEdges=[...pairWeights].filter(([,n])=>n>=minShared)
+      .map(([k,n])=>{const [a,b]=k.split('|||');return {a:'a:'+a,b:'a:'+b,count:n,relation:'coauthored'}});
+    const candidateAwards=new Set([...selected].flatMap(pid=>[...(candidate.get(pid)||[])]));
+    const nodes=ranked.map(([aid,count])=>{
+      const group=Number(communityGroups[aid]??-1);
+      return {id:'a:'+aid,author_id:aid,label:names.get(aid)||aid,kind:'researcher',count,
+        color:mode==='research'&&group>=0?ORIGINAL_PALETTE[group%ORIGINAL_PALETTE.length]:'#63c7eb',
+        community:group>=0?group+1:null,
+        url:/^https?:\/\//.test(aid)?aid:null,
+        workIDs:[...atp.get(aid)].filter(pid=>valid.has(pid))};
     });
-    let group=new Map(ranked.map(([id])=>[id,id]));
-    for(let iteration=0;iteration<12;iteration++){
-      const next=new Map(group);
-      for(const [id] of ranked){
-        const score=new Map();
-        for(const e of edges)if(e.a===id||e.b===id){
-          const neighbor=e.a===id?e.b:e.a,label=group.get(neighbor);
-          score.set(label,(score.get(label)||0)+e.count);
-        }
-        if(score.size)next.set(id,[...score].sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0]))[0][0]);
-      }
-      group=next;
+    const stats=[['Publications',valid.size],['Researchers',keep.size],
+      ['Coauthor links',coauthorEdges.length],['Candidate awards',candidateAwards.size]];
+    if(mode==='research')return {nodes,edges:coauthorEdges,stats,
+      caption:'Original author–author coauthorship network · colors are NetworkX communities',
+      accurateCommunities:Object.keys(communityGroups).length>0};
+    const paperLimit=Number($('graphPaperLimit').value)||110;
+    const grantLimit=Number($('graphGrantLimit').value)||20;
+    const ordered=[...selected].sort((a,b)=>{
+      const wa=byWork.get(a),wb=byWork.get(b),
+        countA=[...(pta.get(a)||[])].filter(id=>keep.has(id)).length,
+        countB=[...(pta.get(b)||[])].filter(id=>keep.has(id)).length;
+      return countB-countA||
+        (Number(wb.citation_count)||0)-(Number(wa.citation_count)||0)||a.localeCompare(b);
+    }).slice(0,paperLimit);
+    const edges=[];
+    for(const pid of ordered){
+      const w=byWork.get(pid);
+      nodes.push({id:'p:'+pid,label:String(w.title||pid),kind:'paper',count:1,year:w.year,
+        cluster:w.cluster,doi:w.doi,authors:[...(pta.get(pid)||[])].map(id=>names.get(id)||id).join(', '),
+        url:w.source_url||((w.doi||'')?'https://doi.org/'+w.doi:null),record_id:pid,color:'#b2bcd1',
+        grant_ids:w.grant_ids||''});
+      for(const aid of pta.get(pid)||[])if(keep.has(aid))
+        edges.push({a:'a:'+aid,b:'p:'+pid,count:1,relation:'authored'});
     }
-    const communities=[...new Set(group.values())].sort();
-    const colors=['#45d6c2','#8b9cff','#e9a65b','#ff7caa','#80c6ff','#b4e66e','#df99f9','#61b0ad'];
-    const nodes=ranked.map(([id,p])=>({id,kind:'researcher',label:names.get(id),count:p.size,
-      community:communities.indexOf(group.get(id))+1,color:colors[communities.indexOf(group.get(id))%colors.length]}));
-    nodes.forEach((node,i)=>{
-      const angle=i*2.399963229728653,r=58+300*Math.sqrt((i+1)/Math.max(1,nodes.length));
-      node.x=530+Math.cos(angle)*r;node.y=340+Math.sin(angle)*r*.76;
-    });
-    return {nodes,edges,caption:'OpenAlex coauthorship · color = detected research community',
-      stats:[['Researchers',nodes.length],['Publications',visible.length],['Coauthor links',edges.length],['Communities',communities.length]]};
+    if($('graphGrants').checked){
+      const gc=new Map();
+      for(const pid of ordered)for(const g of candidate.get(pid)||[])
+        gc.set(g,(gc.get(g)||0)+1);
+      const grants=[...gc].sort((a,b)=>b[1]-a[1]||a[0].localeCompare(b[0])).slice(0,grantLimit);
+      const allow=new Set(grants.map(([g])=>g));
+      for(const [grant,count] of grants){
+        nodes.push({id:'g:'+grant,label:grant,kind:'grant',count,color:'#f2bd68',
+          note:'Candidate funding reference extracted from metadata. Not independently verified.'});
+      }
+      for(const pid of ordered)for(const g of candidate.get(pid)||[])if(allow.has(g))
+        edges.push({a:'g:'+g,b:'p:'+pid,count:1,relation:'Unverified grant reference'});
+    }
+    return {nodes,edges,stats,caption:'Original researcher → publication → grant-candidate relationships',
+      accurateCommunities:true};
   }
+  function buildResearch(){return coreGraph('research')}
   const STOP=new Set('the and for with from into using through onto on of in by an a to as at this that study studies investigation based new under over across toward via role effects effect analysis case development multi computational theoretical high properties research method methods system systems two three between their model models approach impact identification how which have been are will can'.split(' '));
   function namedAuthors(raw){
     return String(raw||'').split(/\s+(?:&|and)\s+|;/i)
@@ -161,46 +234,7 @@
     return {nodes,edges,caption:'Publication similarity · shared title terms and explicitly listed authors (not citations)',
       stats:[['Visible papers',nodes.length],['Related links',edges.length],['Bibliography',published.length]]};
   }
-  function buildEntities(){
-    const full=works.length&&authors.length,limit=Number($('graphLimit').value)||60;
-    const p=full?works.filter(w=>{
-      const q=$('graphSearch').value.toLowerCase(),year=Number(w.year)||0,from=Number($('graphYearFrom').value)||1900,to=Number($('graphYearTo').value)||2100;
-      return (!q||[w.title,w.doi,w.venue,w.grant_ids].some(v=>String(v||'').toLowerCase().includes(q)))&&(!year||(year>=from&&year<=to))&&($('graphFacility').value==='all'||w.cluster===$('graphFacility').value);
-    }).slice(0,Math.max(5,Math.floor(limit*.55))):publicPapers().slice(0,Math.max(5,Math.floor(limit*.55)));
-    const nodes=[],edges=[],map=new Map(),authorIndex=new Map();
-    if(full){
-      for(const a of authors){const id=String(a.record_id||'');if(!authorIndex.has(id))authorIndex.set(id,[]);authorIndex.get(id).push(a)}
-    }
-    for(let i=0;i<p.length;i++){
-      const w=p[i],id=full?'work:'+String(w.record_id):'p:'+published.indexOf(w);
-      if(full&&!w.record_id)continue;
-      const paper={id,label:full?w.title:w.Title,kind:'paper',count:1,year:full?w.year:w.Year,
-        authors:full?'See linked researcher nodes':w.Authors,url:full?(w.source_url||''):paperURL(w),
-        cluster:full?w.cluster:w['Cluster acknowledged'],color:'#92baf4',grant_ids:full?w.grant_ids:''};
-      nodes.push(paper);
-      const authorsFor=full?authorIndex.get(String(w.record_id))||[]:namedAuthors(w.Authors).map(a=>({author_id:a.toLowerCase(),author_name:a}));
-      for(const a of authorsFor){
-        const key=String(a.author_id||'');if(!key)continue;
-        const aid='a:'+key, label=String(a.author_name||key);
-        if(!map.has(aid))map.set(aid,{id:aid,kind:'researcher',label,count:0,color:'#61cfe4'});
-        map.get(aid).count++;edges.push({a:aid,b:id,count:1,relation:'Authored'});
-      }
-    }
-    const allowed=new Set([...map.values()].sort((a,b)=>b.count-a.count).slice(0,Math.max(2,limit-nodes.length)).map(n=>n.id));
-    nodes.push(...[...map.values()].filter(a=>allowed.has(a.id)));
-    const allEdges=edges.filter(e=>allowed.has(e.a));
-    if(full&&$('graphGrants').checked){
-      const seen=new Map();
-      for(const paper of nodes.filter(n=>n.kind==='paper')){
-        for(const grant of String(paper.grant_ids||'').split(';').map(x=>x.trim()).filter(Boolean)){
-          if(!seen.has(grant)&&seen.size<12){const node={id:'g:'+grant,label:grant,kind:'grant',count:0,color:'#f2bd68',note:'Unverified metadata grant mention'};seen.set(grant,node);nodes.push(node)}
-          if(seen.has(grant)){seen.get(grant).count++;allEdges.push({a:paper.id,b:seen.get(grant).id,count:1,relation:'Unverified grant reference'})}
-        }
-      }
-    }
-    return {nodes,edges:allEdges,caption:full?'OpenAlex author/paper graph · grant links are unverified metadata candidates':'Public bibliographic names only · “et al.” omits coauthors',
-      stats:[['Researchers',allowed.size],['Paper nodes',p.length],['Links',allEdges.length]]};
-  }
+  function buildEntities(){return coreGraph('entities')}
   function forceLayout(nodes,edges){
     if(!nodes.length)return;
     for(let i=0;i<nodes.length;i++){
