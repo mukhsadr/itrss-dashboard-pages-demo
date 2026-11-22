@@ -7,6 +7,7 @@ Do not publish until the institutional data owner approves the contents.
 import argparse
 import csv
 import json
+import math
 from collections import Counter, defaultdict
 from itertools import combinations
 from pathlib import Path
@@ -97,6 +98,50 @@ def main():
             for author_id in group:
                 communities[author_id] = index
 
+    # Precompute the exact initial author graph layout from research_canvas.py
+    # (top 120 researchers, min 1 shared paper, all years/facilities).
+    by_work = {w["record_id"]: w for w in works}
+    names = {a["author_id"]: a["author_name"] for a in authors}
+    valid_papers = {
+        pid for pid, w in by_work.items()
+        if str(w.get("year", "")).isdigit()
+        and w.get("cluster") in {"Foundry", "Mill", "Foundry + Mill"}
+    }
+    paper_counts = Counter(
+        aid for pid in valid_papers for aid in paper_to_authors.get(pid, set())
+    )
+    top_authors = sorted(
+        paper_counts,
+        key=lambda aid: (-paper_counts[aid], names.get(aid, "")),
+    )[:120]
+    keep = set(top_authors)
+    selected_papers = {
+        pid for pid in valid_papers if paper_to_authors.get(pid, set()) & keep
+    }
+    pairs = Counter()
+    for pid in selected_papers:
+        for pair in combinations(sorted(paper_to_authors[pid] & keep), 2):
+            pairs[pair] += 1
+    initial_graph = nx.Graph()
+    initial_graph.add_nodes_from("a:" + aid for aid in keep)
+    for (a, b), weight in pairs.items():
+        initial_graph.add_edge(
+            "a:" + a, "a:" + b, weight=min(5, math.sqrt(weight))
+        )
+    initial_layout = {}
+    if initial_graph.number_of_nodes():
+        positions = nx.spring_layout(
+            initial_graph,
+            seed=17,
+            iterations=80,
+            weight="weight",
+            k=1.6 / math.sqrt(max(2, initial_graph.number_of_nodes())),
+        )
+        initial_layout = {
+            node: [round(float(v[0]), 7), round(float(v[1]), 7)]
+            for node, v in positions.items()
+        }
+
     works.sort(key=lambda x: (x["year"], x["title"], x["record_id"]))
     authors.sort(key=lambda x: (x["record_id"], x["author_name"], x["author_id"]))
     payload = {
@@ -107,12 +152,15 @@ def main():
         "authors": authors,
         "communities": communities,
         "community_algorithm": "networkx.greedy_modularity_communities (weighted)",
+        "default_author_layout": initial_layout,
+        "layout_algorithm": "networkx.spring_layout(seed=17, iterations=80)",
     }
     args.out.parent.mkdir(parents=True, exist_ok=True)
     args.out.write_text(json.dumps(payload, ensure_ascii=False, indent=2) + "\n", encoding="utf-8")
     print(f"Review file created: {args.out}")
     print(f"Works with public links: {len(works)} | Linked author entries: {len(authors)}")
     print(f"Detected research communities: {len(set(communities.values()))} | Coauthor links: {len(collabs)}")
+    print(f"Precomputed original-layout researcher positions: {len(initial_layout)}")
     print("No upload was performed. Review the JSON and obtain required approval before public release.")
 
 if __name__ == "__main__":
