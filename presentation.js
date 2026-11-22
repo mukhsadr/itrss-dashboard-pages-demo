@@ -3,6 +3,7 @@
   const $ = id => document.getElementById(id);
   const body = document.body, chooser = $('presentationInput');
   let view = 'users';
+  const localFiles = {users:null,papers:null};
   function setAlert(message){$('presentationAlert').textContent=message||'';}
   function refresh(){
     const presenting = body.classList.contains('presentation-mode');
@@ -15,6 +16,7 @@
     $('presentationUsers').setAttribute('aria-pressed',String(view==='users'));
     $('presentationPapers').setAttribute('aria-pressed',String(view==='papers'));
     $('presentationFile').textContent = view==='users' ? 'Open local CSV' : 'Open local JSON';
+    $('presentationDataMode').textContent = localFiles[view] ? 'Local file · browser only' : 'Synthetic demo';
   }
   $('presentationToggle').addEventListener('click',() => {
     body.classList.toggle('presentation-mode');
@@ -61,10 +63,12 @@
     }catch(error){setAlert('Unable to read the file: '+error.message);}
   });
   window.addEventListener('dashboard:local-data-loaded',event=>{
-    $('presentationDataMode').textContent='Local file · browser only';
+    localFiles[event.detail.kind||view]=event.detail.name;
+    refresh();
     setAlert('Loaded '+event.detail.name+' in this browser session only; no data uploaded.');
   });
   window.addEventListener('dashboard:local-data-error',event=>setAlert(event.detail.message));
+  window.addEventListener('dashboard:demo-data-loaded',event=>{localFiles[event.detail.kind]=null;refresh();});
   document.addEventListener('keydown',event=>{
     if(event.key==='Escape'&&body.classList.contains('presentation-mode')&&!document.fullscreenElement){
       body.classList.remove('presentation-mode','presentation-details');refresh();
