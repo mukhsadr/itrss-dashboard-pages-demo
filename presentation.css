@@ -1,0 +1,70 @@
+
+/* Presentation v4 — isolated from the existing analytical layout */
+.presentationToolbar {
+  position: sticky; top: 0; z-index: 1000; display: flex; align-items: center;
+  justify-content: space-between; flex-wrap: wrap; gap: 10px;
+  padding: 10px clamp(12px,3vw,38px); background: #101d2f;
+  border-bottom: 1px solid #2a3f58; box-shadow: 0 6px 24px #02081155;
+}
+.presentationBrand {font-size: 13px; font-weight: 800; letter-spacing: .02em; color:#b9d4ee}
+.presentationBrand strong {color:#fff}
+.presentationActions {display:flex;align-items:center;justify-content:flex-end;gap:7px;flex-wrap:wrap}
+.presentationToolbar button {font:600 12px system-ui; color:#c9dff4;background:#1b3049;border:1px solid #355371;border-radius:9px;padding:8px 11px;cursor:pointer}
+.presentationToolbar button:hover,.presentationToolbar button:focus-visible{background:#2c5073;outline:2px solid #70b0ec;outline-offset:1px}
+.presentationToolbar button.active {background:#2678a8;border-color:#63b8e9;color:#fff}
+.presentationOnly {display:none;align-items:center;gap:7px;flex-wrap:wrap}
+.presentation-mode .presentationOnly {display:flex}
+.presentationDataMode{font:700 10px system-ui;letter-spacing:.025em;color:#d7c3ff;border:1px solid #70469c;border-radius:20px;padding:6px 8px}
+.presentationAlert{width:100%;font:12px system-ui;color:#ffcbac}
+.presentationAlert:empty{display:none}
+body.presentation-mode {background:#08111f}
+body.presentation-mode .shell {max-width:none;padding:0 18px 24px}
+body.presentation-mode .shell>header,
+body.presentation-mode .shell>.summary,
+body.presentation-mode #researchCanvasSection,
+body.presentation-mode footer,
+body.presentation-mode #papersSection,
+body.presentation-mode .main>.side,
+body.presentation-mode .sectionHead,
+body.presentation-mode .controlGrid,
+body.presentation-mode .paperToggle,
+body.presentation-mode .ringsCaption,
+body.presentation-mode .paperHeading,
+body.presentation-mode .paperMetrics,
+body.presentation-mode .paperList {display:none}
+body.presentation-mode .shell>main.main {display:block;max-width:1100px;margin:auto}
+body.presentation-mode.presentation-papers .shell>main.main {display:none}
+body.presentation-mode.presentation-papers #papersSection{display:block;max-width:1100px;margin:auto}
+body.presentation-mode #papersSection>.main{display:block}
+body.presentation-mode .main .visual{background:transparent;border:0;box-shadow:none;padding:4px 0 0}
+body.presentation-mode .chartWrap {width:min(86vh,94vw,940px);max-width:100%;margin:0 auto}
+body.presentation-mode .paperWrap {width:min(86vh,94vw,850px)}
+body.presentation-mode .chartCenter {width:32%}
+body.presentation-mode .chartCenter strong {font-size:clamp(34px,5.2vw,76px)}
+body.presentation-mode .chartCenter .mini,
+body.presentation-mode .chartCenter #centerCaption,
+body.presentation-mode .paperWrap .chartCenter>div {display:none}
+body.presentation-mode.presentation-details .shell>main.main,
+body.presentation-mode.presentation-details #papersSection>.main{display:grid;grid-template-columns:minmax(0,1.6fr) minmax(275px,.75fr);gap:17px;max-width:1420px}
+body.presentation-mode.presentation-details .main>.side {display:block}
+body.presentation-mode.presentation-details .main>.visual {padding:21px;background:#121e30;border:1px solid #26374c}
+body.presentation-mode.presentation-details .sectionHead {display:flex}
+body.presentation-mode.presentation-details .controlGrid {display:grid}
+body.presentation-mode.presentation-details .paperToggle,
+body.presentation-mode.presentation-details .ringsCaption{display:flex}
+body.presentation-mode.presentation-details .chartWrap{width:100%;max-width:620px;margin:12px auto 0}
+body.presentation-mode.presentation-details .paperWrap{max-width:520px}
+body.presentation-mode.presentation-details .chartCenter .mini,
+body.presentation-mode.presentation-details .chartCenter #centerCaption,
+body.presentation-mode.presentation-details .paperWrap .chartCenter>div{display:block}
+@media(max-width:900px) {
+  body.presentation-mode.presentation-details .shell>main.main,
+  body.presentation-mode.presentation-details #papersSection>.main{grid-template-columns:1fr}
+}
+@media(max-width:640px){
+  .presentationToolbar{padding:9px 11px}
+  .presentationBrand{width:100%}
+  .presentationToolbar button{font-size:11px;padding:7px 8px}
+  body.presentation-mode .shell{padding:8px}
+  body.presentation-mode .chartWrap{width:min(94vw,80vh)}
+}
