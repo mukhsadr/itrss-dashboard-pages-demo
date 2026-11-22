@@ -8,7 +8,7 @@
 The dashboard opens in **Present** mode, optimized for a centered visualization with minimal surrounding text. Select **Edit** to show filters, data import controls, chart labels and additional details. Switch between:
 
 1. **Mill users:** Four interactive linked rings with real source totals from the 1,607-user report. Clicking a slice filters and updates the remaining rings; clicking the same slice again clears the filter.
-2. **Publications:** Three interactive linked rings for year, cluster and publication type. **The original publication JSON is not yet included in this repository.** The panel clearly shows pending data rather than inventing values. To use the original chart now, choose Publications → **Open local JSON**, and select `~/Projects/itrss-metrics-dashboard/data/publications.json` from your computer. The file stays in this browser session and is not uploaded.
+2. **Publications:** Three interactive linked rings for year, cluster and publication type. **The original publication JSON is not yet included in this repository.** The panel clearly shows pending data rather than inventing values. To use the original chart now, choose **Publications → Open publications.json** (or drag your JSON file onto the panel), and select `~/Projects/itrss-metrics-dashboard/data/publications.json` from your computer. The file stays in this browser tab and is not uploaded to GitHub or a server. **Choose another JSON** in Edit mode replaces the data without resetting the website. Present/Edit and tab switching preserve your selected file until the page is reloaded.
 3. **Graph:** Automatically displays a relationship graph created from the published, privacy-grouped Mill user metrics (department → classification → status). In Edit mode, change **Graph source** to **Research coauthor network** and choose **Open research CSV files**. Select both `enriched_works.csv` and `authors.csv` from your local `mill_graph_pipeline/output/` folder. The site constructs author connections from actual shared publications in-browser. There is no server-side Streamlit runtime on GitHub Pages. The original Python Streamlit source remains local.
 
 ## Data sources and disclosure limits
@@ -28,3 +28,7 @@ python3 -m http.server 8766
 Deploys automatically via `.github/workflows/deploy-pages.yml` on every push to `main`.
 
 If the previous version is cached in your browser, refresh with **Ctrl+Shift+R** or add `?v=5` to the site address.
+
+## Publication import smoke test
+
+The v5 publication import was checked with a non-user example containing four records and one flagged duplicate: default base count was 3, all three ring SVGs rendered, and clicking a ring segment reduced the displayed records from 3 to 2. This verifies the client-side loading/filter logic, not the user's unpublished workbook.
