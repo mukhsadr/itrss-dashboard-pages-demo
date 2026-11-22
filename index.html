@@ -1,5 +1,5 @@
-<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>ITRSS Research Metrics · v6</title><link rel="stylesheet" href="styles.css?v=1795367000"><link rel="stylesheet" href="papers.css?v=1795367000"><link rel="stylesheet" href="presentation.css?v=6"><link rel="stylesheet" href="graph.css?v=7"></head><body class="presentation-mode"><div id="publicBanner" style="position:sticky;top:0;z-index:9999;background:#6937b9;color:white;text-align:center;padding:12px;font:600 15px system-ui">PUBLIC METRICS · 1,607 GROUPED MILL RECORDS · 247 PUBLICATION ENTRIES · INTERNAL NOTES EXCLUDED</div><nav id="presentationToolbar" class="presentationToolbar" aria-label="Dashboard display controls">
-  <span class="presentationBrand">ITRSS <strong>Research Metrics</strong> · v7</span>
+<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>ITRSS Research Metrics · v6</title><link rel="stylesheet" href="styles.css?v=1795367000"><link rel="stylesheet" href="papers.css?v=1795367000"><link rel="stylesheet" href="presentation.css?v=6"><link rel="stylesheet" href="graph.css?v=8"></head><body class="presentation-mode"><div id="publicBanner" style="position:sticky;top:0;z-index:9999;background:#6937b9;color:white;text-align:center;padding:12px;font:600 15px system-ui">PUBLIC METRICS · 1,607 GROUPED MILL RECORDS · 247 PUBLICATION ENTRIES · INTERNAL NOTES EXCLUDED</div><nav id="presentationToolbar" class="presentationToolbar" aria-label="Dashboard display controls">
+  <span class="presentationBrand">ITRSS <strong>Research Metrics</strong> · v8</span>
   <div class="presentationActions">
     <span class="presentationModes"><button id="presentationToggle" type="button" class="active" aria-pressed="true">Present</button><button id="presentationDetails" type="button" aria-pressed="false">Edit</button></span>
     <div class="presentationOnly">
@@ -60,6 +60,9 @@
     <label>Title similarity
       <select id="graphStrength"><option value="0.08">Broad links</option><option value="0.10" selected>Balanced links</option><option value="0.18">Strong links</option><option value="0.30">Very strong links</option></select>
     </label>
+    <label>Minimum shared papers
+      <select id="graphMinShared"><option value="1" selected>1 paper</option><option value="2">2 papers</option><option value="3">3 papers</option><option value="5">5 papers</option></select>
+    </label>
     <label class="graphGrantsControl"><input id="graphGrants" type="checkbox"> Candidate grants (OpenAlex only)</label>
     <button id="graphImport" type="button">Open OpenAlex CSV files</button>
     <input id="graphFiles" type="file" accept=".csv,text/csv" multiple hidden>
@@ -82,4 +85,4 @@
   </div>
   <p id="graphInfo" role="status" aria-live="polite"></p>
 </section>
-<footer><span>Public interface · Original data exports require disclosure review</span><span>Missing values shown as “Not specified”</span></footer></div><script src="app.js?v=5"></script><script src="papers.js?v=7"></script><script src="presentation.js?v=7"></script><script src="graph.js?v=7"></script></body></html>
+<footer><span>Public interface · Original data exports require disclosure review</span><span>Missing values shown as “Not specified”</span></footer></div><script src="app.js?v=5"></script><script src="papers.js?v=7"></script><script src="presentation.js?v=8"></script><script src="graph.js?v=8"></script></body></html>
