@@ -31,6 +31,26 @@ svg{width:100%;height:100%;display:block}.slice{cursor:pointer;stroke:#111f33;st
 .note{font-size:11px;color:var(--muted);text-align:center}footer{color:#839db8;font-size:10px;text-align:center}
 @media(max-width:700px){.cards{grid-template-columns:repeat(2,minmax(0,1fr))}.main{padding:12px}.chartRow{grid-template-columns:1fr;gap:4px}.donut{width:min(100%,380px)}.legendBox{border-left:0;border-top:1px solid var(--line);padding:9px 0 0}#legend{max-height:210px}.chartRow{min-height:0}}
 @media(min-width:800px) and (min-height:700px){.page{height:100dvh}.chartRow{min-height:0}#legend{max-height:100%}}
+
+/* The user's sketch: four compact metrics above, narrow controls left, fixed chart canvas right. */
+.page{max-width:1320px;gap:12px}
+.cards .card{padding:12px 15px}
+.main{padding:14px;min-height:0}
+.toolbar{padding:0 3px 6px;border-bottom:1px solid var(--line)}
+.canvasTag{font-size:10px;letter-spacing:.08em;color:#91aac4;font-weight:700}
+.chartRow{grid-template-columns:240px minmax(0,1fr);gap:15px;min-height:0}
+.legendBox{grid-column:1;grid-row:1;border-left:0;border-right:1px solid var(--line);padding:5px 13px 5px 0;min-height:0}
+.chartHolder{grid-column:2;grid-row:1;min-height:0;align-self:stretch}
+.donut{width:min(100%,min(66vh,630px));flex:none}
+.controlsTitle{font-size:14px;font-weight:750;margin-bottom:12px}
+.controlLabel{display:flex;flex-direction:column;gap:5px;font-size:11px;color:#a9bfd5;margin-bottom:10px}
+.controlLabel select,.controlLabel input{width:100%;background:#21334b;border:1px solid #425872;color:#eaf3ff;border-radius:8px;padding:9px 10px;min-width:0;font:inherit}
+.resetButton{width:100%;margin:0 0 10px;text-align:center}
+.legendTitle{font-size:11px}
+#legend{min-height:0;max-height:36vh}
+.note{text-align:left;padding-left:257px}
+@media(min-width:950px) and (min-height:650px){.page{height:100dvh}.main{min-height:0}.chartRow{min-height:0}.donut{width:min(100%,min(66vh,630px))}#legend{max-height:none;flex:1}}
+@media(max-width:700px){.chartRow{grid-template-columns:1fr;gap:9px}.legendBox{grid-column:1;grid-row:2;border-right:0;border-top:1px solid var(--line);padding:9px 0 0}.chartHolder{grid-column:1;grid-row:1}.donut{width:min(100%,390px)}.note{padding:0}.legendBox{display:grid;grid-template-columns:1fr 1fr;gap:5px 10px}.controlsTitle,.legendTitle,#legend{grid-column:1/-1}.resetButton{margin:0}.controlLabel{margin-bottom:0}#legend{max-height:180px}}
 </style></head><body><div class="page">
 <header><div class="logo">S&T <span>ITRSS</span></div><a class="headlink" href="../v2/">Previous version</a></header>
 <div><h1>Research computing · at a glance</h1><p class="subtitle">Mill accounts and publication records</p></div>
@@ -41,10 +61,20 @@ svg{width:100%;height:100%;display:block}.slice{cursor:pointer;stroke:#111f33;st
 <div class="card"><small>Duplicate flags</small><strong id="duplicates">—</strong><span>Excluded from included total</span></div>
 </section>
 <main class="main">
-<div class="toolbar"><h2 id="chartName">Department distribution</h2>
-<div class="choices" role="group" aria-label="Choose chart"><button class="choice" data-choice="department" aria-pressed="true">Department</button><button class="choice" data-choice="classification" aria-pressed="false">Class</button><button class="choice" data-choice="status" aria-pressed="false">Status</button><button class="choice" data-choice="cluster" aria-pressed="false">Cluster</button><button class="choice" data-choice="year" aria-pressed="false">Year</button><button class="choice" data-choice="type" aria-pressed="false">Type</button></div></div>
+<div class="toolbar"><h2 id="chartName">Department distribution</h2><span class="canvasTag">INTERACTIVE METRIC CANVAS</span></div>
 <div class="chartRow"><div class="chartHolder"><div class="donut"><svg id="chart" viewBox="0 0 680 680" role="img" aria-label="Distribution chart"></svg><div class="middle"><small id="centerLabel">Records</small><strong id="centerCount">—</strong><span id="centerName">All categories</span></div></div></div>
-<div class="legendBox"><div class="legendTitle"><span id="legendName">Departments</span><button class="choice" id="reset" type="button">Reset</button></div><div id="legend"></div></div></div>
+<aside class="legendBox">
+ <div class="controlsTitle">Controls</div>
+ <label class="controlLabel">Metric
+ <select id="metricSelect"><option value="department">Department</option><option value="classification">Classification</option><option value="status">Status</option><option value="cluster">Publication cluster</option><option value="year">Publication year</option><option value="type">Publication type</option></select></label>
+ <label class="controlLabel">Sort
+ <select id="sortSelect"><option value="desc">Largest first</option><option value="alpha">A–Z</option><option value="asc">Smallest first</option></select></label>
+ <label class="controlLabel">Find a category
+ <input id="search" type="search" placeholder="Filter legend…" autocomplete="off"></label>
+ <button class="choice resetButton" id="reset" type="button">Reset selection</button>
+ <div class="legendTitle"><span id="legendName">Departments</span><span id="legendCount"></span></div>
+ <div id="legend"></div>
+ </aside></div>
 <div class="note" id="note">Select a slice to see its count. Clockwise, largest first.</div>
 </main><footer>Public aggregate distributions only · no individual records · publication acknowledgments do not confirm direct HPC usage</footer></div>
 <script>
@@ -53,22 +83,22 @@ svg{width:100%;height:100%;display:block}.slice{cursor:pointer;stroke:#111f33;st
 const $=id=>document.getElementById(id),SVG='http://www.w3.org/2000/svg';
 const palette=['#5c9eff','#387fd2','#8fbaff','#4768b2','#6aa8de','#29b8ae','#6bd5c1','#c29df0','#9373d3','#e8aa65','#d88b4c','#b0cee7'];
 const modes={department:{set:'users',i:0,label:'Departments',title:'Department distribution'},classification:{set:'users',i:1,label:'Classification',title:'Classification distribution'},status:{set:'users',i:2,label:'Status',title:'Account status'},cluster:{set:'papers',i:0,label:'Clusters',title:'Cluster acknowledgments'},year:{set:'papers',i:1,label:'Years',title:'Publications by year'},type:{set:'papers',i:2,label:'Publication types',title:'Publication types'}};
-let data={},mode='department',selected=null;
+let data={},mode='department',selected=null,sortOrder='desc',searchTerm='';
 const f=n=>Number(n||0).toLocaleString('en-US'),pct=(n,d)=>d?(100*n/d).toFixed(1)+'%':'0%';
 const s=(tag,attrs)=>{const e=document.createElementNS(SVG,tag);for(const [k,v] of Object.entries(attrs))e.setAttribute(k,v);return e};
 const pt=(r,a)=>[340+r*Math.cos(a),340+r*Math.sin(a)];
 function arc(ri,ro,a,b){b=Math.min(b,a+2*Math.PI-.00001);const A=pt(ro,a),B=pt(ro,b),C=pt(ri,b),D=pt(ri,a),large=b-a>Math.PI?1:0;return 'M'+A.join(' ')+' A'+ro+' '+ro+' 0 '+large+' 1 '+B.join(' ')+' L'+C.join(' ')+' A'+ri+' '+ri+' 0 '+large+' 0 '+D.join(' ')+' Z'}
 function render(){
 const m=modes[mode],ds=data[m.set],dimension=ds.dimensions[m.i],total=ds.total;
-const items=[...dimension.values].sort((a,b)=>mode==='year'?Number(a.name)-Number(b.name):b.count-a.count||a.name.localeCompare(b.name));
-$('chartName').textContent=m.title;$('legendName').textContent=m.label;
+const items=[...dimension.values].sort((a,b)=>mode==='year'?Number(a.name)-Number(b.name):sortOrder==='alpha'?a.name.localeCompare(b.name):sortOrder==='asc'?a.count-b.count||a.name.localeCompare(b.name):b.count-a.count||a.name.localeCompare(b.name));
+$('chartName').textContent=m.title;$('legendName').textContent=m.label;$('legendCount').textContent=items.length+' groups';$('metricSelect').value=mode;
 document.querySelectorAll('[data-choice]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.choice===mode)));
 const picked=items.find(x=>x.name===selected);
 $('centerLabel').textContent=picked?'Selected':'Records';$('centerCount').textContent=f(picked?picked.count:total);$('centerName').textContent=picked?picked.name:'All categories';
 const chart=$('chart'),legend=$('legend');chart.replaceChildren();legend.replaceChildren();let a=-Math.PI/2;
 for(let i=0;i<items.length;i++){const x=items[i],end=a+x.count/total*2*Math.PI,color=palette[i%palette.length],on=x.name===selected;
 if(x.count){const path=s('path',{d:arc(205,305,a,end),fill:color,class:'slice',tabindex:0,role:'button','aria-label':x.name+': '+f(x.count)});if(selected&&!on)path.style.opacity='.27';if(on){path.style.stroke='#fff';path.style.strokeWidth='3'}const tip=s('title',{});tip.textContent=x.name+' · '+f(x.count)+' · '+pct(x.count,total);path.append(tip);path.onclick=()=>pick(x.name);path.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();pick(x.name)}};chart.append(path)}a=end;
-const row=document.createElement('button');row.type='button';row.className='entry';row.setAttribute('aria-pressed',String(!!on));const dot=document.createElement('i');dot.className='dot';dot.style.background=color;const name=document.createElement('span');name.className='name';name.textContent=x.name;const count=document.createElement('span');count.className='stat';count.textContent=f(x.count)+' · '+pct(x.count,total);row.append(dot,name,count);row.onclick=()=>pick(x.name);legend.append(row)}
+const row=document.createElement('button');row.type='button';row.className='entry';row.setAttribute('aria-pressed',String(!!on));const dot=document.createElement('i');dot.className='dot';dot.style.background=color;const name=document.createElement('span');name.className='name';name.textContent=x.name;const count=document.createElement('span');count.className='stat';count.textContent=f(x.count)+' · '+pct(x.count,total);row.append(dot,name,count);row.onclick=()=>pick(x.name);if(!searchTerm||x.name.toLowerCase().includes(searchTerm))legend.append(row)}
 $('note').textContent=picked?'Selected: '+picked.name+' ('+pct(picked.count,total)+'). Click again to clear.':mode==='year'?'Years sorted earliest to latest clockwise.':'Select a slice to inspect its count. Largest first, clockwise.';
 }
 function pick(name){selected=selected===name?null:name;render()}
@@ -79,7 +109,9 @@ data={users:{total:u.source_total,dimensions:u.dimensions},papers:{total:p.inclu
 const active=u.dimensions.find(d=>d.column==='Status').values.find(v=>v.name==='Active').count;
 $('users').textContent=f(u.source_total);$('active').textContent=f(active);$('activeShare').textContent=pct(active,u.source_total)+'% of source rows';$('papers').textContent=f(p.included_total);$('duplicates').textContent=f(p.duplicate_count);render();
 }catch(e){$('chartName').textContent='Data unavailable';$('note').textContent=e.message;console.error(e)}}
-document.querySelectorAll('[data-choice]').forEach(b=>b.onclick=()=>{if(data.users){mode=b.dataset.choice;selected=null;render()}});
-$('reset').onclick=()=>{selected=null;if(data.users)render()};load();
+$('metricSelect').onchange=e=>{if(data.users){mode=e.target.value;selected=null;searchTerm='';$('search').value='';render()}};
+$('sortSelect').onchange=e=>{sortOrder=e.target.value;if(data.users)render()};
+$('search').oninput=e=>{searchTerm=e.target.value.trim().toLowerCase();if(data.users)render()};
+$('reset').onclick=()=>{selected=null;searchTerm='';$('search').value='';sortOrder='desc';$('sortSelect').value='desc';if(data.users)render()};load();
 })();
 </script></body></html>
