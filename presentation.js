@@ -19,10 +19,13 @@
       $(id).setAttribute('aria-pressed',String(view===name));
     }
     $('presentationFile').textContent=view==='users'?'Open local CSV':view==='papers'?'Open local JSON':'Open research CSVs';
-    const graphOriginal=$('graphSource')?.value==='research';
+    const graphSource=$('graphSource')?.value;
+    const graphBadge=graphSource==='papers'?'Public bibliography · auto-loaded':
+      graphSource==='entities'?'Authors · Papers · candidate grants':
+      graphSource==='research'?'OpenAlex coauthor network':'Real grouped Mill metrics';
     const badge=localFiles[view]?'Local files · browser only':
-      view==='graph'?(graphOriginal?'Research files pending':'Real Mill metrics'):
-      sourceLoaded[view]?(view==='users'?'Real Mill metrics':'Original publications loaded'):'Original data pending';
+      view==='graph'?graphBadge:
+      sourceLoaded[view]?(view==='users'?'Real Mill metrics':'Public publications loaded'):'Original data pending';
     $('presentationDataMode').textContent=badge;
   }
   $('presentationToggle').addEventListener('click',()=>{
