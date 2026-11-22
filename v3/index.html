@@ -107,7 +107,7 @@ document.querySelectorAll('[data-kpi]').forEach(b=>b.setAttribute('aria-pressed'
 let focused=selected?d.dims[selected.ring].values.find(v=>v.name===selected.name):null;
 $('number').textContent=fmt(focused?focused.count:total);
 $('centerLabel').textContent=focused?focused.name:mode==='users'?'Users':'Papers';
-$('status').textContent=focused ? (focused.name+' · '+fmt(focused.count)+' · '+(focused.count/total*100).toFixed(1)+'% · other rings: overall') : '';
+$('status').textContent=focused ? (focused.name+' · '+fmt(focused.count)+' · '+(focused.count/total*100).toFixed(1)+'% · other rings: '+(conditional?'within selection':'overall')) : '';
 $('chart').setAttribute('aria-label',mode==='users'?'Mill users: four independent distributions. Select a slice to inspect its count.':'Publications: three independent distributions. Select a slice to inspect its count.');
 const chart=$('chart');chart.replaceChildren();
 const radii=mode==='users'?[[103,144],[155,196],[207,248],[259,301]]:[[116,164],[177,225],[238,286]];
