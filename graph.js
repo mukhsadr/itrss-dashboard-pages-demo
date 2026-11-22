@@ -139,9 +139,10 @@
       const group=svg('g',{'data-node':n.id,tabindex:0,role:'button','aria-label':n.label+', '+n.count});
       const c=svg('circle',{cx:n.x,cy:n.y,r:circleSize,fill:kindColor[n.kind]||'#a8beec',
         stroke:'#1a2a43','stroke-width':'2'});
-      const label=svg('text',{x:n.x+(source==='mill'?circleSize+7:0),y:n.y+(source==='mill'?4:-circleSize-5),
+      const rightColumn=source==='mill'&&n.kind==='status';
+      const label=svg('text',{x:source==='mill'?(rightColumn?n.x-circleSize-7:n.x+circleSize+7):n.x,y:n.y+(source==='mill'?4:-circleSize-5),
         fill:'#dceafa','font-size':source==='mill'?'13':'11',
-        'text-anchor':source==='mill'?'start':'middle'},n.label.length>35?n.label.slice(0,32)+'…':n.label);
+        'text-anchor':source==='mill'?(rightColumn?'end':'start'):'middle'},n.label.length>35?n.label.slice(0,32)+'…':n.label);
       const tip=svg('title',{},n.label+' · '+fmt(n.count)+(source==='mill'?' records':' papers'));
       group.append(c,label,tip);
       group.addEventListener('click',()=>focus(n.id));
