@@ -1,34 +1,30 @@
-# ITRSS Research Metrics Dashboard · v4
+# ITRSS Research Metrics Dashboard · v5
 
-**Dashboard:** https://mukhsadr.github.io/itrss-dashboard-pages-demo/
+**Live site:** https://mukhsadr.github.io/itrss-dashboard-pages-demo/  
+**Source:** https://github.com/mukhsadr/itrss-dashboard-pages-demo
 
-## Default live dataset: real grouped Mill report (not synthetic)
+## Three views, two modes
 
-The public site automatically loads `data/callie.csv`, derived from the user's 1,607-row local report. This is a *privacy-grouped aggregate*, not a row-level export.
+The dashboard opens in **Present** mode, optimized for a centered visualization with minimal surrounding text. Select **Edit** to show filters, data import controls, chart labels and additional details. Switch between:
 
-- **Original total:** 1,607 records
-- **Published groups:** 48, with a `Count` weight; real counts from source, not invented records
-- **Disclosure controls:** removed all `User` IDs and advisor names; advisor reduced to recorded/not recorded; academic classifications grouped by type; departments with fewer than 30 records combined into Other departments; every remaining 4-field combination with fewer than five records merged into a single Other grouped categories cohort (194 records)
-- **Display:** 4 linked concentric rings, weighted totals, click-to-filter, hover highlight, center metric, and a simple full-screen presentation default.
+1. **Mill users:** Four interactive linked rings with real source totals from the 1,607-user report. Clicking a slice filters and updates the remaining rings; clicking the same slice again clears the filter.
+2. **Publications:** Three interactive linked rings for year, cluster and publication type. **The original publication JSON is not yet included in this repository.** The panel clearly shows pending data rather than inventing values. To use the original chart now, choose Publications → **Open local JSON**, and select `~/Projects/itrss-metrics-dashboard/data/publications.json` from your computer. The file stays in this browser session and is not uploaded.
+3. **Graph:** Automatically displays a relationship graph created from the published, privacy-grouped Mill user metrics (department → classification → status). In Edit mode, change **Graph source** to **Research coauthor network** and choose **Open research CSV files**. Select both `enriched_works.csv` and `authors.csv` from your local `mill_graph_pipeline/output/` folder. The site constructs author connections from actual shared publications in-browser. There is no server-side Streamlit runtime on GitHub Pages. The original Python Streamlit source remains local.
 
-The source was already pseudonymized in the `User` field, but it retained advisor identities and small unique groups. This public export intentionally does **not** reproduce every original fine-grained category. These transformations reduce disclosure risk but are **not a guarantee of anonymity or an institutional publication approval**. Review with the institutional data owner before broader dissemination.
+## Data sources and disclosure limits
 
-## Publications
+The public `data/callie.csv` contains **48 grouped records with a Count column that totals 1,607 original report records**. It excludes user IDs and named advisors, groups small cells and broadens some classification/department labels. It is **not** the same as publishing the 1,607-row local dataset. Category counts are weighted by Count. An aggregate dataset can still carry reidentification risk; public release should be reviewed by the institutional data owner.
 
-The original `data/publications.json` export has **not yet been supplied** in this conversation. There are no fabricated publication records on the public site. Select **Publications → Open local JSON** to explore the real file in your browser session without posting it to GitHub. The empty public JSON is a placeholder, not a zero-publications finding.
+The `data/publications.json` file is currently an intentionally empty schema placeholder. It does **not** mean zero publications. The original workbook and its author/title/DOI metadata have not been provided for this update. Neither the original publication record rows nor the research network datasets were invented or copied from the uploaded Python script.
 
-## Presentation UI
+The research graph methodology is adapted from the supplied `research_canvas.py`: authorship edges are based on shared publication identifiers in `authors.csv` and `enriched_works.csv`. The optional browser coauthor view does **not** claim grant funding; award references in research metadata are unverified candidates.
 
-Page opens in centered chart-only presentation mode. Use the toolbar to toggle between the Mill user and publication charts, show or hide details, clear filters, enter fullscreen, or load a local source file.
-
-The local private dataset is at `~/Projects/itrss-metrics-dashboard/data/callie.csv`, and the publication export at `~/Projects/itrss-metrics-dashboard/data/publications.json`. These are **not** the public grouped export.
-
-## Local serving
+## Run a local preview
 
 ```bash
 python3 -m http.server 8766
 ```
 
-Then browse to http://localhost:8766 .
+Deploys automatically via `.github/workflows/deploy-pages.yml` on every push to `main`.
 
-This static site deploys through `.github/workflows/deploy-pages.yml` on GitHub Actions. The separate local Streamlit canvas is not included on public GitHub Pages.
+If the previous version is cached in your browser, refresh with **Ctrl+Shift+R** or add `?v=5` to the site address.
