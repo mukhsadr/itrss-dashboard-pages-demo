@@ -48,7 +48,7 @@ svg{display:block;height:100%;width:100%}
 <body><div class="app">
 <header class="top"><div class="brand">S&T ITRSS</div>
 <nav class="tabs" aria-label="Dataset"><button type="button" data-mode="users" aria-pressed="true">Mill Users</button><button type="button" data-mode="papers" aria-pressed="false">Publications</button></nav>
-<div class="actions"><button class="action" id="reset" type="button" title="Clear selection">Reset</button><button class="action" id="explore" type="button" aria-expanded="false">Explore</button></div></header>
+<div class="actions"><button class="action" id="localFile" type="button" title="Load a local CSV or publication JSON. It stays in this browser.">Load file</button><input id="filePicker" type="file" accept=".csv,.json,text/csv,application/json" hidden><button class="action" id="reset" type="button" title="Clear selection">Reset</button><button class="action" id="explore" type="button" aria-expanded="false">Explore</button></div></header>
 <main class="stage" id="stage">
 <div class="hint" id="hint">Select a slice</div>
 <div class="donut"><svg id="chart" viewBox="0 0 680 680" role="img" aria-label="Interactive concentric category chart"></svg><div class="center"><strong id="number">—</strong><span id="label">Users</span></div></div>
@@ -75,7 +75,41 @@ const E=(name,attrs={})=>{const el=document.createElementNS(NS,name);Object.entr
 const point=(r,t)=>[340+r*Math.cos(t),340+r*Math.sin(t)];
 function arc(ri,ro,a,b){b=Math.min(b,a+Math.PI*2-.000001);const [x1,y1]=point(ro,a),[x2,y2]=point(ro,b),[x3,y3]=point(ri,b),[x4,y4]=point(ri,a),large=b-a>Math.PI?1:0;return 'M'+x1+' '+y1+' A'+ro+' '+ro+' 0 '+large+' 1 '+x2+' '+y2+' L'+x3+' '+y3+' A'+ri+' '+ri+' 0 '+large+' 0 '+x4+' '+y4+' Z'}
 let data=null,mode='users',picked=null,hover=null,linked=null,drawerOpen=false,inspectRing=0,search='';
-function current(){return mode==='users'?{total:data.users.source_total,dims:data.users.dimensions,names:shortUser}:{total:data.papers.included_total,dims:data.papers.dimensions,names:shortPaper}}
+let localUsers=null,localPapers=null,filters={users:[null,null,null,null],papers:[null,null,null]};
+const localColumns=['Descr','Classficiation','Status','Advisor'];
+const paperColumns=['Cluster acknowledged','Year','Type'];
+const value=(row,col)=>(String(row[col]??'').trim()||'Not specified');
+function csvParse(text){
+ const raw=[];let field='',line=[],quoted=false;
+ for(let i=0;i<text.length;i++){const ch=text[i];
+  if(ch==='"'){if(quoted&&text[i+1]==='"'){field+='"';i++}else quoted=!quoted}
+  else if(ch===','&&!quoted){line.push(field);field=''}
+  else if((ch==='\r'||ch==='\n')&&!quoted){if(ch==='\r'&&text[i+1]==='\n')i++;line.push(field);if(line.some(v=>v.trim()))raw.push(line);line=[];field=''}
+  else field+=ch;
+ }
+ line.push(field);if(line.some(v=>v.trim()))raw.push(line);
+ if(!raw.length)throw Error('CSV is empty');
+ const columns=raw.shift().map(v=>v.replace(/^\ufeff/,'').trim());
+ const rows=raw.map(line=>Object.fromEntries(columns.map((h,i)=>[h,(line[i]||'').trim()])));
+ return {columns,rows};
+}
+function localRows(){return mode==='users'?localUsers:localPapers}
+function liveFilters(){return filters[mode]}
+function filteredRows(){
+ const rows=localRows();if(!rows)return null;
+ const columns=mode==='users'?localColumns:paperColumns;
+ return rows.filter(row=>columns.every((column,i)=>!liveFilters()[i]||value(row,column)===liveFilters()[i]));
+}
+function counts(rows,column){
+ const map=new Map();for(const row of rows){const name=value(row,column);map.set(name,(map.get(name)||0)+1)}
+ return [...map].map(([name,count])=>({name,count}));
+}
+function current(){
+ if(localRows()){const cols=mode==='users'?localColumns:paperColumns;
+  return {total:localRows().length,dims:cols.map((column,i)=>({column,label:(mode==='users'?shortUser:shortPaper)[i],values:counts(localRows(),column)})),names:mode==='users'?shortUser:shortPaper}
+ }
+ return mode==='users'?{total:data.users.source_total,dims:data.users.dimensions,names:shortUser}:{total:data.papers.included_total,dims:data.papers.dimensions,names:shortPaper}
+}
 function getConditional(sourceRing,name,focusTotal,targetRing){
  if(!linked||mode!=='users'||sourceRing===targetRing)return null;
  const d=current().dims,values=linked.conditionals?.[d[sourceRing].column]?.[name]?.[d[targetRing].column];
@@ -85,25 +119,39 @@ function getConditional(sourceRing,name,focusTotal,targetRing){
  return result;
 }
 function jointEnabled(){
+ if(localRows())return false;
  if(mode!=='users'||!picked||!linked)return false;
  const d=current(),n=d.dims[picked.ring].values.find(x=>x.name===picked.name)?.count;
  return Number.isInteger(n)&&d.dims.every((_,i)=>i===picked.ring||!!getConditional(picked.ring,picked.name,n,i));
 }
 function distribution(i){
  const d=current(),total=d.total,focus= picked?d.dims[picked.ring].values.find(v=>v.name===picked.name):null;
+ if(localRows()){
+  const rows=filteredRows();
+  const items=counts(rows,d.dims[i].column);
+  items.sort((a,b)=>d.dims[i].column==='Year'?Number(a.name)-Number(b.name):b.count-a.count||a.name.localeCompare(b.name));
+  return {items,denom:rows.length,conditional:true};
+ }
  const joint=jointEnabled()&&i!==picked.ring,conditional=joint?getConditional(picked.ring,picked.name,focus.count,i):null;
  const values=conditional??d.dims[i].values,denom=conditional?focus.count:total;
  const items=[...values].sort((a,b)=>d.dims[i].column==='Year'?Number(a.name)-Number(b.name):b.count-a.count||a.name.localeCompare(b.name));
  return {items,denom,conditional:!!conditional};
 }
-function refreshSelected(ring,name){picked=picked&&picked.ring===ring&&picked.name===name?null:{ring,name};inspectRing=ring;hover=null;drawerOpen=true;render()}
+function refreshSelected(ring,name){
+ if(localRows()){
+  const fs=liveFilters();fs[ring]=fs[ring]===name?null:name;
+  const active=fs.map((v,i)=>v?{ring:i,name:v}:null).filter(Boolean);
+  picked=active.at(-1)||null;
+ }else picked=picked&&picked.ring===ring&&picked.name===name?null:{ring,name};
+ inspectRing=ring;hover=null;drawerOpen=true;render();
+}
 function setDrawer(state){drawerOpen=state;render()}
 function info(){
  const d=current(),focus= picked?d.dims[picked.ring].values.find(x=>x.name===picked.name):null;
  if(hover){$('number').textContent=num(hover.count);$('label').textContent=hover.name;$('hint').textContent=d.names[hover.ring]+' · '+percent(hover.count,hover.denom).toFixed(1)+'%';return}
- $('number').textContent=num(focus?focus.count:d.total);
- $('label').textContent=focus?focus.name:mode==='users'?'Users':'Papers';
- $('hint').textContent=focus?(d.names[picked.ring]+' · '+percent(focus.count,d.total).toFixed(1)+'%'):'Select a slice';
+ $('number').textContent=num(localRows()?filteredRows().length:focus?focus.count:d.total);
+ $('label').textContent=localRows()?(liveFilters().some(Boolean)?'Selected':'All records'):focus?focus.name:mode==='users'?'Users':'Papers';
+ $('hint').textContent=localRows()?(num(filteredRows().length)+' / '+num(d.total)+' · private linked'):focus?(d.names[picked.ring]+' · '+percent(focus.count,d.total).toFixed(1)+'%'):'Select a slice';
 }
 function render(){
  if(!data)return;const d=current(),linkedMode=jointEnabled();
@@ -131,10 +179,10 @@ function render(){
   }
  }
  const selectedFocus=picked?d.dims[picked.ring].values.find(x=>x.name===picked.name):null;
- $('notice').textContent=selectedFocus?(linkedMode?'Linked rings':'Other rings · overall'):'';
+ $('notice').textContent=localRows()?'Local file · private linked filtering':selectedFocus?(linkedMode?'Linked rings':'Other rings · overall'):'Public totals · load file for linked filtering';
  $('detailTitle').textContent=selectedFocus?picked.name:'Explore';
- $('detailCount').textContent=num(selectedFocus?selectedFocus.count:d.total);
- $('detailShare').textContent=selectedFocus?percent(selectedFocus.count,d.total).toFixed(1)+'% of all records · '+(linkedMode?'linked':'other rings overall'):'Select a category';
+ $('detailCount').textContent=num(localRows()?filteredRows().length:selectedFocus?selectedFocus.count:d.total);
+ $('detailShare').textContent=localRows()?(liveFilters().filter(Boolean).join(' · ')||'All local records')+' · '+percent(filteredRows().length,d.total).toFixed(1)+'%':selectedFocus?percent(selectedFocus.count,d.total).toFixed(1)+'% of all records · '+(linkedMode?'linked':'other rings overall'):'Select a category';
  const rs=$('ringSelect');rs.replaceChildren();d.names.forEach((name,i)=>{const o=document.createElement('option');o.value=String(i);o.textContent=name;rs.append(o)});rs.value=String(Math.min(inspectRing,d.dims.length-1));
  updateList();info();
 }
@@ -173,12 +221,35 @@ async function load(){
  }catch(e){$('hint').textContent=e.message;console.error(e)}
 }
 document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{if(data)changeMode(b.dataset.mode)});
-$('reset').onclick=()=>{picked=null;hover=null;render()};
+$('reset').onclick=()=>{picked=null;hover=null;filters[mode].fill(null);render()};
 $('explore').onclick=()=>setDrawer(!drawerOpen);
 $('close').onclick=()=>setDrawer(false);
-$('clear').onclick=()=>{picked=null;hover=null;render()};
+$('clear').onclick=()=>{picked=null;hover=null;filters[mode].fill(null);render()};
 $('ringSelect').onchange=v=>{inspectRing=Number(v.target.value);updateList()};
 $('search').oninput=v=>{search=v.target.value;updateList()};
+$('localFile').onclick=()=>{$('filePicker').value='';$('filePicker').click()};
+$('filePicker').onchange=async e=>{
+ const file=e.target.files?.[0];if(!file)return;
+ try{
+  if(file.size>25*1024*1024)throw Error('File exceeds 25 MB');
+  if(mode==='users'){
+   if(!/\.csv$/i.test(file.name))throw Error('Choose the local Mill CSV for Users mode');
+   const parsed=csvParse(await file.text());
+   if(!localColumns.every(col=>parsed.columns.includes(col)))throw Error('Expected Descr, Classficiation, Status, Advisor');
+   if(!parsed.rows.length)throw Error('No data rows');
+   localUsers=parsed.rows;
+  }else{
+   if(!/\.json$/i.test(file.name))throw Error('Choose local publications.json for Publications mode');
+   const payload=JSON.parse(await file.text());if(!Array.isArray(payload.rows)||!Array.isArray(payload.columns))throw Error('Expected a publications JSON containing rows and columns');
+   if(!paperColumns.every(col=>payload.columns.includes(col)))throw Error('Publication columns missing');
+   const dup=row=>/^(yes|true|1|y)$/i.test(value(row,'Counted as duplicate'));
+   localPapers=payload.rows.filter(row=>!dup(row));
+   if(!localPapers.length)throw Error('No included publication records');
+  }
+  filters[mode].fill(null);picked=null;hover=null;inspectRing=0;drawerOpen=false;render();
+ }catch(error){$('hint').textContent=error.message;console.error(error)}
+};
+
 document.addEventListener('keydown',e=>{if(e.key==='Escape'&&drawerOpen)setDrawer(false)});
 load();
 })();
