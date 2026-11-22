@@ -1,62 +1,17 @@
 'use strict';
 (()=>{
 const $=id=>document.getElementById(id), NS='http://www.w3.org/2000/svg';
-let rows=[],cols=[],dims=[],chosen=[null,null,null],sort='desc',includeDup=false;
-const colors=[['#538cf3','#8bb5ff','#3465bd','#accdff','#597db9'],['#23b8b0','#6bd7c4','#147d87','#9ae4d9','#36a7a1'],['#e7aa57','#f2cc87','#cb8142','#f6d7a4','#b7653c']];
-const v=(r,c)=>(r[c]||'').trim()||'Not specified';
-const pct=(x,n)=>n?(100*x/n).toFixed(1)+'%':'0%';
-const duplicate=r=>/^(yes|true|1|y)$/i.test((r['Counted as duplicate']||'').trim());
-const el=(tag,props={})=>{const t=document.createElementNS(NS,tag);for(const [k,v] of Object.entries(props))t.setAttribute(k,v);return t};
-function polar(radius,angle){return [340+radius*Math.cos(angle),340+radius*Math.sin(angle)]}
-function arc(ri,ro,a,b){if(b-a>=Math.PI*2)b=a+Math.PI*2-.00001;const p1=polar(ro,a),p2=polar(ro,b),p3=polar(ri,b),p4=polar(ri,a),big=b-a>Math.PI?1:0;return `M${p1} A${ro} ${ro} 0 ${big} 1 ${p2} L${p3} A${ri} ${ri} 0 ${big} 0 ${p4} Z`}
-
-function totals(data,col){
-  const counts = new Map();
-
-  for(const row of data){
-    const name = v(row,col);
-    counts.set(name,(counts.get(name)||0)+1);
-  }
-
-  const result = [...counts].map(([name,n])=>({name,n}));
-
-  // Year always runs earliest to latest, clockwise.
-  if(/^year$/i.test(col.trim())){
-    result.sort((a,b)=>{
-      const yearA = /^\d{4}$/.test(a.name)
-        ? Number(a.name) : Infinity;
-      const yearB = /^\d{4}$/.test(b.name)
-        ? Number(b.name) : Infinity;
-
-      return yearA-yearB || a.name.localeCompare(b.name);
-    });
-  } else {
-    // All other rings keep the existing sorting controls.
-    result.sort((a,b)=>
-      sort==='alpha'
-        ? a.name.localeCompare(b.name)
-        : sort==='asc'
-          ? a.n-b.n || a.name.localeCompare(b.name)
-          : b.n-a.n || a.name.localeCompare(b.name)
-    );
-  }
-
-  return result;
+const palettes=[['#538cf3','#8bb5ff','#3465bd','#accdff','#597db9'],['#23b8b0','#6bd7c4','#147d87','#9ae4d9','#36a7a1'],['#e7aa57','#f2cc87','#cb8142','#f6d7a4','#b7653c']];
+let source=null,dims=[],selected=[null,null,null];
+const pct=(n,d)=>d?(100*n/d).toFixed(1)+'%':'0%';
+const point=(r,a)=>[340+r*Math.cos(a),340+r*Math.sin(a)];
+function arc(ri,ro,a,b){b=Math.min(b,a+Math.PI*2-.00001);const [x1,y1]=point(ro,a),[x2,y2]=point(ro,b),[x3,y3]=point(ri,b),[x4,y4]=point(ri,a),large=b-a>Math.PI?1:0;return `M${x1} ${y1} A${ro} ${ro} 0 ${large} 1 ${x2} ${y2} L${x3} ${y3} A${ri} ${ri} 0 ${large} 0 ${x4} ${y4} Z`}
+function svg(tag,attrs={}){const t=document.createElementNS(NS,tag);for(const [k,v] of Object.entries(attrs))t.setAttribute(k,v);return t}
+function sorted(dim){let a=[...dim.values],sort=$('paperSort').value;if(dim.column==='Year')a.sort((x,y)=>(Number(x.name)||9999)-(Number(y.name)||9999)||x.name.localeCompare(y.name));else a.sort((x,y)=>sort==='alpha'?x.name.localeCompare(y.name):sort==='asc'?x.count-y.count||x.name.localeCompare(y.name):y.count-x.count||x.name.localeCompare(y.name));return a}
+function pick(i,name){selected=[null,null,null];selected[i]=name;render()}
+function render(){if(!source)return;const incl=$('paperDup').checked,n=incl?source.source_total:source.included_total,chosenDims=incl?source.all_dimensions:source.dimensions;dims=dims.map(d=>chosenDims.find(x=>x.column===d.column)||chosenDims[0]);const active=selected.findIndex(x=>x!==null),focus=active>=0?dims[active].values.find(x=>x.name===selected[active]):null,visible=focus?focus.count:n;const chart=$('paperChart'),legend=$('paperLegend');chart.replaceChildren();legend.replaceChildren();$('paperCount').textContent=n.toLocaleString();$('paperVisible').textContent=visible.toLocaleString();$('paperCenter').textContent=visible.toLocaleString();$('paperShare').textContent=active>=0?pct(visible,n)+' of selected publication set':'All included records';$('paperSelection').textContent=active>=0?dims[active].label+': '+selected[active]+' ('+visible+' records). Other rings show independent totals.':'Click a segment to inspect its count. Each ring shows its independent distribution.';
+for(let i=0;i<3;i++){const dim=dims[i],ri=[110,171,232][i],ro=ri+50,items=sorted(dim),group=document.createElement('div');group.className='legendGroup';const head=document.createElement('div');head.className='legendTitle';head.textContent='RING '+(i+1)+' · '+dim.label;group.append(head);let angle=-Math.PI/2;for(let j=0;j<items.length;j++){const item=items[j],sweep=n?item.count/n*Math.PI*2:0,end=angle+sweep,color=palettes[i][j%palettes[i].length];if(sweep>0){const p=svg('path',{d:arc(ri,ro,angle,end),fill:color,class:'arc',role:'button',tabindex:'0'});const title=svg('title');title.textContent=dim.label+' / '+item.name+': '+item.count;p.append(title);p.addEventListener('click',()=>pick(i,item.name));p.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();pick(i,item.name)}});if(active>=0&&(active!==i||selected[i]!==item.name))p.style.opacity='.48';chart.append(p)}angle=end;const btn=document.createElement('button');btn.className='legendRow';const dot=document.createElement('span');dot.className='swatch';dot.style.background=color;const label=document.createElement('span');label.className='name';label.textContent=item.name;const stat=document.createElement('span');stat.className='pct';stat.textContent=item.count+' · '+pct(item.count,n);btn.append(dot,label,stat);btn.onclick=()=>pick(i,item.name);group.append(btn)}legend.append(group)}$('paperRecordCount').textContent='Aggregated metrics only';$('paperRecords').replaceChildren();const msg=document.createElement('p');msg.textContent=`Source: ${source.source_total} publication records; ${source.duplicate_count} duplicate-flagged. Individual authors, titles, evidence notes and links are not published in this aggregate release.`;$('paperRecords').append(msg)
 }
-
-function getBase(){return rows.filter(r=>includeDup||!duplicate(r))}
-function filtered(){return getBase().filter(r=>chosen.every((label,i)=>label===null||v(r,dims[i])===label))}
-function controlSetup(){for(let i=0;i<3;i++){const sel=$('paperLayer'+i);sel.replaceChildren();for(const c of cols){const opt=document.createElement('option');opt.value=c;opt.textContent=c;sel.append(opt)}sel.value=dims[i];sel.onchange=()=>{dims[i]=sel.value;chosen=[null,null,null];render()}}}
-function linkFor(r){const s=(r['DOI / record link']||'').trim(),doi=(r.DOI||'').trim();const candidate=s|| (doi?'https://doi.org/'+doi:'');try{const u=new URL(candidate);return ['https:','http:'].includes(u.protocol)?u.href:null}catch{return null}}
-function renderRecords(data){const container=$('paperRecords');container.replaceChildren();$('paperRecordCount').textContent=data.length+' matching records';for(const r of data.slice(0,35)){
-const card=document.createElement('div');card.className='paperRecord';const title=document.createElement('div');title.className='paperTitle';const url=linkFor(r);if(url){const a=document.createElement('a');a.href=url;a.target='_blank';a.rel='noopener noreferrer';a.textContent=r.Title;title.append(a)}else title.textContent=r.Title;
-const meta=document.createElement('div');meta.className='paperMeta';meta.textContent=[r.Year,r['Cluster acknowledged'],r.Type,r.Authors,r.Venue].filter(Boolean).join(' · ');
-const evidence=document.createElement('div');evidence.className='paperEvidence';evidence.textContent='Evidence: '+(r['Evidence sources']||'Not specified')+(duplicate(r)?' · Duplicate flagged':'')+(r.Note?' · '+r.Note:'');card.append(title,meta,evidence);container.append(card)}if(data.length>35){const t=document.createElement('p');t.textContent='Showing first 35 records. Select slices to narrow the results.';container.append(t)}}
-function render(){const base=getBase(),current=filtered(),chart=$('paperChart'),legend=$('paperLegend');chart.replaceChildren();legend.replaceChildren();$('paperCount').textContent=base.length.toLocaleString();$('paperVisible').textContent=current.length.toLocaleString();$('paperCenter').textContent=current.length.toLocaleString();$('paperShare').textContent=pct(current.length,base.length)+' of included records';$('paperSelection').textContent=chosen.some(Boolean)?chosen.map((f,i)=>f?dims[i]+': '+f:null).filter(Boolean).join('  /  '):'All publications · click a segment to filter all rings';
-for(let i=0;i<3;i++){const ri=[110,171,232][i],ro=ri+50,items=totals(current,dims[i]),n=current.length;let angle=-Math.PI/2;const group=document.createElement('div');group.className='legendGroup';const head=document.createElement('div');head.className='legendTitle';head.textContent=`RING ${i+1} · ${dims[i]}`;group.append(head);
-for(let j=0;j<items.length;j++){const item=items[j],sw=item.n/n*Math.PI*2,end=angle+sw,color=colors[i][j%colors[i].length];if(sw>0){const p=el('path',{d:arc(ri,ro,angle,end),fill:color,class:'arc',tabindex:0,role:'button'});const title=el('title');title.textContent=`${dims[i]} · ${item.name}: ${item.n} (${pct(item.n,n)})`;p.append(title);p.addEventListener('click',()=>select(i,item.name));p.addEventListener('keydown',ev=>{if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();select(i,item.name)}});chart.append(p)}angle=end;
-const btn=document.createElement('button');btn.className='legendRow';const swatch=document.createElement('span');swatch.className='swatch';swatch.style.background=color;const label=document.createElement('span');label.className='name';label.textContent=item.name;const value=document.createElement('span');value.className='pct';value.textContent=item.n+' · '+pct(item.n,n);btn.append(swatch,label,value);btn.onclick=()=>select(i,item.name);group.append(btn)}legend.append(group)}renderRecords(current)}
-function select(i,name){chosen[i]=chosen[i]===name?null:name;render()}
-async function load(){try{const resp=await fetch('data/publications.json?t='+Date.now(),{cache:'no-store'});if(!resp.ok)throw Error('publication JSON unavailable');const data=await resp.json();rows=data.rows;cols=data.columns.filter(x=>x&&x!=='#');const preferred=['Cluster acknowledged','Year','Type'];dims=preferred.map((k,i)=>cols.includes(k)?k:cols[i]);chosen=[null,null,null];controlSetup();$('paperLoaded').textContent=rows.length+' source records · '+cols.length+' columns';render()}catch(e){$('paperLoaded').textContent='Could not load publications: '+e.message;}}
-$('paperSort').onchange=e=>{sort=e.target.value;render()};$('paperDup').onchange=e=>{includeDup=e.target.checked;chosen=[null,null,null];render()};$('paperClear').onclick=()=>{chosen=[null,null,null];render()};$('paperReload').onclick=load;load();
+async function load(){try{const response=await fetch('data/publication_aggregates.json?t='+Date.now(),{cache:'no-store'});if(!response.ok)throw Error('HTTP '+response.status);source=await response.json();if(!Array.isArray(source.dimensions)||source.dimensions.length!==3)throw Error('Invalid publication aggregates');for(const [set,total] of [[source.dimensions,source.included_total],[source.all_dimensions,source.source_total]])for(const d of set)if(d.values.reduce((s,v)=>s+v.count,0)!==total)throw Error('Counts do not reconcile');dims=[...source.dimensions];const columnNames=source.dimensions.map(d=>d.column);for(let i=0;i<3;i++){const sel=$('paperLayer'+i);sel.replaceChildren();for(const name of columnNames){const opt=document.createElement('option');opt.value=name;opt.textContent=name;sel.append(opt)}sel.value=dims[i].column;sel.onchange=()=>{dims[i]=($('paperDup').checked?source.all_dimensions:source.dimensions).find(d=>d.column===sel.value);selected=[null,null,null];render()}}selected=[null,null,null];$('paperLoaded').textContent=source.source_total+' source records · aggregate counts';render()}catch(e){$('paperLoaded').textContent='Could not load public aggregates: '+e.message;console.error(e)}}
+$('paperSort').onchange=render;$('paperDup').onchange=()=>{selected=[null,null,null];render()};$('paperClear').onclick=()=>{selected=[null,null,null];render()};$('paperReload').onclick=load;load();
 })();
