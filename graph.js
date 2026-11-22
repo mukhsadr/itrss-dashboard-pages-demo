@@ -56,7 +56,7 @@
   // Original Streamlit model: source-record IDs -> coauthor graph -> focus,
   // year/facility/search filters -> weighted coauthor edges -> two network views.
   // communityGroups comes from NetworkX greedy_modularity_communities at export.
-  let communityGroups={};
+  let communityGroups={},originalLayout={};
   const ORIGINAL_PALETTE=['#45d6c2','#e9a65b','#8b9cff','#ff7caa','#80c6ff','#b4e66e','#df99f9','#ffc96c','#61b0ad','#ff9184','#91a5fa','#b8d8eb'];
   const originalGrant=s=>{
     const txt=String(s||'').toUpperCase().replace(/[–—]/g,'-')
@@ -260,6 +260,26 @@
       }
     }
   }
+  function applyOriginalLayout(nodes){
+    const unchanged=$('graphSource').value==='research'
+      &&!$('graphSearch').value.trim()&&!$('graphFocus').value
+      &&!$('graphYearFrom').value&&!$('graphYearTo').value
+      &&$('graphFacility').value==='all'
+      &&Number($('graphMinShared').value||1)===1
+      &&Number($('graphLimit').value||120)===120;
+    if(!unchanged||!nodes.length||!nodes.every(n=>Array.isArray(originalLayout[n.id])))return false;
+    const p=nodes.map(n=>originalLayout[n.id]);
+    const minX=Math.min(...p.map(v=>v[0])),maxX=Math.max(...p.map(v=>v[0]));
+    const minY=Math.min(...p.map(v=>v[1])),maxY=Math.max(...p.map(v=>v[1]));
+    const spanX=Math.max(0.001,maxX-minX),spanY=Math.max(0.001,maxY-minY);
+    const scale=Math.min(880/spanX,555/spanY);
+    const midX=(minX+maxX)/2,midY=(minY+maxY)/2;
+    nodes.forEach((n,i)=>{
+      n.x=540+(p[i][0]-midX)*scale;
+      n.y=340-(p[i][1]-midY)*scale;
+    });
+    return true;
+  }
   function graphDetail(node){
     const box=$('graphDetail');if(!box)return;box.replaceChildren();
     const h=document.createElement('h3');h.textContent=node?node.label:'Explore the network';box.append(h);
@@ -332,6 +352,7 @@
     works=data.works;
     authors=data.authors;
     communityGroups=(data.communities&&typeof data.communities==='object'&&!Array.isArray(data.communities))?data.communities:{};
+    originalLayout=(data.default_author_layout&&typeof data.default_author_layout==='object')?data.default_author_layout:{};
     populateResearchFocus();
     const from=$('graphYearFrom'),to=$('graphYearTo');
     const years=[...new Set(works.map(w=>Number(w.year)).filter(Boolean))].sort((a,b)=>a-b);
@@ -373,7 +394,7 @@
     }
     const result=source==='mill'?buildMill():source==='papers'?buildPapers():source==='entities'?buildEntities():buildResearch();
     current=result.nodes;currentEdges=result.edges;
-    if(source==='papers'||source==='entities'||source==='research')forceLayout(current,currentEdges);
+    if(source==='papers'||source==='entities'||(source==='research'&&!applyOriginalLayout(current)))forceLayout(current,currentEdges);
     $('graphGrants').disabled=!(source==='entities'&&works.length&&authors.length);
     $('graphPaperLimit').disabled=source!=='entities';
     $('graphGrantLimit').disabled=source!=='entities';
@@ -416,7 +437,9 @@
       group.append(circle);
     }
     canvas.append(group);selected=null;focus(null);
-    setInfo(source==='papers'?'Publication relationships use shared title terms and explicitly listed authors only; they do NOT establish citations.':
+    setInfo(source==='research'&&!Object.keys(communityGroups).length?
+      'The selected JSON lacks original NetworkX community assignments. Rerun the updated public exporter for accurate community colors.':
+      source==='papers'?'Publication relationships use shared title terms and explicitly listed authors only; they do NOT establish citations.':
       source==='entities'?(works.length?'OpenAlex research graph; candidate grant references are NOT verified funding.':
         'Bibliography lists lead authors incompletely for “et al.” entries. Import OpenAlex CSVs for the full research graph.'):
       source==='research'?'Community graph uses author IDs and co-publication relations from imported OpenAlex metadata.':
