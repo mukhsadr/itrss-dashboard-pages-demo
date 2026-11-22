@@ -80,11 +80,11 @@ body[data-canvas="cream"] .hint,body[data-canvas="cream"] .key,body[data-canvas=
 @media(max-width:650px){.themePanel{top:5px;right:5px;padding:11px}.selectionStrip{left:5px;top:25px;max-width:85%}.chip{font-size:9px;padding:3px 5px}}
 </style></head>
 <body><div class="app">
-<header class="top"><div class="brand">S&T ITRSS <span style="font-size:10px;font-weight:500;opacity:.8">v24</span></div>
+<header class="top"><div class="brand">S&T ITRSS <span style="font-size:10px;font-weight:500;opacity:.8">v25</span></div>
 <nav class="tabs" aria-label="Dataset"><button type="button" data-mode="users" aria-pressed="true">Mill Users</button><button type="button" data-mode="papers" aria-pressed="false">Publications</button></nav>
-<div class="actions"><button class="action" id="localFile" type="button" title="Load a local CSV or publication JSON. It stays in this browser.">Load file</button><input id="filePicker" type="file" accept=".csv,.json,text/csv,application/json" hidden><button class="action" id="theme" type="button" aria-expanded="false">Theme</button><button class="action" id="reset" type="button" title="Clear selection">Reset</button><button class="action" id="explore" type="button" aria-expanded="false">Explore</button></div></header>
+<div class="actions"><button class="action" id="localFile" type="button" title="Open the original fully linked local dashboard running at 127.0.0.1:8765">Live local</button><input id="filePicker" type="file" accept=".csv,.json,text/csv,application/json" hidden><button class="action" id="theme" type="button" aria-expanded="false">Theme</button><button class="action" id="reset" type="button" title="Clear selection">Reset</button><button class="action" id="explore" type="button" aria-expanded="false">Explore</button></div></header>
 <main class="stage" id="stage">
-<div class="hint" id="hint">Public summary · click a slice to load local data</div><div id="modeNotice" class="modeNotice" role="status">PUBLIC SUMMARY — Rings show independent totals. Load your local file to enable linked filtering.</div><div class="selectionStrip" id="selectionStrip" aria-label="Active filters"></div>
+<div class="hint" id="hint">Public summary · click a slice to load local data</div><div id="modeNotice" class="modeNotice" role="status">PUBLIC SUMMARY — Click a ring to open the original linked local dashboard.</div><div class="selectionStrip" id="selectionStrip" aria-label="Active filters"></div>
 <div class="donut"><svg id="chart" viewBox="0 0 680 680" role="img" aria-label="Interactive concentric category chart"></svg><div class="center"><strong id="number">—</strong><span id="label">Users</span></div></div>
 <div class="key" id="key"></div><div class="notice" id="notice"></div>
 <section id="themePanel" class="themePanel" hidden aria-label="Appearance">
@@ -202,11 +202,9 @@ function distribution(i){
 }
 function refreshSelected(ring,name){
  if(!localRows()&&!linked){
-  pendingSelection={mode,ring,name};
-  $('modeNotice').textContent='SELECT A LOCAL FILE · true linked filtering requires row-level data';
-  $('hint').textContent='Select your local '+(mode==='users'?'Mill CSV':'publications JSON')+' to activate linked filtering';
-  $('filePicker').value='';
-  $('filePicker').click();
+  // Public one-dimensional aggregates cannot be joined into conditional distributions.
+  // The original local dashboard already has all rows and exact linked filtering.
+  window.location.assign('http://127.0.0.1:8765/');
   return;
  }
  if(localRows()){
@@ -222,7 +220,7 @@ function info(){
  if(hover){$('number').textContent=num(hover.count);$('label').textContent=hover.name;$('hint').textContent=d.names[hover.ring]+' · '+percent(hover.count,hover.denom).toFixed(1)+'%';return}
  $('number').textContent=num(localRows()?filteredRows().length:focus?focus.count:d.total);
  $('label').textContent=localRows()?(liveFilters().some(Boolean)?'Selected':'All records'):focus?focus.name:mode==='users'?'Users':'Papers';
- $('hint').textContent=localRows()?(num(filteredRows().length)+' / '+num(d.total)+' records · linked rings'):focus?(d.names[picked.ring]+' · '+percent(focus.count,d.total).toFixed(1)+'%'):'Click a slice to explore';
+ $('hint').textContent=localRows()?(num(filteredRows().length)+' / '+num(d.total)+' records · linked rings'):focus?(d.names[picked.ring]+' · '+percent(focus.count,d.total).toFixed(1)+'%'):'Click a ring to open the linked local chart';
 }
 function render(){
  if(!data)return;const d=current(),linkedMode=jointEnabled();
@@ -262,9 +260,9 @@ function render(){
   }
  }
  const modeNotice=$('modeNotice');modeNotice.classList.toggle('linked',!!localRows());
- modeNotice.textContent=localRows()?'LOCAL DATA · linked filtering enabled · '+num(filteredRows().length)+' / '+num(d.total)+' records':'PUBLIC SUMMARY · load local file for linked rings';
+ modeNotice.textContent=localRows()?'LOCAL DATA · linked filtering enabled · '+num(filteredRows().length)+' / '+num(d.total)+' records':'PUBLIC SUMMARY · select a ring for the working local dashboard';
  const selectedFocus=picked?d.dims[picked.ring].values.find(x=>x.name===picked.name):null;
- $('notice').textContent=localRows()?'Linked filtering · '+num(filteredRows().length)+' selected':selectedFocus?(linkedMode?'Linked rings':'Load local file to link rings'):'Public totals · click a ring to link your own data';
+ $('notice').textContent=localRows()?'Linked filtering · '+num(filteredRows().length)+' selected':selectedFocus?(linkedMode?'Linked rings':'Public summaries only'):'Local dashboard needed for cross-ring filtering';
  $('detailTitle').textContent=selectedFocus?picked.name:'Explore';
  $('detailCount').textContent=num(localRows()?filteredRows().length:selectedFocus?selectedFocus.count:d.total);
  $('detailShare').textContent=localRows()?(liveFilters().filter(Boolean).join(' · ')||'All local records')+' · '+percent(filteredRows().length,d.total).toFixed(1)+'%':selectedFocus?percent(selectedFocus.count,d.total).toFixed(1)+'% of all records · '+(linkedMode?'linked':'other rings overall'):'Select a category';
@@ -318,7 +316,7 @@ $('close').onclick=()=>setDrawer(false);
 $('clear').onclick=()=>{picked=null;hover=null;filters[mode].fill(null);render()};
 $('ringSelect').onchange=v=>{inspectRing=Number(v.target.value);updateList()};
 $('search').oninput=v=>{search=v.target.value;updateList()};
-$('localFile').onclick=()=>{pendingSelection=null;$('filePicker').value='';$('filePicker').click()};
+$('localFile').onclick=()=>{window.location.assign('http://127.0.0.1:8765/')};
 $('filePicker').onchange=async e=>{
  const file=e.target.files?.[0];if(!file)return;
  try{
