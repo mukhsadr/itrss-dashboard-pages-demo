@@ -65,8 +65,17 @@ const fmt=x=>Number(x||0).toLocaleString('en-US');
 const el=(name,attrs={})=>{const e=document.createElementNS(SVG,name);for(const [k,v] of Object.entries(attrs))e.setAttribute(k,v);return e};
 const pt=(r,a)=>[340+r*Math.cos(a),340+r*Math.sin(a)];
 function pathFor(ri,ro,a,b){b=Math.min(b,a+2*Math.PI-.00001);const [x1,y1]=pt(ro,a),[x2,y2]=pt(ro,b),[x3,y3]=pt(ri,b),[x4,y4]=pt(ri,a),big=b-a>Math.PI?1:0;return 'M'+x1+' '+y1+' A'+ro+' '+ro+' 0 '+big+' 1 '+x2+' '+y2+' L'+x3+' '+y3+' A'+ri+' '+ri+' 0 '+big+' 0 '+x4+' '+y4+' Z'}
-let source=null,mode='users',selected=null,kpi=null;
+let source=null,mode='users',selected=null,kpi=null,linked=null;
 function current(){return mode==='users'?{total:source.u.source_total,dims:source.u.dimensions}: {total:source.p.included_total,dims:source.p.dimensions}}
+function filteredDimension(target,sourceDim,total){
+  if(!linked||mode!=='users'||!selected||selected.ring===target||!sourceDim)return null;
+  const from=sourceDim.column,to=current().dims[target].column;
+  const values=linked.conditionals?.[from]?.[selected.name]?.[to];
+  if(!Array.isArray(values)||values.length===0)return null;
+  const items=values.map(v=>({name:v.name,count:Number(v.count)}));
+  const valid=items.every(v=>typeof v.name==='string'&&Number.isInteger(v.count)&&v.count>=0);
+  return valid&&items.reduce((sum,v)=>sum+v.count,0)===total?items:null;
+}
 function kpis(){
 if(mode==='users'){
  const u=source.u,active=u.dimensions.find(d=>d.column==='Status').values.find(v=>v.name==='Active').count;
@@ -81,6 +90,8 @@ function choose(ring,name){selected=selected&&selected.ring===ring&&selected.nam
 function render(){
 if(!source)return;
 const d=current(),cards=kpis(),total=d.total;
+const focusCount=selected?d.dims[selected.ring].values.find(v=>v.name===selected.name)?.count:null;
+const conditional=mode==='users'&&selected&&linked&&Number.isInteger(focusCount);
 document.querySelectorAll('[data-mode]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mode===mode)));
 cards.forEach((c,i)=>{$('label'+i).textContent=c.label;$('val'+i).textContent=fmt(c.value)});
 document.querySelectorAll('[data-kpi]').forEach(b=>b.setAttribute('aria-pressed',String(Number(b.dataset.kpi)===kpi)));
@@ -91,16 +102,17 @@ $('chart').setAttribute('aria-label',mode==='users'?'Mill users: four independen
 const chart=$('chart');chart.replaceChildren();
 const radii=mode==='users'?[[115,147],[163,195],[211,243],[259,301]]:[[121,161],[187,227],[253,293]];
 for(let i=0;i<d.dims.length;i++){
- const dim=d.dims[i],values=[...dim.values];
+ const dim=d.dims[i],filtered=conditional?filteredDimension(i,d.dims[selected.ring],focusCount):null;
+ const values=filtered??[...dim.values],denom=filtered?focusCount:total;
  if(dim.column==='Year')values.sort((a,b)=>Number(a.name)-Number(b.name));
  else values.sort((a,b)=>b.count-a.count||a.name.localeCompare(b.name));
  let angle=-Math.PI/2;
  for(let j=0;j<values.length;j++){
- const v=values[j],next=angle+v.count/total*2*Math.PI,on=selected?.ring===i&&selected?.name===v.name;
+ const v=values[j],next=angle+(denom?v.count/denom:0)*2*Math.PI,on=selected?.ring===i&&selected?.name===v.name;
  if(v.count>0){const shape=el('path',{d:pathFor(...radii[i],angle,next),fill:palettes[i][j%palettes[i].length],class:'slice',role:'button',tabindex:0,'aria-label':dim.label+' / '+v.name+': '+fmt(v.count)});
  if(selected?.ring===i&&!on)shape.style.opacity='.18';
  if(on){shape.style.stroke='#f6f7ff';shape.style.strokeWidth='3.5';shape.style.filter='brightness(1.18) drop-shadow(0 0 5px rgba(173,198,255,.35))'}
- const tip=el('title');tip.textContent=dim.label+' · '+v.name+' · '+fmt(v.count)+' of '+fmt(total)+' ('+(100*v.count/total).toFixed(1)+'%)';shape.append(tip);
+ const tip=el('title');tip.textContent=dim.label+' · '+v.name+' · '+fmt(v.count)+' of '+fmt(denom)+' ('+(denom?100*v.count/denom:0).toFixed(1)+'%)'+(filtered?' within '+selected.name:' overall');shape.append(tip);
  shape.onclick=()=>choose(i,v.name);shape.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();choose(i,v.name)}};chart.append(shape)}
  angle=next;
  }
@@ -114,6 +126,19 @@ const [u,p]=await Promise.all([ur.json(),pr.json()]);
 validate(u.dimensions,u.source_total);validate(p.dimensions,p.included_total);
 if(u.dimensions.length!==4||p.dimensions.length!==3)throw Error('Unexpected ring count');
 source={u,p};render();
+ // Optional privacy-approved marginal conditionals for one selected Mill group.
+ // No conditional file is shipped yet; missing file retains accurate independent distributions.
+ try{
+   const res=await fetch('data/linked_user_counts.json',{cache:'no-store'});
+   if(res.ok){
+     const payload=await res.json();
+     if(payload.source_total===u.source_total&&payload.min_cell_count>=10
+       &&payload.conditionals&&typeof payload.conditionals==='object'){
+       linked=payload;render();
+     }
+   }
+ }catch(err){console.warn('Optional linked aggregates unavailable',err)}
+
 }catch(e){$('status').textContent=e.message;console.error(e)}}
 document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{if(source)switchMode(b.dataset.mode)});
 document.querySelectorAll('[data-kpi]').forEach(b=>b.onclick=()=>{
