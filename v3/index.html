@@ -44,15 +44,52 @@ svg{display:block;height:100%;width:100%}
 .item .value{white-space:nowrap;font-variant-numeric:tabular-nums;color:#afc6e2;font-size:11px}
 @media(max-width:650px){.app{grid-template-rows:42px minmax(0,1fr);gap:3px;padding:3px}.top{padding:0 3px}.brand{display:none}.tabs button{padding:5px 10px;font-size:11px}.action{padding:6px 9px}.stage{border-radius:8px}.center strong{font-size:clamp(18px,5.7vw,30px)}.center span{font-size:9px}.key{left:7px;bottom:7px;gap:5px 8px;font-size:9px}.hint{font-size:9px;top:6px;left:7px}.notice{font-size:9px;bottom:4px;right:5px}.drawer{right:5px;top:5px;bottom:5px;padding:10px}}
 @media(prefers-reduced-motion:reduce){.arc{transition:none}}
+
+/* Compact theme editor. Ring geometry stays identical to the local chart. */
+body{--page-bg:#0b1220;--canvas-bg:#121e30;--canvas-border:#25384e;--ring-divider:#121e30;background:var(--page-bg)}
+body[data-page="slate"]{--page-bg:#172335}
+body[data-page="light"]{--page-bg:#e4ebf4;color:#223249}
+body[data-page="light"] .top .brand{color:#345b84}
+body[data-page="light"] .tabs{background:#d6e1ef}
+body[data-page="light"] .tabs button:not([aria-pressed="true"]){color:#334e69}
+body[data-page="light"] .action{background:#e7eff8;color:#27405c}
+body[data-canvas="graphite"]{--canvas-bg:#101722;--canvas-border:#32445d;--ring-divider:#101722}
+body[data-canvas="navy"]{--canvas-bg:#102b46;--canvas-border:#38577b;--ring-divider:#102b46}
+body[data-canvas="cream"]{--canvas-bg:#f4f0e8;--canvas-border:#d4ccbf;--ring-divider:#f4f0e8}
+body[data-canvas="cream"] .center{color:#28364c}
+body[data-canvas="cream"] .center span{color:#465f79}
+body[data-canvas="cream"] .hint,body[data-canvas="cream"] .key,body[data-canvas="cream"] .notice{color:#536b84}
+.stage{background:var(--canvas-bg);border-color:var(--canvas-border)}
+.arc{stroke:var(--ring-divider)}
+.themePanel{position:absolute;top:11px;right:12px;z-index:3;width:min(270px,calc(100% - 24px));padding:15px;background:#17283e;color:#eaf4ff;border:1px solid #405a78;border-radius:12px;box-shadow:0 14px 38px #060b168c;display:grid;gap:11px}
+.themePanel[hidden]{display:none}
+.themeHead{display:flex;justify-content:space-between;align-items:center;gap:12px}
+.themeHead strong{font-size:14px}
+.themePanel label{font-size:12px;color:#bed1e9;display:grid;gap:5px}
+.themePanel select{width:100%;padding:8px 9px;background:#0e1b2b;color:#eef6ff;border:1px solid #47617f;border-radius:7px}
+.themePanel small{font-size:10px;color:#95aec9}
+.selectionStrip{position:absolute;left:12px;top:34px;z-index:1;display:flex;align-items:center;gap:5px;flex-wrap:wrap;max-width:min(520px,65%);pointer-events:auto}
+.selectionStrip:empty{display:none}
+.chip{border:1px solid #5c7fa7;background:#224260;color:#e9f4ff;border-radius:7px;font-size:11px;padding:4px 7px;max-width:190px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+.chip:hover{background:#315c84}
+#detailShare{overflow-wrap:anywhere}
+@media(max-width:650px){.themePanel{top:5px;right:5px;padding:11px}.selectionStrip{left:5px;top:25px;max-width:85%}.chip{font-size:9px;padding:3px 5px}}
 </style></head>
 <body><div class="app">
 <header class="top"><div class="brand">S&T ITRSS</div>
 <nav class="tabs" aria-label="Dataset"><button type="button" data-mode="users" aria-pressed="true">Mill Users</button><button type="button" data-mode="papers" aria-pressed="false">Publications</button></nav>
-<div class="actions"><button class="action" id="localFile" type="button" title="Load a local CSV or publication JSON. It stays in this browser.">Load file</button><input id="filePicker" type="file" accept=".csv,.json,text/csv,application/json" hidden><button class="action" id="reset" type="button" title="Clear selection">Reset</button><button class="action" id="explore" type="button" aria-expanded="false">Explore</button></div></header>
+<div class="actions"><button class="action" id="localFile" type="button" title="Load a local CSV or publication JSON. It stays in this browser.">Load file</button><input id="filePicker" type="file" accept=".csv,.json,text/csv,application/json" hidden><button class="action" id="theme" type="button" aria-expanded="false">Theme</button><button class="action" id="reset" type="button" title="Clear selection">Reset</button><button class="action" id="explore" type="button" aria-expanded="false">Explore</button></div></header>
 <main class="stage" id="stage">
-<div class="hint" id="hint">Select a slice</div>
+<div class="hint" id="hint">Select a slice</div><div class="selectionStrip" id="selectionStrip" aria-label="Active filters"></div>
 <div class="donut"><svg id="chart" viewBox="0 0 680 680" role="img" aria-label="Interactive concentric category chart"></svg><div class="center"><strong id="number">—</strong><span id="label">Users</span></div></div>
 <div class="key" id="key"></div><div class="notice" id="notice"></div>
+<section id="themePanel" class="themePanel" hidden aria-label="Appearance">
+<div class="themeHead"><strong>Appearance</strong><button class="close" type="button" id="themeClose">Close</button></div>
+<label>Ring palette<select id="ringTheme"><option value="classic">Original · Classic</option><option value="aurora">Aurora</option><option value="ember">Ember & Ocean</option></select></label>
+<label>Page<select id="pageTheme"><option value="night">Midnight</option><option value="slate">Slate</option><option value="light">Light</option></select></label>
+<label>Chart canvas<select id="canvasTheme"><option value="classic">Original</option><option value="graphite">Graphite</option><option value="navy">Deep Navy</option><option value="cream">Warm Ivory</option></select></label>
+<small>Colors can change without changing counts, ring widths or filters.</small>
+</section>
 <aside class="drawer" id="drawer" hidden aria-label="Explore categories">
 <div class="drawerHeader"><strong id="detailTitle">Explore</strong><button type="button" class="close" id="close">Close</button></div>
 <div class="count" id="detailCount">—</div><div class="sub" id="detailShare">Select any segment</div>
@@ -69,6 +106,28 @@ const colors=[
 ['#2cbdaf','#159f94','#75d8bd','#3a8f85','#a1e0c9','#5eb3a2','#248478','#b1cfc1'],
 ['#e6a85e','#d58e46','#f3c681','#b87555','#ffd59e','#caac71','#f0a27d','#ad805b'],
 ['#ad91e4','#906dd1','#c4a9fa','#7157a9','#b39fe2','#9979bf','#d0b7ef','#71539a']];
+const themePalettes={
+ classic:colors.map(p=>[...p]),
+ aurora:[
+ ['#7db8ff','#3e83dd','#b5d7ff','#4668ba','#90a3ef','#5a94c6','#6b79bf','#3a7096'],
+ ['#43ddc0','#198f8a','#9cebd9','#279d81','#6bbdb9','#52d2a3','#307d83','#93d3c3'],
+ ['#f9c36e','#d78e5e','#ffdf9d','#b97d3f','#f3a67a','#c4a25a','#e8c28b','#9c6e55'],
+ ['#bd9eff','#856fd2','#e0cbff','#8f5caf','#c5a3e9','#b7a1db','#7958b2','#d6aff0']
+ ],
+ ember:[
+ ['#59b7de','#2584b7','#91d7f1','#2773a6','#6ca9e0','#4c799f','#88bfd1','#356a96'],
+ ['#42c5a3','#1c8d75','#a0e1ca','#2a9c92','#7cbfaf','#5ba991','#457e7a','#bddec7'],
+ ['#f5a55d','#d06c48','#ffd091','#bc7649','#f4be7b','#9d5d49','#eda67b','#ce8a58'],
+ ['#b99bf2','#755baa','#dfc6fa','#9b79cf','#d6a5e0','#9372bf','#c6b7f7','#6c5792']
+ ]};
+let themeChoice={ring:'classic',page:'night',canvas:'classic'};
+function applyTheme(){
+ colors.splice(0,colors.length,...themePalettes[themeChoice.ring].map(p=>[...p]));
+ document.body.dataset.page=themeChoice.page;
+ document.body.dataset.canvas=themeChoice.canvas;
+ $('ringTheme').value=themeChoice.ring;$('pageTheme').value=themeChoice.page;$('canvasTheme').value=themeChoice.canvas;
+ if(data)render();
+}
 const shortUser=['Department','Class','Status','Advisor'],shortPaper=['Cluster','Year','Type'];
 const num=n=>Number(n||0).toLocaleString('en-US'),percent=(n,d)=>d?100*n/d:0;
 const E=(name,attrs={})=>{const el=document.createElementNS(NS,name);Object.entries(attrs).forEach(([k,v])=>el.setAttribute(k,v));return el};
@@ -143,7 +202,7 @@ function refreshSelected(ring,name){
   const active=fs.map((v,i)=>v?{ring:i,name:v}:null).filter(Boolean);
   picked=active.at(-1)||null;
  }else picked=picked&&picked.ring===ring&&picked.name===name?null:{ring,name};
- inspectRing=ring;hover=null;drawerOpen=true;render();
+ inspectRing=ring;hover=null;render();
 }
 function setDrawer(state){drawerOpen=state;render()}
 function info(){
@@ -157,6 +216,18 @@ function render(){
  if(!data)return;const d=current(),linkedMode=jointEnabled();
  document.querySelectorAll('[data-mode]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mode===mode)));
  $('drawer').hidden=!drawerOpen;$('explore').setAttribute('aria-expanded',String(drawerOpen));
+ const chips=$('selectionStrip');chips.replaceChildren();
+ if(localRows()){
+  liveFilters().forEach((name,i)=>{
+   if(!name)return;
+   const chip=document.createElement('button');chip.type='button';chip.className='chip';
+   chip.textContent=d.names[i]+': '+name+' ×';chip.title='Remove '+name+' filter';
+   chip.onclick=()=>{liveFilters()[i]=null;picked=null;hover=null;render()};chips.append(chip);
+  });
+ }else if(picked){
+  const chip=document.createElement('button');chip.type='button';chip.className='chip';
+  chip.textContent=d.names[picked.ring]+': '+picked.name+' ×';chip.onclick=()=>{picked=null;render()};chips.append(chip);
+ }
  const key=$('key');key.replaceChildren();d.names.forEach((label,i)=>{const s=document.createElement('span'),dot=document.createElement('i');dot.style.background=colors[i][0];s.append(dot,document.createTextNode(label));key.append(s)});
  const chart=$('chart');chart.replaceChildren();const ri=mode==='users'?[[96,143],[150,197],[204,251],[258,305]]:[[113,162],[173,222],[233,282]];
  for(let i=0;i<d.dims.length;i++){
@@ -179,7 +250,7 @@ function render(){
   }
  }
  const selectedFocus=picked?d.dims[picked.ring].values.find(x=>x.name===picked.name):null;
- $('notice').textContent=localRows()?'Local file · private linked filtering':selectedFocus?(linkedMode?'Linked rings':'Other rings · overall'):'Public totals · load file for linked filtering';
+ $('notice').textContent=localRows()?'Local records · linked filtering':selectedFocus?(linkedMode?'Linked rings':'Public totals · other rings unchanged'):'Public totals · Load file for linked filtering';
  $('detailTitle').textContent=selectedFocus?picked.name:'Explore';
  $('detailCount').textContent=num(localRows()?filteredRows().length:selectedFocus?selectedFocus.count:d.total);
  $('detailShare').textContent=localRows()?(liveFilters().filter(Boolean).join(' · ')||'All local records')+' · '+percent(filteredRows().length,d.total).toFixed(1)+'%':selectedFocus?percent(selectedFocus.count,d.total).toFixed(1)+'% of all records · '+(linkedMode?'linked':'other rings overall'):'Select a category';
@@ -222,7 +293,12 @@ async function load(){
 }
 document.querySelectorAll('[data-mode]').forEach(b=>b.onclick=()=>{if(data)changeMode(b.dataset.mode)});
 $('reset').onclick=()=>{picked=null;hover=null;filters[mode].fill(null);render()};
-$('explore').onclick=()=>setDrawer(!drawerOpen);
+$('explore').onclick=()=>{const open=!drawerOpen;$('themePanel').hidden=true;$('theme').setAttribute('aria-expanded','false');setDrawer(open)};
+$('theme').onclick=()=>{const open=$('themePanel').hidden;$('themePanel').hidden=!open;$('theme').setAttribute('aria-expanded',String(open));if(open){drawerOpen=false;render()}};
+$('themeClose').onclick=()=>{$('themePanel').hidden=true;$('theme').setAttribute('aria-expanded','false')};
+for(const [id,key] of [['ringTheme','ring'],['pageTheme','page'],['canvasTheme','canvas']]){
+ $(id).onchange=e=>{themeChoice[key]=e.target.value;applyTheme()};
+}
 $('close').onclick=()=>setDrawer(false);
 $('clear').onclick=()=>{picked=null;hover=null;filters[mode].fill(null);render()};
 $('ringSelect').onchange=v=>{inspectRing=Number(v.target.value);updateList()};
@@ -250,7 +326,7 @@ $('filePicker').onchange=async e=>{
  }catch(error){$('hint').textContent=error.message;console.error(error)}
 };
 
-document.addEventListener('keydown',e=>{if(e.key==='Escape'&&drawerOpen)setDrawer(false)});
+document.addEventListener('keydown',e=>{if(e.key==='Escape'){if(drawerOpen)setDrawer(false);$('themePanel').hidden=true;$('theme').setAttribute('aria-expanded','false')}});
 load();
 })();
 </script></body></html>
