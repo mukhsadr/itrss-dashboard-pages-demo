@@ -1,15 +1,15 @@
-<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>ITRSS Dashboard | Original Metrics · v4</title><link rel="stylesheet" href="styles.css?v=1795367000"><link rel="stylesheet" href="papers.css?v=1795367000"><link rel="stylesheet" href="presentation.css?v=4"></head><body class="presentation-mode"><div id="publicBanner" style="position:sticky;top:0;z-index:9999;background:#6937b9;color:white;text-align:center;padding:12px;font:600 15px system-ui">REAL SOURCE DATA • GROUPED MILL METRICS • 1,607 RECORDS • NO USER IDS OR ADVISOR NAMES</div><nav id="presentationToolbar" class="presentationToolbar" aria-label="Dashboard display controls">
-  <span class="presentationBrand">ITRSS <strong>Research Metrics</strong> · v4</span>
+<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>ITRSS Dashboard | Original Metrics · v4</title><link rel="stylesheet" href="styles.css?v=1795367000"><link rel="stylesheet" href="papers.css?v=1795367000"><link rel="stylesheet" href="presentation.css?v=5"><link rel="stylesheet" href="graph.css?v=5"></head><body class="presentation-mode"><div id="publicBanner" style="position:sticky;top:0;z-index:9999;background:#6937b9;color:white;text-align:center;padding:12px;font:600 15px system-ui">REAL SOURCE DATA • GROUPED MILL METRICS • 1,607 RECORDS • NO USER IDS OR ADVISOR NAMES</div><nav id="presentationToolbar" class="presentationToolbar" aria-label="Dashboard display controls">
+  <span class="presentationBrand">ITRSS <strong>Research Metrics</strong> · v5</span>
   <div class="presentationActions">
-    <button id="presentationToggle" type="button" aria-pressed="false">Present</button>
+    <span class="presentationModes"><button id="presentationToggle" type="button" class="active" aria-pressed="true">Present</button><button id="presentationDetails" type="button" aria-pressed="false">Edit</button></span>
     <div class="presentationOnly">
       <button id="presentationUsers" type="button" class="active" aria-pressed="true">Mill users</button>
-      <button id="presentationPapers" type="button" aria-pressed="false">Publications</button>
-      <button id="presentationDetails" type="button">Show labels &amp; controls</button>
+      <button id="presentationPapers" type="button" aria-pressed="false">Publications</button><button id="presentationGraph" type="button" aria-pressed="false">Graph</button>
+      
       <button id="presentationClear" type="button">Reset filters</button>
       <button id="presentationFull" type="button">Fullscreen</button>
       <button id="presentationFile" type="button">Open local CSV</button>
-      <span id="presentationDataMode" class="presentationDataMode">Demo data</span>
+      <span id="presentationDataMode" class="presentationDataMode">Loading metrics…</span>
       <input id="presentationInput" type="file" hidden aria-label="Choose a local dashboard dataset">
     </div>
   </div>
@@ -25,4 +25,22 @@
   <div class="paperList"><h2>Matching publication records</h2><p id="paperRecordCount">Waiting for data</p><div id="paperRecords"></div><p class="paperNote">Evidence and notes are copied from the source. Acknowledging an NSF award is not necessarily the same as documenting direct cluster usage. "Foundry + Mill" is a separate reported category; duplicate flags are excluded by default.</p></div>
 </section>
 
-<footer><span>Public interface · Original data exports require disclosure review</span><span>Missing values shown as “Not specified”</span></footer></div><script src="app.js?v=1795367000"></script><script src="papers.js?v=1795367000"></script><script src="presentation.js?v=4"></script></body></html>
+<section id="graphSection" class="graphSection" aria-label="Relationship metrics visualization">
+  <div class="graphHeading"><div><h2>Relationship graph</h2><p>Real Mill cohorts · optionally inspect local research collaborations</p></div></div>
+  <div class="graphControls">
+    <label>Graph source<select id="graphSource"><option value="mill">Mill category relationships</option><option value="research">Research coauthor network</option></select></label>
+    <label>Search nodes<input id="graphSearch" type="search" placeholder="Find a department or researcher"></label>
+    <label>Researcher limit<select id="graphLimit"><option value="20">20</option><option value="40" selected>40</option><option value="60">60</option><option value="80">80</option></select></label>
+    <button id="graphImport" type="button">Open research CSV files</button>
+    <input id="graphFiles" type="file" accept=".csv,text/csv" multiple hidden>
+    <button id="graphReset" type="button">Reset graph</button>
+  </div>
+  <div class="graphStage">
+    <div id="graphKpis" class="graphKpis" aria-label="Relationship statistics"></div>
+    <svg id="graphCanvas" viewBox="0 0 1080 690" role="img" aria-label="Interactive relationship graph derived from source records"></svg>
+    <div class="graphFoot"><span id="graphCaption">Loading source metrics…</span><span id="graphSelected">Click a node to highlight related categories</span></div>
+  </div>
+  <p id="graphInfo" role="status" aria-live="polite"></p>
+</section>
+
+<footer><span>Public interface · Original data exports require disclosure review</span><span>Missing values shown as “Not specified”</span></footer></div><script src="app.js?v=5"></script><script src="papers.js?v=5"></script><script src="presentation.js?v=5"></script><script src="graph.js?v=5"></script></body></html>
