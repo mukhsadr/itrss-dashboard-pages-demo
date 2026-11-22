@@ -16,17 +16,17 @@ main{max-width:1050px;margin:auto;height:100dvh;min-height:440px;padding:clamp(9
 .canvas{min-height:0;background:#112036;border:1px solid #263b56;border-radius:15px;display:flex;justify-content:center;align-items:center;position:relative;overflow:hidden}
 .donut{height:min(100%,710px);width:min(100%,710px);aspect-ratio:1;position:relative}
 svg{height:100%;width:100%;display:block}.slice{stroke:#112036;stroke-width:1;cursor:pointer;transition:opacity .1s}.slice:hover{filter:brightness(1.18)}
-.center{position:absolute;inset:35%;display:flex;flex-direction:column;justify-content:center;align-items:center;pointer-events:none;gap:3px;text-align:center;overflow:hidden}
+.center{position:absolute;inset:36%;display:flex;flex-direction:column;justify-content:center;align-items:center;pointer-events:none;gap:3px;text-align:center;overflow:hidden}
 .center strong{font-size:clamp(19px,2.05vw,32px);line-height:1.05;letter-spacing:-.045em;white-space:nowrap;font-variant-numeric:tabular-nums;max-width:100%}
 .center span{max-width:100%;color:#bdd0e8;font-size:clamp(9px,.75vw,11px);line-height:1.15;overflow-wrap:anywhere;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
 #status{position:absolute;bottom:7px;font-size:11px;color:#f7bea7}
 @media(max-width:580px){main{padding:7px;gap:7px;min-height:340px}.mode{padding:6px 13px;font-size:12px}.metric{border-radius:8px}.canvas{border-radius:9px}.center strong{font-size:clamp(18px,5.2vw,27px)}}
 
 /* Keep the number entirely inside the donut hole at every screen size. */
-.canvas{background:#101e31;border-color:#2b3f58}
+.canvas{background:radial-gradient(circle at 50% 48%,#162b44 0%,#111f34 55%,#0d1929 100%);border-color:#2b4059}
 .metric{background:#15253a;border-color:#304761}
 .metric:hover{border-color:#7ca9d5}
-.slice{transition:opacity .14s,filter .14s}
+.slice{transition:opacity .18s,filter .18s,stroke .18s;stroke:#0d1a2b;stroke-width:1.2;filter:drop-shadow(0 1px 1px rgba(0,0,0,.16))}
 .donut{height:min(100%,760px);width:min(100%,760px)}
 @media(max-width:580px){.center{inset:35%}.center span{font-size:9px}}
 </style></head><body>
@@ -79,7 +79,7 @@ let focused=selected?d.dims[selected.ring].values.find(v=>v.name===selected.name
 $('number').textContent=fmt(focused?focused.count:total);
 $('centerLabel').textContent=focused?focused.name:mode==='users'?'Users':'Papers';
 const chart=$('chart');chart.replaceChildren();
-const radii=mode==='users'?[[115,153],[161,199],[207,245],[253,302]]:[[125,174],[183,232],[241,291]];
+const radii=mode==='users'?[[119,150],[166,197],[213,244],[260,301]]:[[122,166],[185,229],[248,292]];
 for(let i=0;i<d.dims.length;i++){
  const dim=d.dims[i],values=[...dim.values];
  if(dim.column==='Year')values.sort((a,b)=>Number(a.name)-Number(b.name));
@@ -88,8 +88,8 @@ for(let i=0;i<d.dims.length;i++){
  for(let j=0;j<values.length;j++){
  const v=values[j],next=angle+v.count/total*2*Math.PI,on=selected?.ring===i&&selected?.name===v.name;
  if(v.count>0){const shape=el('path',{d:pathFor(...radii[i],angle,next),fill:palettes[i][j%palettes[i].length],class:'slice',role:'button',tabindex:0,'aria-label':dim.label+' / '+v.name+': '+fmt(v.count)});
- if(selected?.ring===i&&!on)shape.style.opacity='.22';
- if(on){shape.style.stroke='#fff';shape.style.strokeWidth='2.6'}
+ if(selected?.ring===i&&!on)shape.style.opacity='.18';
+ if(on){shape.style.stroke='#e8f7ff';shape.style.strokeWidth='3.2';shape.style.filter='drop-shadow(0 0 5px rgba(139,211,255,.68))'}
  const tip=el('title');tip.textContent=dim.label+' / '+v.name+': '+fmt(v.count);shape.append(tip);
  shape.onclick=()=>choose(i,v.name);shape.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();choose(i,v.name)}};chart.append(shape)}
  angle=next;
