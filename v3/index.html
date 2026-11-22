@@ -26,10 +26,10 @@ h1{font-size:clamp(15px,1.6vw,20px);letter-spacing:-.015em;margin:0}.subline{col
 #chart{height:100%;width:100%;display:block}
 .ring{stroke:#122036;stroke-width:1;cursor:pointer;transition:opacity .15s}
 .ring:focus{outline:none;stroke:#f3faff;stroke-width:3}.ring:hover{filter:brightness(1.15)}
-.center{position:absolute;inset:34%;pointer-events:none;display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center}
-.center small{font-size:clamp(8px,.7vw,11px);letter-spacing:.08em;text-transform:uppercase;color:#aabed5;font-weight:700}
-.center strong{font-size:clamp(22px,4vw,62px);font-variant-numeric:tabular-nums;line-height:1.2}
-.center span{font-size:clamp(9px,.9vw,12px);color:#b7cbe0;max-width:100%;overflow-wrap:anywhere}
+.center{position:absolute;inset:37%;pointer-events:none;display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center;overflow:hidden;gap:2px}
+.center small{font-size:clamp(7px,.65vw,10px);letter-spacing:.045em;text-transform:uppercase;color:#aabed5;font-weight:700;white-space:nowrap}
+.center strong{font-size:clamp(19px,2.75vw,40px);font-variant-numeric:tabular-nums;line-height:1.05;letter-spacing:-.04em;white-space:nowrap}
+.center span{font-size:clamp(8px,.7vw,11px);color:#b7cbe0;max-width:100%;white-space:normal;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
 .chartBottom{display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:11px;color:var(--muted);min-height:25px}
 .chartBottom p{margin:0}.chartBottom button{flex-shrink:0}
 .side{display:grid;grid-template-rows:auto auto auto minmax(0,1fr);padding:14px;overflow:hidden;gap:10px}
@@ -53,6 +53,18 @@ select:disabled{opacity:.48}
 @media(max-width:800px){#app{min-height:0;height:100dvh;gap:7px;padding:8px}.content{grid-template-columns:minmax(0,1.3fr) minmax(215px,.8fr);gap:7px}.chartPanel,.side{padding:9px}.preset{padding:7px 9px}.fields{grid-template-columns:1fr 1fr}}
 @media(max-width:610px){#app{grid-template-rows:auto auto minmax(0,1fr)}header{min-height:28px}.brand{font-size:14px}.headerRight a{padding:5px}.content{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) minmax(180px,.56fr)}nav{gap:4px}.preset{padding:6px 9px;font-size:11px}.chartPanel{padding:8px}.side{padding:9px;grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:auto auto minmax(0,1fr);gap:6px}.sideHead{grid-column:1/-1}.fields{grid-template-columns:repeat(2,minmax(0,1fr))}.tools{align-content:start}.legend{grid-column:2;grid-row:2/4}.side #focus{grid-column:1}.chartBottom{font-size:10px}.entry{font-size:10px;padding:4px 3px}}
 @media(max-height:700px) and (min-width:611px){#app{gap:6px;padding:8px}.chartPanel,.side{padding:9px}.preset{padding:6px 9px}.fields{gap:5px}.chartBottom{min-height:18px}}
+
+/* Compact, locally inspired chart layout: readable centered metric and clean legend. */
+.chartPanel{background:#111e31;border-radius:11px}
+.side{background:#111e31;border-radius:11px}
+.chartArea{padding:0;overflow:hidden}
+.chartInner{margin:auto}
+.legend{border-top:1px solid #30415a;padding-top:4px}
+.entry{padding:5px 4px}
+.entry .count{font-size:11px}
+@media(min-width:1000px){.content{grid-template-columns:minmax(0,1.9fr) minmax(300px,.9fr)}}
+@media(min-width:1300px){.chartInner{height:min(100%,calc(100dvh - 175px));width:auto}}
+@media(max-width:610px){.center strong{font-size:clamp(18px,5vw,31px)}.center small{font-size:7px}.center span{font-size:8px}}
 </style>
 </head>
 <body>
@@ -68,9 +80,9 @@ select:disabled{opacity:.48}
 </nav>
 <div class="content">
 <section class="chartPanel">
-<div class="panelHead"><div><h1 id="heading">Mill users</h1><div class="subline" id="subtitle">Real aggregate counts · largest → smallest clockwise</div></div><div class="miniStat"><strong id="total">—</strong><span id="totalLabel">Source records</span></div></div>
+<div class="panelHead"><div><h1 id="heading">Mill users</h1><div class="subline" id="subtitle">Aggregate counts · largest to smallest clockwise</div></div><div class="miniStat"><strong id="total">—</strong><span id="totalLabel">Source records</span></div></div>
 <div class="chartArea"><div class="chartInner"><svg id="chart" viewBox="0 0 680 680" role="img" aria-label="Interactive concentric metric chart"></svg><div class="center"><small id="centerLabel">Records</small><strong id="centerCount">—</strong><span id="centerText">All categories</span></div></div></div>
-<div class="chartBottom"><p id="note">Click a slice to pin it. Other rings stay fixed.</p><button class="tool" type="button" id="clear">Clear focus</button></div>
+<div class="chartBottom"><p id="note">Select a category to highlight. Other rings stay fixed.</p><button class="tool" type="button" id="clear">Clear focus</button></div>
 </section>
 <aside class="side">
 <div class="sideHead"><strong>Controls</strong><button class="tool" id="order" type="button">Sort: largest ↓</button></div>
@@ -109,10 +121,10 @@ function render(){
  $('centerLabel').textContent=primary?'Pinned category':'Records';
  $('centerText').textContent=primary?primary.name:'All categories';
  $('focus').textContent=primary?pct(primary.count,total)+' of total':'';
- $('note').textContent=primary?'Pinned · other rings stay unchanged':'Click a slice to pin. Rings remain fixed.';
+ $('note').textContent=primary?'Selected category · other rings show overall totals':'Click a category to highlight it. Other rings remain unchanged.';
  $('subtitle').textContent=presets[preset].family==='users'?'1,607 source rows · aggregated':'230 included · 17 duplicates excluded';
  const chart=$('chart'),legend=$('legend');chart.replaceChildren();legend.replaceChildren();
- const radii=[[93,139],[147,193],[201,247],[255,301]];
+ const radii=[[96,143],[150,197],[204,251],[258,305]];
  for(let i=0;i<ringCount;i++){
  const dimension=dim(i),items=sorted(dimension);if(!dimension)continue;
  let angle=-Math.PI/2;const head=document.createElement('div');head.className='legendHead';const h=document.createElement('span');h.textContent='Ring '+(i+1)+' · '+dimension.label;const cnt=document.createElement('span');cnt.textContent=nfmt(total);head.append(h,cnt);legend.append(head);
