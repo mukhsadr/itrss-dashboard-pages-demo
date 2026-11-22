@@ -333,6 +333,18 @@
         const data=await publication.json();
         published=(data.rows||[]).filter(r=>!/^(yes|true|1|y)$/i.test(String(r['Counted as duplicate']||'').trim()));
       }
+      // Optional reviewed public OpenAlex export, used on every device when present.
+      try{
+        const extra=await fetch('data/research_graph_public.json?graph='+Date.now(),{cache:'no-store'});
+        if(extra.ok){
+          const data=await extra.json();
+          if(Array.isArray(data.works)&&Array.isArray(data.authors)&&
+             data.works.every(w=>w&&typeof w.record_id==='string')&&
+             data.authors.every(a=>a&&typeof a.author_id==='string')){
+            works=data.works;authors=data.authors;
+          }
+        }
+      }catch(error){/* The optional public OpenAlex dataset has not been deployed. */}
       const years=[...new Set(published.map(r=>Number(r.Year)).filter(Boolean))].sort((a,b)=>a-b);
       for(const id of ['graphYearFrom','graphYearTo']){
         const sel=$(id);sel.replaceChildren();
