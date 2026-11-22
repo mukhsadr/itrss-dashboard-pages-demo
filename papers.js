@@ -3,9 +3,9 @@
 const $=id=>document.getElementById(id), NS='http://www.w3.org/2000/svg';
 let rows=[],cols=[],dims=[],chosen=[null,null,null],sort='desc',includeDup=false;
 const colors=[['#538cf3','#8bb5ff','#3465bd','#accdff','#597db9'],['#23b8b0','#6bd7c4','#147d87','#9ae4d9','#36a7a1'],['#e7aa57','#f2cc87','#cb8142','#f6d7a4','#b7653c']];
-const v=(r,c)=>(r[c]||'').trim()||'Not specified';
+const v=(r,c)=>String(r?.[c]??'').trim()||'Not specified';
 const pct=(x,n)=>n?(100*x/n).toFixed(1)+'%':'0%';
-const duplicate=r=>/^(yes|true|1|y)$/i.test((r['Counted as duplicate']||'').trim());
+const duplicate=r=>/^(yes|true|1|y)$/i.test(String(r['Counted as duplicate']??'').trim());
 const el=(tag,props={})=>{const t=document.createElementNS(NS,tag);for(const [k,v] of Object.entries(props))t.setAttribute(k,v);return t};
 function polar(radius,angle){return [340+radius*Math.cos(angle),340+radius*Math.sin(angle)]}
 function arc(ri,ro,a,b){if(b-a>=Math.PI*2)b=a+Math.PI*2-.00001;const p1=polar(ro,a),p2=polar(ro,b),p3=polar(ri,b),p4=polar(ri,a),big=b-a>Math.PI?1:0;return `M${p1} A${ro} ${ro} 0 ${big} 1 ${p2} L${p3} A${ri} ${ri} 0 ${big} 0 ${p4} Z`}
@@ -47,7 +47,7 @@ function totals(data,col){
 function getBase(){return rows.filter(r=>includeDup||!duplicate(r))}
 function filtered(){return getBase().filter(r=>chosen.every((label,i)=>label===null||v(r,dims[i])===label))}
 function controlSetup(){for(let i=0;i<3;i++){const sel=$('paperLayer'+i);sel.replaceChildren();for(const c of cols){const opt=document.createElement('option');opt.value=c;opt.textContent=c;sel.append(opt)}sel.value=dims[i];sel.onchange=()=>{dims[i]=sel.value;chosen=[null,null,null];render()}}}
-function linkFor(r){const s=(r['DOI / record link']||'').trim(),doi=(r.DOI||'').trim();const candidate=s|| (doi?'https://doi.org/'+doi:'');try{const u=new URL(candidate);return ['https:','http:'].includes(u.protocol)?u.href:null}catch{return null}}
+function linkFor(r){const s=String(r['DOI / record link']??'').trim(),doi=String(r.DOI??'').trim();const candidate=s|| (doi?'https://doi.org/'+doi:'');try{const u=new URL(candidate);return ['https:','http:'].includes(u.protocol)?u.href:null}catch{return null}}
 function renderRecords(data){const container=$('paperRecords');container.replaceChildren();$('paperRecordCount').textContent=data.length+' matching records';for(const r of data.slice(0,35)){
 const card=document.createElement('div');card.className='paperRecord';const title=document.createElement('div');title.className='paperTitle';const url=linkFor(r);if(url){const a=document.createElement('a');a.href=url;a.target='_blank';a.rel='noopener noreferrer';a.textContent=r.Title;title.append(a)}else title.textContent=r.Title;
 const meta=document.createElement('div');meta.className='paperMeta';meta.textContent=[r.Year,r['Cluster acknowledged'],r.Type,r.Authors,r.Venue].filter(Boolean).join(' · ');
@@ -57,22 +57,53 @@ for(let i=0;i<3;i++){const ri=[110,171,232][i],ro=ri+50,items=totals(current,dim
 for(let j=0;j<items.length;j++){const item=items[j],sw=item.n/n*Math.PI*2,end=angle+sw,color=colors[i][j%colors[i].length];if(sw>0){const p=el('path',{d:arc(ri,ro,angle,end),fill:color,class:'arc',tabindex:0,role:'button'});const title=el('title');title.textContent=`${dims[i]} · ${item.name}: ${item.n} (${pct(item.n,n)})`;p.append(title);p.addEventListener('click',()=>select(i,item.name));p.addEventListener('keydown',ev=>{if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();select(i,item.name)}});chart.append(p)}angle=end;
 const btn=document.createElement('button');btn.className='legendRow';const swatch=document.createElement('span');swatch.className='swatch';swatch.style.background=color;const label=document.createElement('span');label.className='name';label.textContent=item.name;const value=document.createElement('span');value.className='pct';value.textContent=item.n+' · '+pct(item.n,n);btn.append(swatch,label,value);btn.onclick=()=>select(i,item.name);group.append(btn)}legend.append(group)}renderRecords(current)}
 function select(i,name){chosen[i]=chosen[i]===name?null:name;render()}
-async function load(){try{const resp=await fetch('data/publications.json?t='+Date.now(),{cache:'no-store'});if(!resp.ok)throw Error('publication JSON unavailable');const data=await resp.json();if(!Array.isArray(data.rows)||!data.rows.length)throw Error('Original publication data not uploaded yet');rows=data.rows;cols=data.columns.filter(x=>x&&x!=='#');$('papersSection').classList.remove('publication-awaiting');const preferred=['Cluster acknowledged','Year','Type'];dims=preferred.map((k,i)=>cols.includes(k)?k:cols[i]);chosen=[null,null,null];controlSetup();$('paperLoaded').textContent=rows.length+' source records · '+cols.length+' columns';render();window.dispatchEvent(new CustomEvent('dashboard:source-data-loaded',{detail:{kind:'papers'}}))}catch(e){$('paperLoaded').textContent='Original publications.json pending. Use Open local JSON in presentation mode to view privately.';}}
+
+function initializePublications(data,source){
+  if(!data||!Array.isArray(data.columns)||!Array.isArray(data.rows))
+    throw Error('Expected the export structure: { columns: [...], rows: [...] }');
+  if(data.columns.length<3||!data.rows.length)
+    throw Error('No publication records found in the selected file');
+  const nextCols=data.columns.filter(c=>typeof c==='string'&&c.trim()&&c!=='#');
+  if(nextCols.length<3)
+    throw Error('At least three valid publication columns are required');
+  if(data.rows.some(r=>!r||typeof r!=='object'||Array.isArray(r)))
+    throw Error('Publication rows must be JSON objects');
+  const nextRows=data.rows.map(r=>Object.fromEntries(nextCols.map(c=>[c,String(r[c]??'')])));
+  const wanted=['Cluster acknowledged','Year','Type'];
+  const nextDims=wanted.map((k,i)=>nextCols.includes(k)?k:nextCols[i]);
+  if(nextDims.some(x=>!x))throw Error('Could not find the three publication ring categories');
+  rows=nextRows;cols=nextCols;dims=nextDims;
+  chosen=[null,null,null];includeDup=false;$('paperDup').checked=false;sort='desc';$('paperSort').value='desc';
+  controlSetup();
+  $('papersSection').classList.remove('publication-awaiting');
+  $('paperLoaded').textContent=rows.length.toLocaleString()+' source records · '+cols.length+' columns · '+source;
+  render();
+}
+async function load(){
+  try{
+    const resp=await fetch('data/publications.json?t='+Date.now(),{cache:'no-store'});
+    if(!resp.ok)throw Error('publication JSON unavailable');
+    const data=await resp.json();
+    initializePublications(data,'published data');
+    window.dispatchEvent(new CustomEvent('dashboard:source-data-loaded',{detail:{kind:'papers'}}));
+  }catch(error){
+    if(!rows.length){
+      $('papersSection').classList.add('publication-awaiting');
+      $('paperLoaded').textContent='Choose your local publications.json to load real metrics';
+    }
+  }
+}
 window.addEventListener('dashboard:load-papers',event=>{
   try{
-    const data=JSON.parse(event.detail.text);
-    if(!data||!Array.isArray(data.columns)||!Array.isArray(data.rows)||data.columns.length<3)
-      throw Error('Expected an export with columns and rows arrays');
-    rows=data.rows;cols=data.columns.filter(x=>x&&x!=='#');$('papersSection').classList.remove('publication-awaiting');
-    const preferred=['Cluster acknowledged','Year','Type'];
-    dims=preferred.map((k,i)=>cols.includes(k)?k:cols[i]);
-    chosen=[null,null,null];controlSetup();
-    $('paperLoaded').textContent=rows.length.toLocaleString()+' local records · '+cols.length+' columns';
-    render();
-    window.dispatchEvent(new CustomEvent('dashboard:local-data-loaded',{detail:{name:event.detail.name,kind:'papers'}}));
+    initializePublications(JSON.parse(event.detail.text),'browser-only file');
+    window.dispatchEvent(new CustomEvent('dashboard:local-data-loaded',{detail:{
+      name:event.detail.name,kind:'papers',count:rows.length
+    }}));
   }catch(error){
-    window.dispatchEvent(new CustomEvent('dashboard:local-data-error',{detail:{message:'Publication JSON could not be loaded: '+error.message}}));
+    window.dispatchEvent(new CustomEvent('dashboard:local-data-error',{detail:{
+      message:'Publication file could not be loaded: '+error.message
+    }}));
   }
 });
-$('paperSort').onchange=e=>{sort=e.target.value;render()};$('paperDup').onchange=e=>{includeDup=e.target.checked;chosen=[null,null,null];render()};$('paperClear').onclick=()=>{chosen=[null,null,null];render()};$('paperReload').onclick=load;load();
+$('paperSort').onchange=e=>{sort=e.target.value;render()};$('paperDup').onchange=e=>{includeDup=e.target.checked;chosen=[null,null,null];render()};$('paperClear').onclick=()=>{chosen=[null,null,null];render()};$('paperReload').onclick=()=>window.dispatchEvent(new Event('dashboard:choose-publications'));load();
 })();
