@@ -82,3 +82,12 @@ body.presentation-mode.presentation-papers #papersSection.publication-awaiting>.
 }
 body.presentation-mode.presentation-papers .publicationAwaitingMessage h2{font:700 clamp(22px,3vw,34px) system-ui;margin-bottom:12px}
 body.presentation-mode.presentation-papers .publicationAwaitingMessage p{font:15px/1.6 system-ui;color:#b7c7d8}
+
+/* Edit mode restores existing dashboard summaries, legends and publication records. */
+body.presentation-mode.presentation-details:not(.presentation-papers):not(.presentation-graph) .shell>header{display:flex}
+body.presentation-mode.presentation-details:not(.presentation-papers):not(.presentation-graph) .shell>.summary{display:grid}
+body.presentation-mode.presentation-details.presentation-papers #papersSection:not(.publication-awaiting)>.paperHeading{display:flex}
+body.presentation-mode.presentation-details.presentation-papers #papersSection:not(.publication-awaiting)>.paperMetrics{display:grid}
+body.presentation-mode.presentation-details.presentation-papers #papersSection:not(.publication-awaiting)>.paperList{display:block}
+body.presentation-mode.presentation-details.presentation-papers #papersSection:not(.publication-awaiting){max-width:1420px}
+body.presentation-mode.presentation-details .ringsCaption{display:flex}
