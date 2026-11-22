@@ -227,72 +227,91 @@
       const v=el.getAttribute('data-edge');el.style.opacity=selected&&!v.split('|||').includes(selected)?'.06':'.68';
     });
     const node=current.find(x=>x.id===selected);
-    $('graphSelected').textContent=node?node.label+' · '+fmt(node.count)+(node.kind==='researcher'?' papers':' records'):'Click a node to highlight its direct relationships';
+    $('graphSelected').textContent=node?node.label+' · '+fmt(node.count)+(node.kind==='researcher'?' papers':' connected records'):'Select a node to highlight related publications';
+    graphDetail(node||null);
   }
+
   function draw(){
-    const canvas=$('graphCanvas');canvas.replaceChildren();
-    const source=$('graphSource').value;currentSource=source;
-    if(source==='mill'&&!cohorts.length){setInfo('Waiting for grouped Mill metrics');return}
+    const canvas=$('graphCanvas'),source=$('graphSource').value;currentSource=source;
+    canvas.replaceChildren();$('graphKpis').replaceChildren();
+    if(source==='papers'&&!published.length){setInfo('Waiting for public publication bibliography');return}
     if(source==='research'&&(!works.length||!authors.length)){
-      current=[];currentEdges=[];$('graphKpis').replaceChildren();
-      $('graphSelected').textContent='Original research files are not available on this public website.';
-      setInfo('Import enriched_works.csv and authors.csv from your local research pipeline. No network is invented.');
-      return;
+      current=[];currentEdges=[];$('graphSelected').textContent='OpenAlex CSVs are required for real coauthorship communities.';
+      graphDetail(null);setInfo('The Streamlit archive contains source code only. Select both enriched_works.csv and authors.csv to see the original research network.');return;
     }
-    const result=source==='mill'?buildMill():buildResearch();
+    const result=source==='mill'?buildMill():source==='papers'?buildPapers():source==='entities'?buildEntities():buildResearch();
     current=result.nodes;currentEdges=result.edges;
-    $('graphKpis').replaceChildren();
+    if(source==='papers'||source==='entities')forceLayout(current,currentEdges);
     for(const [label,value] of result.stats){
       const item=document.createElement('div');item.className='graphKpi';
-      const s=document.createElement('small');s.textContent=label;
-      const strong=document.createElement('strong');strong.textContent=fmt(value);item.append(s,strong);$('graphKpis').append(item);
+      const small=document.createElement('small');small.textContent=label;
+      const strong=document.createElement('strong');strong.textContent=fmt(value);
+      item.append(small,strong);$('graphKpis').append(item);
     }
     $('graphCaption').textContent=result.caption;
-    const lookup=new Map(current.map(n=>[n.id,n]));
-    const maxEdge=Math.max(1,...result.edges.map(e=>e.count));
+    const lookup=new Map(current.map(n=>[n.id,n])),maxEdge=Math.max(1,...currentEdges.map(e=>e.count));
     const paths=svg('g',{'class':'graphLinks'});
-    for(const e of result.edges){
+    for(const e of currentEdges){
       const a=lookup.get(e.a),b=lookup.get(e.b);if(!a||!b)continue;
-      const link=source==='mill'
-        ? 'M'+a.x+','+a.y+' C'+((a.x+b.x)/2)+','+a.y+' '+((a.x+b.x)/2)+','+b.y+' '+b.x+','+b.y
-        : 'M'+a.x+','+a.y+' L'+b.x+','+b.y;
-      const p=svg('path',{d:link,stroke:source==='mill'?'#8aa4ce':'#6e98c9',
-        'stroke-width':source==='mill'?(.6+6*Math.sqrt(e.count/maxEdge)):(.4+Math.min(3,e.count)),
-        fill:'none',opacity:'.68','data-edge':e.a+'|||'+e.b});
-      const tip=svg('title',{},fmt(e.count)+(source==='mill'?' source records':' shared publications'));p.append(tip);paths.append(p);
+      const route=source==='mill'?
+        'M'+a.x+','+a.y+' C'+((a.x+b.x)/2)+','+a.y+' '+((a.x+b.x)/2)+','+b.y+' '+b.x+','+b.y:
+        'M'+a.x+','+a.y+' L'+b.x+','+b.y;
+      const line=svg('path',{d:route,stroke:e.relation==='Unverified grant reference'?'#ebabc9':'#8bafdd',
+        'stroke-width':source==='mill'?.7+5*Math.sqrt(e.count/maxEdge):.7+3*Math.sqrt(e.count/maxEdge),
+        fill:'none',opacity:'.62','data-edge':e.a+'|||'+e.b});
+      line.append(svg('title',{},e.relation||'Related records'));paths.append(line);
     }
     canvas.append(paths);
-    const search=$('graphSearch').value.trim().toLowerCase();
-    const nodeGroup=svg('g',{'class':'graphNodes'});
-    for(const n of current){
-      const circleSize=source==='mill'?Math.min(19,6+Math.sqrt(n.count)*.38):Math.min(19,5+Math.sqrt(n.count)*3);
-      const group=svg('g',{'data-node':n.id,tabindex:0,role:'button','aria-label':n.label+', '+n.count});
-      const c=svg('circle',{cx:n.x,cy:n.y,r:circleSize,fill:kindColor[n.kind]||'#a8beec',
-        stroke:'#1a2a43','stroke-width':'2'});
-      const rightColumn=source==='mill'&&n.kind==='status';
-      const label=svg('text',{x:source==='mill'?(rightColumn?n.x-circleSize-7:n.x+circleSize+7):n.x,y:n.y+(source==='mill'?4:-circleSize-5),
-        fill:'#dceafa','font-size':source==='mill'?'13':'11',
-        'text-anchor':source==='mill'?(rightColumn?'end':'start'):'middle'},n.label.length>35?n.label.slice(0,32)+'…':n.label);
-      const tip=svg('title',{},n.label+' · '+fmt(n.count)+(source==='mill'?' records':' papers'));
-      group.append(c,label,tip);
-      group.addEventListener('click',()=>focus(n.id));
-      group.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();focus(n.id)}});
-      if(search&&!n.label.toLowerCase().includes(search))group.style.opacity='.22';
-      nodeGroup.append(group);
+    const group=svg('g',{'class':'graphNodes'});
+    for(let i=0;i<current.length;i++){
+      const n=current[i],r=source==='mill'?Math.min(19,6+Math.sqrt(n.count)*.38):Math.min(18,7+Math.sqrt(n.count||1)*2);
+      const circle=svg('g',{'data-node':n.id,tabindex:0,role:'button','aria-label':n.label});
+      circle.append(svg('circle',{cx:n.x,cy:n.y,r,fill:n.color||kindColor[n.kind]||'#a8beec',stroke:'#172c46','stroke-width':2}));
+      if(source==='mill'||i<25||n.kind==='grant'){
+        const right=source==='mill'&&n.kind==='status';
+        circle.append(svg('text',{x:source==='mill'?(right?n.x-r-6:n.x+r+6):n.x,
+          y:source==='mill'?n.y+4:n.y-r-6,fill:'#e3edfa','font-size':source==='mill'?13:10,
+          'text-anchor':source==='mill'?(right?'end':'start'):'middle'},
+          String(n.label).length>34?String(n.label).slice(0,31)+'…':n.label));
+      }
+      circle.append(svg('title',{},n.label+(n.year?' · '+n.year:'')+(n.cluster?' · '+n.cluster:'')));
+      circle.addEventListener('click',()=>focus(n.id));
+      circle.addEventListener('keydown',e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();focus(n.id)}});
+      group.append(circle);
     }
-    canvas.append(nodeGroup);selected=null;focus(null);
-    setInfo(source==='mill'
-      ? 'Connections are aggregated counts, not individual people or coauthor relationships.'
-      : 'Research links represent shared publications, based on locally supplied OpenAlex exports.');
+    canvas.append(group);selected=null;focus(null);
+    setInfo(source==='papers'?'Publication relationships use shared title terms and explicitly listed authors only; they do NOT establish citations.':
+      source==='entities'?(works.length?'OpenAlex research graph; candidate grant references are NOT verified funding.':
+        'Bibliography lists lead authors incompletely for “et al.” entries. Import OpenAlex CSVs for the full research graph.'):
+      source==='research'?'Community graph uses author IDs and co-publication relations from imported OpenAlex metadata.':
+      'Connections represent source cohort counts, not individual user relationships.');
+    fitGraph();
+  }
+  function fitGraph(){viewport={x:0,y:0,w:1080,h:690};applyGraphView()}
+  function applyGraphView(){const canvas=$('graphCanvas');canvas.setAttribute('viewBox',[viewport.x,viewport.y,viewport.w,viewport.h].join(' '))}
+  function zoomGraph(scale,px=.5,py=.5){
+    const nw=Math.max(270,Math.min(2160,viewport.w*scale)),nh=nw*690/1080;
+    viewport.x+=viewport.w*px-nw*px;viewport.y+=viewport.h*py-nh*py;
+    viewport.w=nw;viewport.h=nh;applyGraphView();
   }
   async function load(){
     try{
-      const resp=await fetch('data/callie.csv?graph='+Date.now(),{cache:'no-store'});
-      if(!resp.ok)throw Error('HTTP '+resp.status);
-      cohorts=parseCSV(await resp.text());
-      if(!cohorts.some(r=>r.Count))throw Error('No grouped counts available');
-    }catch(e){setInfo('Unable to read the published grouped metrics: '+e.message)}
-    draw();
+      const [users,publication]=await Promise.all([
+        fetch('data/callie.csv?graph='+Date.now(),{cache:'no-store'}),
+        fetch('data/publications.json?graph='+Date.now(),{cache:'no-store'})]);
+      if(users.ok)cohorts=parseCSV(await users.text());
+      if(publication.ok){
+        const data=await publication.json();
+        published=(data.rows||[]).filter(r=>!/^(yes|true|1|y)$/i.test(String(r['Counted as duplicate']||'').trim()));
+      }
+      const years=[...new Set(published.map(r=>Number(r.Year)).filter(Boolean))].sort((a,b)=>a-b);
+      for(const id of ['graphYearFrom','graphYearTo']){
+        const sel=$(id);sel.replaceChildren();
+        const all=document.createElement('option');all.value='';all.textContent=id==='graphYearFrom'?'From any year':'Through any year';sel.append(all);
+        for(const yr of years){const op=document.createElement('option');op.value=String(yr);op.textContent=String(yr);sel.append(op)}
+      }
+      draw();
+    }catch(err){setInfo('Research graph data could not be loaded: '+err.message)}
   }
   function readLocalFiles(files){
     const selected=[...files];const work=selected.find(f=>/enriched_works\.csv$/i.test(f.name));
@@ -308,9 +327,18 @@
   $('graphSource').addEventListener('change',()=>{selected=null;draw()});
   $('graphSearch').addEventListener('input',draw);
   $('graphLimit').addEventListener('change',draw);
+  for(const id of ['graphYearFrom','graphYearTo','graphFacility','graphStrength','graphGrants'])$(id).addEventListener('change',draw);
+  $('graphFit').addEventListener('click',fitGraph);
+  $('graphZoomIn').addEventListener('click',()=>zoomGraph(.8));
+  $('graphZoomOut').addEventListener('click',()=>zoomGraph(1.25));
+  const canvas=$('graphCanvas');
+  canvas.addEventListener('wheel',e=>{e.preventDefault();const r=canvas.getBoundingClientRect();zoomGraph(e.deltaY>0?1.12:.89,(e.clientX-r.left)/r.width,(e.clientY-r.top)/r.height)},{passive:false});
+  canvas.addEventListener('pointerdown',e=>{if(e.target.closest?.('[data-node]'))return;drag={x:e.clientX,y:e.clientY,ox:viewport.x,oy:viewport.y};try{canvas.setPointerCapture(e.pointerId)}catch{}});
+  canvas.addEventListener('pointermove',e=>{if(!drag)return;const r=canvas.getBoundingClientRect();viewport.x=drag.ox-(e.clientX-drag.x)*viewport.w/r.width;viewport.y=drag.oy-(e.clientY-drag.y)*viewport.h/r.height;applyGraphView()});
+  for(const type of ['pointerup','pointercancel','lostpointercapture'])canvas.addEventListener(type,()=>{drag=null});
   $('graphImport').addEventListener('click',()=>{$('graphFiles').value='';$('graphFiles').click()});
   $('graphFiles').addEventListener('change',e=>readLocalFiles(e.target.files));
-  $('graphReset').addEventListener('click',()=>{selected=null;$('graphSearch').value='';draw()});
+  $('graphReset').addEventListener('click',()=>{selected=null;$('graphSearch').value='';$('graphYearFrom').value='';$('graphYearTo').value='';$('graphFacility').value='all';draw()});
   window.addEventListener('dashboard:load-users',event=>{
     // The graph is always grounded in a copy of the Mill user dataset shown in this browser.
     cohorts=parseCSV(event.detail.text);if(cohorts.some(x=>x.Count))draw();
