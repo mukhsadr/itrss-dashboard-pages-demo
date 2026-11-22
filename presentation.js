@@ -22,7 +22,7 @@
     const graphSource=$('graphSource')?.value;
     const graphBadge=graphSource==='papers'?'Public bibliography · auto-loaded':
       graphSource==='entities'?'Authors · Papers · candidate grants':
-      graphSource==='research'?'OpenAlex coauthor network':'Real grouped Mill metrics';
+      graphSource==='research'?'Original coauthor data · choose JSON':'Real grouped Mill metrics';
     const badge=localFiles[view]?'Local files · browser only':
       view==='graph'?graphBadge:
       sourceLoaded[view]?(view==='users'?'Real Mill metrics':'Public publications loaded'):'Original data pending';
