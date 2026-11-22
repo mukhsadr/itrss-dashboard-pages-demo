@@ -73,7 +73,7 @@ function filteredDimension(target,sourceDim,total){
   const values=linked.conditionals?.[from]?.[selected.name]?.[to];
   if(!Array.isArray(values)||values.length===0)return null;
   const items=values.map(v=>({name:v.name,count:Number(v.count)}));
-  const valid=items.every(v=>typeof v.name==='string'&&Number.isInteger(v.count)&&v.count>=0);
+  const valid=items.every(v=>typeof v.name==='string'&&Number.isInteger(v.count)&&v.count>=linked.min_cell_count);
   return valid&&items.reduce((sum,v)=>sum+v.count,0)===total?items:null;
 }
 function kpis(){
@@ -91,7 +91,7 @@ function render(){
 if(!source)return;
 const d=current(),cards=kpis(),total=d.total;
 const focusCount=selected?d.dims[selected.ring].values.find(v=>v.name===selected.name)?.count:null;
-const conditional=mode==='users'&&selected&&linked&&Number.isInteger(focusCount);
+const conditional=!!(mode==='users'&&selected&&linked&&Number.isInteger(focusCount)&&d.dims.every((_,i)=>i===selected.ring||filteredDimension(i,d.dims[selected.ring],focusCount)));
 document.querySelectorAll('[data-mode]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.mode===mode)));
 cards.forEach((c,i)=>{$('label'+i).textContent=c.label;$('val'+i).textContent=fmt(c.value)});
 document.querySelectorAll('[data-kpi]').forEach(b=>b.setAttribute('aria-pressed',String(Number(b.dataset.kpi)===kpi)));
