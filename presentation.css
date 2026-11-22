@@ -70,3 +70,15 @@ body.presentation-mode.presentation-details .paperWrap .chartCenter>div{display:
 }
 
 body.presentation-mode #publicBanner {display:none}
+
+/* Hide empty publication dashboards until the original JSON is supplied. */
+.publicationAwaitingMessage {display:none}
+body.presentation-mode.presentation-papers #papersSection.publication-awaiting>.main,
+body.presentation-mode.presentation-papers #papersSection.publication-awaiting>.paperList,
+body.presentation-mode.presentation-papers #papersSection.publication-awaiting>.paperMetrics {display:none}
+body.presentation-mode.presentation-papers #papersSection.publication-awaiting>.publicationAwaitingMessage {
+ display:block;max-width:730px;text-align:center;margin:clamp(40px,13vh,150px) auto;
+ padding:35px;background:#14243a;border:1px solid #33516f;border-radius:16px;color:#eaf2fa;
+}
+body.presentation-mode.presentation-papers .publicationAwaitingMessage h2{font:700 clamp(22px,3vw,34px) system-ui;margin-bottom:12px}
+body.presentation-mode.presentation-papers .publicationAwaitingMessage p{font:15px/1.6 system-ui;color:#b7c7d8}
