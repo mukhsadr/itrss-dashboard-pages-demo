@@ -68,3 +68,5 @@ body.presentation-mode.presentation-details .paperWrap .chartCenter>div{display:
   body.presentation-mode .shell{padding:8px}
   body.presentation-mode .chartWrap{width:min(94vw,80vh)}
 }
+
+body.presentation-mode #publicBanner {display:none}
