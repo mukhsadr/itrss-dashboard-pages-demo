@@ -1,0 +1,7 @@
+*.csv
+*.xlsx
+*.xls
+*.parquet
+.env
+.env.*
+__pycache__/
