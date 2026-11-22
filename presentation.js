@@ -16,7 +16,7 @@
     $('presentationUsers').setAttribute('aria-pressed',String(view==='users'));
     $('presentationPapers').setAttribute('aria-pressed',String(view==='papers'));
     $('presentationFile').textContent = view==='users' ? 'Open local CSV' : 'Open local JSON';
-    $('presentationDataMode').textContent = localFiles[view] ? 'Local file · browser only' : 'Synthetic demo';
+    $('presentationDataMode').textContent = localFiles[view] ? 'Local file · browser only' : 'Original data pending';
   }
   $('presentationToggle').addEventListener('click',() => {
     body.classList.toggle('presentation-mode');
@@ -68,7 +68,7 @@
     setAlert('Loaded '+event.detail.name+' in this browser session only; no data uploaded.');
   });
   window.addEventListener('dashboard:local-data-error',event=>setAlert(event.detail.message));
-  window.addEventListener('dashboard:demo-data-loaded',event=>{localFiles[event.detail.kind]=null;refresh();});
+  window.addEventListener('dashboard:source-data-loaded',event=>{localFiles[event.detail.kind]=null;refresh();});
   document.addEventListener('keydown',event=>{
     if(event.key==='Escape'&&body.classList.contains('presentation-mode')&&!document.fullscreenElement){
       body.classList.remove('presentation-mode','presentation-details');refresh();
