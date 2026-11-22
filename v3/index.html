@@ -80,7 +80,7 @@ body[data-canvas="cream"] .hint,body[data-canvas="cream"] .key,body[data-canvas=
 @media(max-width:650px){.themePanel{top:5px;right:5px;padding:11px}.selectionStrip{left:5px;top:25px;max-width:85%}.chip{font-size:9px;padding:3px 5px}}
 </style></head>
 <body><div class="app">
-<header class="top"><div class="brand">S&T ITRSS <span style="font-size:10px;font-weight:500;opacity:.8">v26</span></div>
+<header class="top"><div class="brand">S&T ITRSS <span style="font-size:10px;font-weight:500;opacity:.8">v27</span></div>
 <nav class="tabs" aria-label="Dataset"><button type="button" data-mode="users" aria-pressed="true">Mill Users</button><button type="button" data-mode="papers" aria-pressed="false">Publications</button></nav>
 <div class="actions"><button class="action" id="localFile" type="button" title="Optionally choose a local CSV/JSON for exact multi-ring filtering without leaving this page">Load data</button><input id="filePicker" type="file" accept=".csv,.json,text/csv,application/json" hidden><button class="action" id="theme" type="button" aria-expanded="false">Theme</button><button class="action" id="reset" type="button" title="Clear selection">Reset</button><button class="action" id="explore" type="button" aria-expanded="false">Explore</button></div></header>
 <main class="stage" id="stage">
@@ -296,6 +296,26 @@ async function load(){
  const [users,papers]=await Promise.all([ur.json(),pr.json()]);validate(users.dimensions,users.source_total);validate(papers.dimensions,papers.included_total);
  if(users.dimensions.length!==4||papers.dimensions.length!==3)throw Error('Unexpected ring counts');
  data={users,papers};render();
+ // On the loopback-only V3 preview, load local category records automatically.
+ // Hosted GitHub Pages never requests or receives these private records.
+ if(['127.0.0.1','localhost'].includes(location.hostname)){
+  try{
+   const r=await fetch('data/callie.csv',{cache:'no-store'});
+   if(r.ok){
+    const p=csvParse(await r.text());
+    if(localColumns.every(c=>p.columns.includes(c))&&p.rows.length){
+     localUsers=p.rows;filters.users.fill(null);picked=null;render();
+    }
+   }
+   const pub=await fetch('data/publications.json',{cache:'no-store'});
+   if(pub.ok){
+    const p=await pub.json();
+    if(Array.isArray(p.rows)&&Array.isArray(p.columns)&&paperColumns.every(c=>p.columns.includes(c))){
+     localPapers=p.rows.filter(row=>!/^(yes|true|1|y)$/i.test(value(row,'Counted as duplicate')));
+    }
+   }
+  }catch(e){console.warn('Local preview data unavailable',e)}
+ }
  try{const r=await fetch('data/linked_user_counts.json',{cache:'no-store'});if(r.ok){const j=await r.json();
  if(j.source_total===users.source_total&&j.min_cell_count>=10&&j.approved_for_public_release===true&&j.review_only!==true&&j.conditionals&&typeof j.conditionals==='object'){linked=j;render()}
  }}catch(e){console.warn('Optional linked categories unavailable',e)}
