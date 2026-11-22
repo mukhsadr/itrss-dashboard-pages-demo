@@ -1,16 +1,16 @@
 <!doctype html>
 <html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1"><meta name="theme-color" content="#0b1423"><title>ITRSS Metrics</title>
 <style>
-:root{color-scheme:dark;--bg:#0b1423;--card:#17283d;--line:#354963;--text:#edf5ff;--muted:#a8bed6}
+:root{color-scheme:dark;--bg:#10131c;--card:#1b2333;--line:#374152;--text:#eef0f8;--muted:#b0bacb}
 *{box-sizing:border-box}html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font:14px/1.3 system-ui,-apple-system,"Segoe UI",sans-serif}
 button{font:inherit;cursor:pointer}button:focus-visible,.slice:focus-visible{outline:2px solid #c6e5ff;outline-offset:2px}
 main{max-width:1050px;margin:auto;height:100dvh;min-height:440px;padding:clamp(9px,1.5vw,18px);display:grid;grid-template-rows:auto auto minmax(0,1fr);gap:clamp(8px,1.2vh,14px)}
 .modes{display:flex;justify-content:center;gap:8px}
-.mode{padding:7px 22px;border-radius:9px;border:1px solid var(--line);background:#182a41;color:#d1e5fb;font-size:13px;font-weight:650}
-.mode[aria-pressed=true]{background:#28577d;border-color:#8dc9fc;color:white}
+.mode{min-height:43px;padding:9px 22px;border-radius:24px;border:1px solid #535d70;background:#252d3d;color:#d9e2f5;font-size:13px;font-weight:650;transition:background .16s,border-color .16s}
+.mode[aria-pressed=true]{background:#394f7b;border-color:#a9c7ff;color:#f4f7ff;box-shadow:inset 0 0 0 1px #7197e4}
 .metrics{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:9px}
-.metric{min-width:0;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:9px 4px;color:var(--text);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:2px}
-.metric[aria-pressed=true]{border-color:#a6d3ff;background:#234868}
+.metric{min-width:0;min-height:65px;background:var(--card);border:1px solid var(--line);border-radius:17px;padding:10px 4px;color:var(--text);display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;transition:background .16s,border-color .16s,transform .16s}
+.metric[aria-pressed=true]{border-color:#a9c7ff;background:#343e59}.metric:hover{background:#2a3447}
 .metric span{font-size:clamp(10px,1.1vw,13px);font-weight:650;text-align:center}
 .metric strong{font-size:clamp(20px,2.7vw,32px);line-height:1.1;letter-spacing:-.03em;font-variant-numeric:tabular-nums}
 .canvas{min-height:0;background:#112036;border:1px solid #263b56;border-radius:15px;display:flex;justify-content:center;align-items:center;position:relative;overflow:hidden}
@@ -23,12 +23,21 @@ svg{height:100%;width:100%;display:block}.slice{stroke:#112036;stroke-width:1;cu
 @media(max-width:580px){main{padding:7px;gap:7px;min-height:340px}.mode{padding:6px 13px;font-size:12px}.metric{border-radius:8px}.canvas{border-radius:9px}.center strong{font-size:clamp(18px,5.2vw,27px)}}
 
 /* Keep the number entirely inside the donut hole at every screen size. */
-.canvas{background:radial-gradient(circle at 50% 48%,#162b44 0%,#111f34 55%,#0d1929 100%);border-color:#2b4059}
+.canvas{background:linear-gradient(160deg,#1b2332,#151b29 75%);border-color:#343d50;box-shadow:0 12px 38px rgba(0,0,0,.16)}
 .metric{background:#15253a;border-color:#304761}
 .metric:hover{border-color:#7ca9d5}
-.slice{transition:opacity .18s,filter .18s,stroke .18s;stroke:#0d1a2b;stroke-width:1.2;filter:drop-shadow(0 1px 1px rgba(0,0,0,.16))}
+.slice{transition:opacity .18s,filter .18s,stroke .18s;stroke:#151b29;stroke-width:1.1;filter:none}
 .donut{height:min(100%,760px);width:min(100%,760px)}
 @media(max-width:580px){.center{inset:35%}.center span{font-size:9px}}
+
+/* Material-inspired restrained colors, selection surfaces and phone touch targets. */
+.center{background:rgba(28,37,53,.32);border-radius:50%;inset:35%}
+.center strong{font-size:clamp(19px,2.15vw,33px)}
+.center span{color:#b8c4df}
+.modes{gap:10px}
+.slice:hover{filter:brightness(1.15)}
+@media(prefers-reduced-motion:reduce){.slice,.metric,.mode{transition:none}}
+@media(max-width:580px){.mode{min-height:44px}.metric{min-height:58px;border-radius:14px}.center{inset:35%}}
 </style></head><body>
 <main>
 <nav class="modes" aria-label="Data mode"><button type="button" class="mode" data-mode="users" aria-pressed="true">Mill Users</button><button type="button" class="mode" data-mode="papers" aria-pressed="false">Publications</button></nav>
@@ -48,10 +57,10 @@ svg{height:100%;width:100%;display:block}.slice{stroke:#112036;stroke-width:1;cu
 (()=>{
 const $=id=>document.getElementById(id),SVG='http://www.w3.org/2000/svg';
 const palettes=[
-['#67a8ff','#3c84d6','#9bc9ff','#456aa8','#b6d8ff','#317cbd','#769ed5','#5277b1'],
-['#30c7b8','#149a92','#86ddc9','#348b85','#ade8d9','#51b5a7','#267b75'],
-['#f0b567','#cf8845','#f7d091','#a9673c','#d9a26b'],
-['#bb9cf4','#886bc9','#dbc7ff','#7154a6','#a68bdf']];
+['#8eb4ff','#618ce5','#b7ceff','#4f6fc3','#a5b9e8','#567ab8','#809dd6','#657ba9'],
+['#76d6be','#3cae9a','#a3e5d5','#348e87','#98cdbf','#57b5a8','#5b928f'],
+['#f4c47d','#d99b5d','#ffddb0','#bf8659','#ddad7d'],
+['#c7a9fa','#9877d7','#e1cfff','#8569bd','#ad95e6']];
 const fmt=x=>Number(x||0).toLocaleString('en-US');
 const el=(name,attrs={})=>{const e=document.createElementNS(SVG,name);for(const [k,v] of Object.entries(attrs))e.setAttribute(k,v);return e};
 const pt=(r,a)=>[340+r*Math.cos(a),340+r*Math.sin(a)];
@@ -78,8 +87,9 @@ document.querySelectorAll('[data-kpi]').forEach(b=>b.setAttribute('aria-pressed'
 let focused=selected?d.dims[selected.ring].values.find(v=>v.name===selected.name):null;
 $('number').textContent=fmt(focused?focused.count:total);
 $('centerLabel').textContent=focused?focused.name:mode==='users'?'Users':'Papers';
+$('chart').setAttribute('aria-label',mode==='users'?'Mill users: four independent distributions. Select a slice to inspect its count.':'Publications: three independent distributions. Select a slice to inspect its count.');
 const chart=$('chart');chart.replaceChildren();
-const radii=mode==='users'?[[119,150],[166,197],[213,244],[260,301]]:[[122,166],[185,229],[248,292]];
+const radii=mode==='users'?[[115,147],[163,195],[211,243],[259,301]]:[[121,161],[187,227],[253,293]];
 for(let i=0;i<d.dims.length;i++){
  const dim=d.dims[i],values=[...dim.values];
  if(dim.column==='Year')values.sort((a,b)=>Number(a.name)-Number(b.name));
@@ -89,8 +99,8 @@ for(let i=0;i<d.dims.length;i++){
  const v=values[j],next=angle+v.count/total*2*Math.PI,on=selected?.ring===i&&selected?.name===v.name;
  if(v.count>0){const shape=el('path',{d:pathFor(...radii[i],angle,next),fill:palettes[i][j%palettes[i].length],class:'slice',role:'button',tabindex:0,'aria-label':dim.label+' / '+v.name+': '+fmt(v.count)});
  if(selected?.ring===i&&!on)shape.style.opacity='.18';
- if(on){shape.style.stroke='#e8f7ff';shape.style.strokeWidth='3.2';shape.style.filter='drop-shadow(0 0 5px rgba(139,211,255,.68))'}
- const tip=el('title');tip.textContent=dim.label+' / '+v.name+': '+fmt(v.count);shape.append(tip);
+ if(on){shape.style.stroke='#f6f7ff';shape.style.strokeWidth='3.5';shape.style.filter='brightness(1.18) drop-shadow(0 0 5px rgba(173,198,255,.35))'}
+ const tip=el('title');tip.textContent=dim.label+' · '+v.name+' · '+fmt(v.count)+' of '+fmt(total)+' ('+(100*v.count/total).toFixed(1)+'%)';shape.append(tip);
  shape.onclick=()=>choose(i,v.name);shape.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();choose(i,v.name)}};chart.append(shape)}
  angle=next;
  }
