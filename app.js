@@ -40,5 +40,19 @@ for(let j=0;j<items.length;j++){const d=items[j],sweep=d.count/n*Math.PI*2,end=a
 const row=document.createElement('button');row.className='legendRow';const dot=document.createElement('span');dot.className='swatch';dot.style.background=color;const name=document.createElement('span');name.className='name';name.textContent=d.name;name.title=d.name;const percent=document.createElement('span');percent.className='pct';percent.textContent=`${d.count} · ${pct(d.count,n)}`;row.append(dot,name,percent);row.onclick=()=>clickSegment(i,d.name);group.append(row)}legend.append(group)}
 }
 async function load(){const status=$('fileStatus');try{const response=await fetch('data/callie.csv?x='+Date.now(),{cache:'no-store'});if(!response.ok)throw Error('HTTP '+response.status);const parsed=csvParse(await response.text());if(!parsed.columns.length)throw Error('CSV has no header');columns=parsed.columns;rows=parsed.rows;filters=[null,null,null,null];setup();$('badge').textContent='Synthetic demo loaded';$('badge').style.color='#8ee1cc';$('sourceName').textContent='synthetic_demo_users.csv';status.textContent=`${rows.length.toLocaleString()} records · ${columns.length} columns · synthetic demo CSV`;render()}catch(e){$('badge').textContent='Report not loaded';$('badge').style.color='#ffbc99';status.textContent='Run ./run.sh to copy the source CSV. '+e.message;columns=[];rows=[];render()}}
+window.addEventListener('dashboard:load-users',event=>{
+  try{
+    const parsed=csvParse(event.detail.text);
+    if(parsed.columns.length<4||!parsed.rows.length)throw Error('Expected a CSV with at least four columns and one record');
+    columns=parsed.columns;rows=parsed.rows;filters=[null,null,null,null];setup();
+    $('badge').textContent='Local browser file loaded';$('badge').style.color='#8ee1cc';
+    $('sourceName').textContent=event.detail.name;
+    $('fileStatus').textContent=rows.length.toLocaleString()+' records · '+columns.length+' columns · browser-only CSV';
+    render();
+    window.dispatchEvent(new CustomEvent('dashboard:local-data-loaded',{detail:{name:event.detail.name}}));
+  }catch(error){
+    window.dispatchEvent(new CustomEvent('dashboard:local-data-error',{detail:{message:'CSV could not be loaded: '+error.message}}));
+  }
+});
 $('sort').onchange=render;$('clear').onclick=()=>{filters=[null,null,null,null];render()};$('reload').onclick=load;load();
 })();
