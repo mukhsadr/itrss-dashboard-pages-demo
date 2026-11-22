@@ -1,157 +1,193 @@
 <!doctype html>
 <html lang="en">
 <head>
-<meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#0b1423">
-<title>ITRSS · V3 Metric Center</title>
+<title>ITRSS | Research Impact Dashboard V3</title>
 <style>
-:root{color-scheme:dark;--bg:#0b1423;--card:#121f32;--card2:#17273d;--border:#2b405a;--text:#ecf4ff;--muted:#9db2ca;--blue:#75b9ff}
-*{box-sizing:border-box}html,body{margin:0;min-width:320px;height:100%;background:var(--bg);color:var(--text);font:14px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif}
+:root{color-scheme:dark;--bg:#0b1423;--surface:#122136;--surface2:#1a2c43;--line:#30435c;--text:#eef5ff;--muted:#a9bdd3;--accent:#76baff}
+*{box-sizing:border-box}
+html,body{margin:0;min-height:100%;background:var(--bg);color:var(--text);font:14px/1.4 system-ui,-apple-system,"Segoe UI",sans-serif}
 button,select{font:inherit}button{cursor:pointer}
-#app{height:100dvh;min-height:510px;display:grid;grid-template-rows:auto auto minmax(0,1fr);gap:10px;padding:clamp(10px,1.4vw,20px);max-width:1800px;margin:auto}
-header{display:flex;align-items:center;justify-content:space-between;gap:12px;min-height:40px;flex-wrap:wrap}
-.brand{font-weight:800;letter-spacing:.035em;font-size:17px}.brand b{color:#67c2ec}.version{font-size:11px;color:#adc4df;border:1px solid #405b79;border-radius:6px;padding:3px 6px;margin-left:8px}
-.headerRight{display:flex;gap:7px;align-items:center}.headerRight a,.smallBtn{color:#d8eaff;text-decoration:none;background:#1d3049;border:1px solid #38536f;border-radius:8px;padding:7px 10px;font-size:12px}
-nav{display:flex;gap:7px;flex-wrap:wrap;align-items:center;min-height:36px}
-.preset{background:#17283e;border:1px solid #334a67;color:#c9dcf2;border-radius:9px;padding:8px 12px;font-size:12px;font-weight:600}
-.preset[aria-pressed=true]{background:#2b618e;color:white;border-color:#74b8fa}
-.content{display:grid;grid-template-columns:minmax(0,1.7fr) minmax(300px,.8fr);gap:12px;min-height:0}
-.chartPanel,.side{background:linear-gradient(150deg,#152439,#101c2e);border:1px solid var(--border);border-radius:16px;min-height:0}
-.chartPanel{display:grid;grid-template-rows:auto minmax(0,1fr) auto;padding:14px;min-width:0}
-.panelHead{display:flex;justify-content:space-between;gap:10px;align-items:center}
-h1{font-size:clamp(15px,1.6vw,20px);letter-spacing:-.015em;margin:0}.subline{color:var(--muted);font-size:11px}
-.miniStat{white-space:nowrap;text-align:right}.miniStat strong{font-size:clamp(17px,2vw,26px);display:block;line-height:1.1;font-variant-numeric:tabular-nums}.miniStat span{font-size:10px;color:var(--muted)}
-.chartArea{display:flex;align-items:center;justify-content:center;position:relative;min-height:0;min-width:0;padding:4px}
-.chartInner{position:relative;aspect-ratio:1;height:100%;max-width:100%;max-height:100%;width:auto}
-#chart{height:100%;width:100%;display:block}
-.ring{stroke:#122036;stroke-width:1;cursor:pointer;transition:opacity .15s}
-.ring:focus{outline:none;stroke:#f3faff;stroke-width:3}.ring:hover{filter:brightness(1.15)}
-.center{position:absolute;inset:37%;pointer-events:none;display:flex;align-items:center;justify-content:center;flex-direction:column;text-align:center;overflow:hidden;gap:2px}
-.center small{font-size:clamp(7px,.65vw,10px);letter-spacing:.045em;text-transform:uppercase;color:#aabed5;font-weight:700;white-space:nowrap}
-.center strong{font-size:clamp(19px,2.75vw,40px);font-variant-numeric:tabular-nums;line-height:1.05;letter-spacing:-.04em;white-space:nowrap}
-.center span{font-size:clamp(8px,.7vw,11px);color:#b7cbe0;max-width:100%;white-space:normal;overflow:hidden;text-overflow:ellipsis;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical}
-.chartBottom{display:flex;justify-content:space-between;align-items:center;gap:12px;font-size:11px;color:var(--muted);min-height:25px}
-.chartBottom p{margin:0}.chartBottom button{flex-shrink:0}
-.side{display:grid;grid-template-rows:auto auto auto minmax(0,1fr);padding:14px;overflow:hidden;gap:10px}
-.sideHead{display:flex;align-items:center;justify-content:space-between;gap:8px}.sideHead strong{font-size:14px}
-fieldset{border:0;margin:0;padding:0}.fields{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:8px}
-label{font-size:11px;color:#b7cbe3;display:flex;flex-direction:column;gap:4px}
-select{width:100%;min-width:0;padding:9px 8px;background:#20334d;color:#f4f8ff;border:1px solid #435a76;border-radius:8px;white-space:nowrap;text-overflow:ellipsis}
-select:disabled{opacity:.48}
-.tools{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
-.tool{background:#20344e;color:#e4f2ff;border:1px solid #3c5876;border-radius:8px;padding:7px 10px;font-size:11px}
-.tool[aria-pressed=true]{background:#315c7d;border-color:#76b9f7}
-#focus{font-size:11px;min-height:20px;color:#b9cfeb;overflow-wrap:anywhere}
-.legend{min-height:0;overflow-y:auto;scrollbar-color:#68819d transparent;scrollbar-width:thin;padding-right:5px}
-.legendHead{display:flex;align-items:center;justify-content:space-between;color:#a4bdd7;font-size:11px;font-weight:700;border-bottom:1px solid #2b3f58;padding:10px 0 6px;margin-bottom:3px}
-.legendHead:first-child{padding-top:0}
-.entry{display:flex;align-items:center;width:100%;text-align:left;gap:7px;padding:5px 3px;border-radius:6px;background:transparent;border:0;color:#dceafb;font-size:11px}
-.entry:hover,.entry[aria-pressed=true]{background:#2b4462}
+button:focus-visible,select:focus-visible{outline:2px solid #8dd1ff;outline-offset:2px}
+.app{max-width:1600px;margin:auto;min-height:100dvh;display:flex;flex-direction:column;gap:12px;padding:clamp(10px,1.4vw,22px)}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap}
+.brand{font-size:18px;font-weight:800;letter-spacing:.02em}.brand b{color:#71c6ed}.version{font-size:11px;color:var(--muted);font-weight:600;margin-left:9px}
+.toplinks{display:flex;gap:7px;align-items:center}.toplinks a,.toplinks button{padding:7px 11px;text-decoration:none;color:#dcecff;background:#1a2c43;border:1px solid #3e5470;border-radius:8px;font-size:12px}
+.tabs{display:flex;gap:7px;flex-wrap:wrap}
+.tab{border:1px solid #415570;background:#192b42;color:#d6e5f8;padding:9px 15px;border-radius:9px;font-size:13px;font-weight:600}
+.tab[aria-selected=true]{background:#2d5d86;border-color:#7abcf5;color:white}
+.intro{display:flex;justify-content:space-between;align-items:center;gap:12px}
+h1{font-size:clamp(19px,2vw,28px);margin:0;letter-spacing:-.03em}
+.description{font-size:12px;color:var(--muted);margin:2px 0 0}
+.summary{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:10px}
+.metric{border:1px solid var(--line);border-radius:12px;background:linear-gradient(135deg,#17283e,#102035);text-align:left;color:inherit;padding:14px 16px;min-width:0}
+.metric:hover{border-color:#699bc5}
+.metric small{display:block;text-transform:uppercase;letter-spacing:.065em;color:#a7bed8;font-size:10px;font-weight:700}
+.metric strong{display:block;font-size:clamp(25px,3vw,38px);line-height:1.1;letter-spacing:-.03em;margin:6px 0;font-variant-numeric:tabular-nums}
+.metric span{color:#b0c6db;font-size:11px}
+.content{flex:1;min-height:420px;display:grid;grid-template-columns:minmax(0,1.75fr) minmax(285px,.82fr);gap:12px}
+.mainpanel,.sidebar{min-width:0;border:1px solid var(--line);border-radius:13px;background:#111e31;padding:15px}
+.mainpanel{display:flex;flex-direction:column;min-height:0}
+.panelhead{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:8px}
+.panelhead h2{font-size:16px;margin:0}
+.panelhead p{font-size:11px;color:var(--muted);margin:2px 0 0}
+.smallaction{background:#203650;border:1px solid #45617e;border-radius:8px;padding:7px 11px;font-size:12px;color:#eaf4ff}
+.visual{position:relative;flex:1;min-height:300px;display:flex;align-items:center;justify-content:center;overflow:hidden}
+.circle{width:min(100%,min(65vh,590px));aspect-ratio:1;position:relative}
+.circle svg{width:100%;height:100%;display:block}
+.center{position:absolute;inset:33%;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:3px;text-align:center;pointer-events:none}
+.center small{font-size:clamp(9px,1vw,12px);color:#a4b8d0;text-transform:uppercase;font-weight:700;letter-spacing:.05em}
+.center strong{font-size:clamp(24px,3.3vw,46px);letter-spacing:-.04em;font-variant-numeric:tabular-nums;line-height:1.08}
+.center span{font-size:clamp(9px,.9vw,12px);color:#abc3de;max-width:100%;overflow-wrap:anywhere}
+.slice{stroke:#111e31;stroke-width:1;cursor:pointer}
+.slice:hover{filter:brightness(1.2)}
+.panelnote{font-size:11px;color:#acc1d9;padding:7px 3px;min-height:24px}
+.sidebar{display:flex;flex-direction:column;min-height:0;gap:9px}
+.sidebarhead{display:flex;align-items:center;justify-content:space-between;gap:8px}
+.sidebarhead strong{font-size:15px}
+.controls{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:9px}
+.control{min-width:0;color:#b3c8e0;font-size:11px;display:flex;flex-direction:column;gap:4px}
+.control select{width:100%;background:#1d3049;border:1px solid #415c79;border-radius:8px;color:white;padding:9px 7px;min-width:0}
+.control[hidden]{display:none}
+.options{display:flex;gap:7px;flex-wrap:wrap}
+.options button{background:#1e324c;border:1px solid #3d5875;border-radius:8px;color:#e3efff;padding:7px 11px;font-size:11px}
+.legend{flex:1;overflow-y:auto;min-height:150px;max-height:calc(100dvh - 400px);scrollbar-color:#69849e transparent}
+.legendTitle{margin:10px 0 4px;padding-bottom:4px;border-bottom:1px solid #30425c;color:#adc7df;font-size:11px;font-weight:750;display:flex;justify-content:space-between}
+.legendRow{width:100%;border:0;background:transparent;color:#e1ecfa;display:flex;gap:8px;align-items:center;text-align:left;padding:5px 4px;border-radius:6px;font-size:11px}
+.legendRow:hover,.legendRow[aria-pressed=true]{background:#29435f}
 .swatch{width:9px;height:9px;flex:none;border-radius:2px}
-.entry .name{flex:1;min-width:0;overflow-wrap:anywhere}.entry .count{font-variant-numeric:tabular-nums;color:#b3c6de;white-space:nowrap}
-#notice{color:#f5c9ac;font-size:12px}
-@media(max-width:800px){#app{min-height:0;height:100dvh;gap:7px;padding:8px}.content{grid-template-columns:minmax(0,1.3fr) minmax(215px,.8fr);gap:7px}.chartPanel,.side{padding:9px}.preset{padding:7px 9px}.fields{grid-template-columns:1fr 1fr}}
-@media(max-width:610px){#app{grid-template-rows:auto auto minmax(0,1fr)}header{min-height:28px}.brand{font-size:14px}.headerRight a{padding:5px}.content{grid-template-columns:1fr;grid-template-rows:minmax(0,1fr) minmax(180px,.56fr)}nav{gap:4px}.preset{padding:6px 9px;font-size:11px}.chartPanel{padding:8px}.side{padding:9px;grid-template-columns:minmax(0,1fr) minmax(0,1fr);grid-template-rows:auto auto minmax(0,1fr);gap:6px}.sideHead{grid-column:1/-1}.fields{grid-template-columns:repeat(2,minmax(0,1fr))}.tools{align-content:start}.legend{grid-column:2;grid-row:2/4}.side #focus{grid-column:1}.chartBottom{font-size:10px}.entry{font-size:10px;padding:4px 3px}}
-@media(max-height:700px) and (min-width:611px){#app{gap:6px;padding:8px}.chartPanel,.side{padding:9px}.preset{padding:6px 9px}.fields{gap:5px}.chartBottom{min-height:18px}}
-
-/* Compact, locally inspired chart layout: readable centered metric and clean legend. */
-.chartPanel{background:#111e31;border-radius:11px}
-.side{background:#111e31;border-radius:11px}
-.chartArea{padding:0;overflow:hidden}
-.chartInner{margin:auto}
-.legend{border-top:1px solid #30415a;padding-top:4px}
-.entry{padding:5px 4px}
-.entry .count{font-size:11px}
-@media(min-width:1000px){.content{grid-template-columns:minmax(0,1.9fr) minmax(300px,.9fr)}}
-@media(min-width:1300px){.chartInner{height:min(100%,calc(100dvh - 175px));width:auto}}
-@media(max-width:610px){.center strong{font-size:clamp(18px,5vw,31px)}.center small{font-size:7px}.center span{font-size:8px}}
+.legendRow .name{flex:1;min-width:0;overflow-wrap:anywhere}
+.legendRow .value{color:#afc2dc;font-variant-numeric:tabular-nums;white-space:nowrap}
+.hidden{display:none!important}
+.mapgrid{width:100%;height:100%;display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px;align-items:stretch;padding:8px}
+.maplane{border:1px solid #30445f;background:#16273e;border-radius:10px;overflow:auto;padding:12px}
+.maplane h3{font-size:12px;margin:0 0 4px}.maplane p{font-size:10px;color:var(--muted);margin:0 0 10px}
+.mapItem{display:flex;align-items:center;width:100%;gap:7px;text-align:left;color:#e8f3ff;background:none;border:0;border-radius:7px;padding:6px 4px;font-size:11px}
+.mapItem:hover,.mapItem[aria-pressed=true]{background:#294362}
+.mapDot{flex:none;border-radius:50%;background:#60b7f4;min-width:7px;min-height:7px}
+.mapItem span:nth-child(2){flex:1;overflow-wrap:anywhere}
+.mapItem b{font-variant-numeric:tabular-nums;font-size:11px;color:#b1cfe7}
+.mapcaption{font-size:11px;color:var(--muted);margin-top:6px}
+.overview{width:100%;display:grid;grid-template-columns:1fr 1fr;gap:14px;align-content:center}
+.overviewCard{border:1px solid var(--line);background:#16283f;border-radius:10px;padding:18px;min-height:110px}
+.overviewCard strong{font-size:22px;display:block;margin:8px 0 2px}
+.overviewCard p{font-size:12px;color:var(--muted);margin:0}
+.footer{font-size:10px;color:#8da6c1;text-align:right}
+@media(max-width:850px){.content{grid-template-columns:minmax(0,1.2fr) minmax(260px,.9fr)}.app{gap:9px;padding:10px}.mainpanel,.sidebar{padding:11px}.metric{padding:11px}.circle{width:min(100%,55vh)}}
+@media(max-width:650px){.summary{grid-template-columns:repeat(2,minmax(0,1fr))}.content{grid-template-columns:1fr;grid-template-rows:auto auto}.mainpanel{min-height:340px}.visual{min-height:280px}.sidebar{min-height:300px}.legend{max-height:260px}.mapgrid{gap:5px;padding:3px}.maplane{padding:7px}.mapItem{font-size:10px}.panelhead h2{font-size:14px}.tab{font-size:12px;padding:8px 10px}.overview{gap:7px}.overviewCard{padding:10px;min-height:85px}}
+@media(min-width:850px) and (min-height:650px){.app{height:100dvh;min-height:650px}.content{min-height:0}.legend{max-height:none}}
 </style>
 </head>
 <body>
-<div id="app">
-<header><div class="brand">S&T <b>ITRSS</b><span class="version">V3 · Metric Center</span></div><div class="headerRight"><a href="../">V1</a><a href="../v2/">V2</a><button class="smallBtn" id="fullscreen" type="button">Full screen</button></div></header>
-<nav aria-label="Metric presets">
-<button class="preset" data-preset="dept" aria-pressed="true">Departments</button>
-<button class="preset" data-preset="class" aria-pressed="false">Classifications</button>
-<button class="preset" data-preset="status" aria-pressed="false">Status</button>
-<button class="preset" data-preset="advisor" aria-pressed="false">Advisors</button>
-<button class="preset" data-preset="papers" aria-pressed="false">Publications</button>
-<button class="preset" data-preset="years" aria-pressed="false">Years</button>
-</nav>
-<div class="content">
-<section class="chartPanel">
-<div class="panelHead"><div><h1 id="heading">Mill users</h1><div class="subline" id="subtitle">Aggregate counts · largest to smallest clockwise</div></div><div class="miniStat"><strong id="total">—</strong><span id="totalLabel">Source records</span></div></div>
-<div class="chartArea"><div class="chartInner"><svg id="chart" viewBox="0 0 680 680" role="img" aria-label="Interactive concentric metric chart"></svg><div class="center"><small id="centerLabel">Records</small><strong id="centerCount">—</strong><span id="centerText">All categories</span></div></div></div>
-<div class="chartBottom"><p id="note">Select a category to highlight. Other rings stay fixed.</p><button class="tool" type="button" id="clear">Clear focus</button></div>
+<div class="app">
+<header class="top"><div class="brand">S&T <b>ITRSS</b><span class="version">RESEARCH METRICS · V3</span></div><div class="toplinks"><a href="../">V1</a><a href="../v2/">V2</a><button id="full" type="button">Full screen</button></div></header>
+<nav class="tabs" role="tablist" aria-label="Dashboard views"><button class="tab" data-view="overview" role="tab" aria-selected="true">Value snapshot</button><button class="tab" data-view="users" role="tab" aria-selected="false">Mill users</button><button class="tab" data-view="papers" role="tab" aria-selected="false">Publications</button><button class="tab" data-view="map" role="tab" aria-selected="false">Publication map</button></nav>
+<div class="intro"><div><h1 id="title">Research support at a glance</h1><p class="description" id="description">Verified counts from the published aggregate datasets</p></div></div>
+<section class="summary" id="summary">
+<button class="metric" type="button" data-card="users"><small>Mill user records</small><strong id="kUsers">—</strong><span>Accounts in source report</span></button>
+<button class="metric" type="button" data-card="users"><small>Active status</small><strong id="kActive">—</strong><span id="activePct">Share of source rows</span></button>
+<button class="metric" type="button" data-card="papers"><small>Publication records included</small><strong id="kPapers">—</strong><span>Cluster-linked records, not confirmed usage</span></button>
+<button class="metric" type="button" data-card="papers"><small>Duplicate-flagged records</small><strong id="kDuplicates">—</strong><span>Excluded from publication count</span></button>
 </section>
-<aside class="side">
-<div class="sideHead"><strong>Controls</strong><button class="tool" id="order" type="button">Sort: largest ↓</button></div>
-<fieldset class="fields" id="fields" aria-label="Ring selectors"></fieldset>
-<div class="tools"><button class="tool" type="button" id="reset">Reset</button><button class="tool" type="button" id="rings">Rings: 4</button><span id="focus"></span></div>
-<div class="legend" id="legend" aria-label="Metric category legend"></div>
-</aside></div>
+<div class="content">
+<section class="mainpanel"><div class="panelhead"><div><h2 id="panelTitle">What these metrics show</h2><p id="panelDesc">Volume and documentation, not a financial return score</p></div><button type="button" class="smallaction" id="clear">Clear selection</button></div>
+<div class="visual">
+<div class="overview" id="overview">
+<div class="overviewCard"><span>Active-status share</span><strong id="activeRate">—</strong><p>Active ÷ all Mill user rows</p></div>
+<div class="overviewCard"><span>Publication inclusion rate</span><strong id="paperRate">—</strong><p>Included ÷ source publication records</p></div>
+<div class="overviewCard"><span>Mill-acknowledging records</span><strong id="millPapers">—</strong><p>Mill only + Foundry & Mill, included</p></div>
+<div class="overviewCard"><span>Year range</span><strong id="yearRange">—</strong><p>Years with recorded publications</p></div>
+</div>
+<div class="circle hidden" id="circle"><svg id="chart" viewBox="0 0 680 680" role="img" aria-label="Interactive category distributions"></svg><div class="center"><small id="centerLabel">Records</small><strong id="centerCount">—</strong><span id="centerDetail">All records</span></div></div>
+<div class="mapgrid hidden" id="map"></div>
+</div><div class="panelnote" id="note">Choose a view above. Figures do not imply financial or scientific impact attribution.</div></section>
+<aside class="sidebar"><div class="sidebarhead"><strong>Explore</strong><button type="button" class="smallaction" id="reset">Reset</button></div>
+<div id="controls" class="controls">
+<label class="control" id="ctl0">Ring 1<select id="ring0"></select></label>
+<label class="control" id="ctl1">Ring 2<select id="ring1"></select></label>
+<label class="control" id="ctl2">Ring 3<select id="ring2"></select></label>
+<label class="control" id="ctl3">Ring 4<select id="ring3"></select></label>
+</div>
+<div class="options"><button id="sort" type="button">Largest first</button><button id="rings" type="button">4 rings</button></div>
+<div id="legend" class="legend" aria-label="Metric categories"></div>
+</aside>
+</div><div class="footer">Public aggregate data · individual identities withheld · independent categories are not linked cross-tabs</div>
 </div>
 <script>
 'use strict';
 (()=>{
-const $=id=>document.getElementById(id);
-const palettes=[['#5c9eff','#3c7fdb','#8ebdff','#4568ae','#a1ceef','#6669ba','#378dc0'],['#2cbdaf','#159f94','#75d8bd','#3a8f85','#a1e0c9','#5eb3a2'],['#e6a85e','#d58e46','#f3c681','#b87555','#ffd59e'],['#ad91e4','#906dd1','#c4a9fa','#7157a9','#b39fe2']];
-const presets={
-dept:{family:'users',index:0,label:'Departments'},class:{family:'users',index:1,label:'Classifications'},status:{family:'users',index:2,label:'Status'},advisor:{family:'users',index:3,label:'Advisors'},
-papers:{family:'papers',index:0,label:'Publications'},years:{family:'papers',index:1,label:'Years'}};
-let data={},preset='dept',fields=[],ringCount=4,pinned=null,order='desc';
-const nfmt=x=>Number(x||0).toLocaleString('en-US');
-const pct=(a,b)=>b?(100*a/b).toFixed(1)+'%':'0%';
-const SVG='http://www.w3.org/2000/svg';
-const svg=(name,attrs={})=>{const e=document.createElementNS(SVG,name);for(const [k,v] of Object.entries(attrs))e.setAttribute(k,v);return e};
-const polar=(r,t)=>[340+r*Math.cos(t),340+r*Math.sin(t)];
-function arc(ri,ro,a,b){b=Math.min(b,a+Math.PI*2-.00001);const [x1,y1]=polar(ro,a),[x2,y2]=polar(ro,b),[x3,y3]=polar(ri,b),[x4,y4]=polar(ri,a);return 'M'+x1+' '+y1+' A'+ro+' '+ro+' 0 '+(b-a>Math.PI?1:0)+' 1 '+x2+' '+y2+' L'+x3+' '+y3+' A'+ri+' '+ri+' 0 '+(b-a>Math.PI?1:0)+' 0 '+x4+' '+y4+' Z'}
-function current(){return data[presets[preset].family]}
-function dim(i){return current().dimensions[fields[i]]}
-function sorted(d){const a=[...d.values];if(order==='alpha')a.sort((x,y)=>x.name.localeCompare(y.name));else if(order==='year'&&d.column==='Year')a.sort((x,y)=>Number(x.name)-Number(y.name));else a.sort((x,y)=>y.count-x.count||x.name.localeCompare(y.name));return a}
-function validate(d,total){if(!Number.isInteger(total)||total<=0)throw Error('Invalid total');for(const x of d){if(x.values.reduce((a,y)=>a+Number(y.count),0)!==total)throw Error('Counts mismatch: '+x.label)}}
-function selectPreset(k){preset=k;pinned=null;const p=presets[k],ds=current().dimensions;fields=[p.index,...ds.map((_,i)=>i).filter(i=>i!==p.index)];ringCount=ds.length;order='desc';build();render()}
-function build(){const root=$('fields');root.replaceChildren();for(let i=0;i<4;i++){const label=document.createElement('label');label.textContent='Ring '+(i+1);const select=document.createElement('select');select.disabled=i>=ringCount||i>=current().dimensions.length;for(let j=0;j<current().dimensions.length;j++){const x=document.createElement('option');x.value=j;x.textContent=current().dimensions[j].label;select.append(x)}select.value=fields[i]??0;select.onchange=()=>{fields[i]=Number(select.value);pinned=null;render()};label.append(select);root.append(label)}$('rings').textContent='Rings: '+ringCount;$('order').textContent=order==='alpha'?'Sort: A–Z':order==='year'?'Sort: year ↑':'Sort: largest ↓'}
-function pin(i,name){if(pinned&&pinned.i===i&&pinned.name===name)pinned=null;else pinned={i,name};render()}
+const $=id=>document.getElementById(id),SVG='http://www.w3.org/2000/svg';
+const colors=[['#5c9eff','#3d7fd4','#8cbaff','#4566b1','#afcffb','#7398c9'],['#2cbdaf','#159b92','#75d8bd','#3a8f85','#a1e0c9'],['#e6a85e','#d58e46','#f3c681','#b87555'],['#ad91e4','#906dd1','#c4a9fa','#7157a9']];
+let store={},view='overview',dims=[],ringN=4,sort='desc',pin=null;
+const fmt=n=>Number(n||0).toLocaleString('en-US');
+const pct=(n,d)=>d?(n/d*100).toFixed(1)+'%':'0%';
+const sv=(tag,attrs={})=>{const e=document.createElementNS(SVG,tag);Object.entries(attrs).forEach(([k,v])=>e.setAttribute(k,v));return e};
+const pt=(r,a)=>[340+r*Math.cos(a),340+r*Math.sin(a)];
+function arc(ri,ro,a,b){b=Math.min(b,a+2*Math.PI-.00001);const A=pt(ro,a),B=pt(ro,b),C=pt(ri,b),D=pt(ri,a),large=b-a>Math.PI?1:0;return 'M'+A.join(' ')+' A'+ro+' '+ro+' 0 '+large+' 1 '+B.join(' ')+' L'+C.join(' ')+' A'+ri+' '+ri+' 0 '+large+' 0 '+D.join(' ')+' Z'}
+function check(groups,total){if(!Number.isInteger(total)||total<1)throw Error('Invalid total');for(const d of groups){const n=d.values.reduce((s,x)=>s+Number(x.count),0);if(n!==total)throw Error('Invalid counts in '+d.label)}}
+const dataset=()=>view==='users'?store.users:store.papers;
+function rank(d){const arr=[...d.values];if(d.column==='Year')arr.sort((a,b)=>Number(a.name)-Number(b.name));else if(sort==='alpha')arr.sort((a,b)=>a.name.localeCompare(b.name));else arr.sort((a,b)=>b.count-a.count||a.name.localeCompare(b.name));return arr}
+function changeView(v){view=v;pin=null;sort='desc';if(v==='users'||v==='papers'){const ds=dataset();dims=ds.dimensions.map((_,i)=>i);ringN=ds.dimensions.length}else{dims=[];ringN=0}buildControls();render()}
+function buildControls(){
+ const active=view==='users'||view==='papers';$('controls').classList.toggle('hidden',!active);$('sort').classList.toggle('hidden',!active);$('rings').classList.toggle('hidden',!active);
+ if(active){const ds=dataset();for(let i=0;i<4;i++){const ctl=$('ctl'+i),sel=$('ring'+i);ctl.hidden=i>=ringN||i>=ds.dimensions.length;sel.replaceChildren();if(i>=ds.dimensions.length)continue;ds.dimensions.forEach((d,j)=>{const option=document.createElement('option');option.value=j;option.textContent=d.label;sel.append(option)});sel.value=dims[i]??0;sel.onchange=()=>{dims[i]=Number(sel.value);pin=null;render()}}$('rings').textContent=ringN+' rings'}
+ $('sort').textContent=sort==='alpha'?'A–Z':'Largest first';
+}
+function choose(i,name){pin=pin?.i===i&&pin.name===name?null:{i,name};render()}
 function render(){
- const d=current(),total=d.total;document.querySelectorAll('[data-preset]').forEach(b=>b.setAttribute('aria-pressed',String(b.dataset.preset===preset)));
- $('heading').textContent=presets[preset].label;$('total').textContent=nfmt(total);$('totalLabel').textContent=presets[preset].family==='users'?'Mill source rows':'Included publications';
- const primary=pinned?dim(pinned.i).values.find(v=>v.name===pinned.name):null;
- $('centerCount').textContent=nfmt(primary?primary.count:total);
- $('centerLabel').textContent=primary?'Pinned category':'Records';
- $('centerText').textContent=primary?primary.name:'All categories';
- $('focus').textContent=primary?pct(primary.count,total)+' of total':'';
- $('note').textContent=primary?'Selected category · other rings show overall totals':'Click a category to highlight it. Other rings remain unchanged.';
- $('subtitle').textContent=presets[preset].family==='users'?'1,607 source rows · aggregated':'230 included · 17 duplicates excluded';
- const chart=$('chart'),legend=$('legend');chart.replaceChildren();legend.replaceChildren();
- const radii=[[96,143],[150,197],[204,251],[258,305]];
- for(let i=0;i<ringCount;i++){
- const dimension=dim(i),items=sorted(dimension);if(!dimension)continue;
- let angle=-Math.PI/2;const head=document.createElement('div');head.className='legendHead';const h=document.createElement('span');h.textContent='Ring '+(i+1)+' · '+dimension.label;const cnt=document.createElement('span');cnt.textContent=nfmt(total);head.append(h,cnt);legend.append(head);
- for(let j=0;j<items.length;j++){
- const item=items[j],sweep=total?item.count/total*Math.PI*2:0,end=angle+sweep,color=palettes[i][j%palettes[i].length],chosen=pinned?.i===i&&pinned.name===item.name;
- if(sweep>0){const path=svg('path',{d:arc(...radii[i],angle,end),fill:color,class:'ring',tabindex:0,role:'button','aria-label':dimension.label+' '+item.name+' '+nfmt(item.count)});if(pinned?.i===i&&!chosen)path.style.opacity='.24';if(chosen){path.style.stroke='#edf8ff';path.style.strokeWidth='2.4'}const title=svg('title');title.textContent=dimension.label+' / '+item.name+': '+nfmt(item.count)+' ('+pct(item.count,total)+')';path.append(title);path.onclick=()=>pin(i,item.name);path.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();pin(i,item.name)}};chart.append(path)}angle=end;
- const row=document.createElement('button');row.className='entry';row.type='button';row.setAttribute('aria-pressed',String(!!chosen));const sw=document.createElement('i');sw.className='swatch';sw.style.background=color;const name=document.createElement('span');name.className='name';name.textContent=item.name;const count=document.createElement('span');count.className='count';count.textContent=nfmt(item.count)+' · '+pct(item.count,total);row.append(sw,name,count);row.onclick=()=>pin(i,item.name);legend.append(row);
- }
- }
+ document.querySelectorAll('.tab').forEach(b=>b.setAttribute('aria-selected',String(b.dataset.view===view)));
+ $('overview').classList.toggle('hidden',view!=='overview');$('circle').classList.toggle('hidden',!(view==='users'||view==='papers'));$('map').classList.toggle('hidden',view!=='map');
+ $('clear').classList.toggle('hidden',view==='overview');
+ const titles={overview:['Research support at a glance','Four verified indicators · no invented score'],users:['Mill user population','Departments, classification, status and advisor availability'],papers:['Publication evidence','Cluster acknowledgment, year and publication type'],map:['Publication landscape','Explore independent publication summaries']};
+ $('title').textContent=titles[view][0];$('description').textContent=titles[view][1];
+ $('panelTitle').textContent=view==='overview'?'Reported activity':view==='users'?'Mill user composition':view==='papers'?'Publication composition':'Publication map';
+ $('panelDesc').textContent=view==='overview'?'Counts and ratios—not attributed HPC value':view==='map'?'Year · Cluster · Type (no inferred links)':'Independent aggregate distributions';
+ const legend=$('legend');legend.replaceChildren();
+ if(view==='overview'){$('note').textContent='These indicators describe reported users and publications; they are not verified system usage or financial ROI.';const el=document.createElement('p');el.className='description';el.textContent='Select Mill users, Publications or Publication map to explore the supporting data.';legend.append(el);return}
+ if(view==='map'){renderMap();return}
+ const ds=dataset(),total=ds.total;
+ const focused=pin?ds.dimensions[dims[pin.i]].values.find(x=>x.name===pin.name):null;
+ $('centerLabel').textContent=focused?'Selected category':'Records';$('centerCount').textContent=fmt(focused?focused.count:total);$('centerDetail').textContent=focused?focused.name:'All categories';
+ $('note').textContent=focused?'Selected: '+focused.name+' · '+pct(focused.count,total)+' of total. Other rings remain unchanged.':'Select a slice to inspect its count. Other rings remain unchanged.';
+ const chart=$('chart');chart.replaceChildren();const radii=[[96,143],[150,197],[204,251],[258,305]];
+ for(let i=0;i<ringN;i++){const d=ds.dimensions[dims[i]],items=rank(d);let a=-Math.PI/2;
+ const h=document.createElement('div');h.className='legendTitle';const label=document.createElement('span');label.textContent='Ring '+(i+1)+' · '+d.label;const size=document.createElement('span');size.textContent=fmt(total);h.append(label,size);legend.append(h);
+ for(let j=0;j<items.length;j++){const x=items[j],sweep=x.count/total*2*Math.PI,b=a+sweep,color=colors[i][j%colors[i].length],on=pin?.i===i&&pin.name===x.name;
+ if(sweep>0){const path=sv('path',{d:arc(...radii[i],a,b),fill:color,class:'slice',role:'button',tabindex:0,'aria-label':d.label+': '+x.name+' '+x.count});if(pin?.i===i&&!on)path.style.opacity='.25';if(on){path.style.stroke='#f6faff';path.style.strokeWidth='3'}path.onclick=()=>choose(i,x.name);path.onkeydown=e=>{if(e.key==='Enter'||e.key===' '){e.preventDefault();choose(i,x.name)}};const tooltip=sv('title');tooltip.textContent=x.name+': '+fmt(x.count)+' ('+pct(x.count,total)+')';path.append(tooltip);chart.append(path)}a=b;
+ const row=document.createElement('button');row.className='legendRow';row.setAttribute('aria-pressed',String(!!on));const sw=document.createElement('i');sw.className='swatch';sw.style.background=color;const name=document.createElement('span');name.className='name';name.textContent=x.name;const val=document.createElement('span');val.className='value';val.textContent=fmt(x.count)+' · '+pct(x.count,total);row.append(sw,name,val);row.onclick=()=>choose(i,x.name);legend.append(row)
+ }}
 }
-async function start(){
- try{
- const [u,p]=await Promise.all([fetch('../v2/data/user_aggregates.json',{cache:'no-store'}),fetch('../v2/data/publication_aggregates.json',{cache:'no-store'})]);
- if(!u.ok||!p.ok)throw Error('Aggregate files unavailable');
- const users=await u.json(),papers=await p.json();
- validate(users.dimensions,users.source_total);validate(papers.dimensions,papers.included_total);
- data={users:{total:users.source_total,dimensions:users.dimensions},papers:{total:papers.included_total,dimensions:papers.dimensions}};
- selectPreset('dept');
- }catch(e){$('heading').textContent='Data unavailable';$('note').textContent=e.message;console.error(e)}
+function renderMap(){
+ const d=store.papers,cols=d.dimensions,area=$('map'),legend=$('legend');area.replaceChildren();
+ const head=document.createElement('p');head.className='description';head.textContent='Select a node to inspect a count. Columns are separate summaries, not connected individual papers.';legend.append(head);
+ for(let i=0;i<cols.length;i++){const col=cols[i],lane=document.createElement('div');lane.className='maplane';
+ const h=document.createElement('h3');h.textContent=col.label;const p=document.createElement('p');p.textContent='Publication count';lane.append(h,p);
+ const ordered=col.column==='Year'?[...col.values].sort((a,b)=>Number(a.name)-Number(b.name)):[...col.values].sort((a,b)=>b.count-a.count);
+ for(const x of ordered){const btn=document.createElement('button');btn.className='mapItem';const chosen=pin?.i===i&&pin.name===x.name;btn.setAttribute('aria-pressed',String(!!chosen));const dot=document.createElement('i');dot.className='mapDot';let size=8+Math.sqrt(x.count/d.total)*28;dot.style.width=size+'px';dot.style.height=size+'px';dot.style.background=['#67a6f7','#67c6b8','#e9ae66'][i];const name=document.createElement('span');name.textContent=x.name;const count=document.createElement('b');count.textContent=fmt(x.count);btn.append(dot,name,count);btn.onclick=()=>{pin=chosen?null:{i,name};render()};lane.append(btn)}
+ area.append(lane);
+ }
+ $('note').textContent=pin?'Selected: '+pin.name+' · '+fmt(cols[pin.i].values.find(x=>x.name===pin.name).count)+' publication records.':'Nodes represent counts only; links are not inferred.';
 }
-document.querySelectorAll('[data-preset]').forEach(b=>b.onclick=()=>{if(data.users)selectPreset(b.dataset.preset)});
-$('clear').onclick=()=>{pinned=null;render()};
-$('reset').onclick=()=>selectPreset(preset);
-$('rings').onclick=()=>{ringCount=ringCount>=current().dimensions.length?1:ringCount+1;pinned=null;build();render()};
-$('order').onclick=()=>{order=order==='desc'?'alpha':order==='alpha'?'year':'desc';build();render()};
-$('fullscreen').onclick=()=>{if(document.fullscreenElement)document.exitFullscreen?.();else document.documentElement.requestFullscreen?.()};
-start();
+async function init(){
+ try{const [u,p]=await Promise.all([fetch('../v2/data/user_aggregates.json',{cache:'no-store'}),fetch('../v2/data/publication_aggregates.json',{cache:'no-store'})]);if(!u.ok||!p.ok)throw Error('Published metric files unavailable');const users=await u.json(),papers=await p.json();check(users.dimensions,users.source_total);check(papers.dimensions,papers.included_total);
+ store={users:{total:users.source_total,dimensions:users.dimensions},papers:{total:papers.included_total,dimensions:papers.dimensions}};
+ const active=users.dimensions.find(d=>d.column==='Status').values.find(v=>v.name==='Active').count;
+ $('kUsers').textContent=fmt(users.source_total);$('kActive').textContent=fmt(active);$('activePct').textContent=pct(active,users.source_total)+'% of source rows';$('kPapers').textContent=fmt(papers.included_total);$('kDuplicates').textContent=fmt(papers.duplicate_count);
+ $('activeRate').textContent=pct(active,users.source_total);$('paperRate').textContent=pct(papers.included_total,papers.source_total);
+ const mill=papers.dimensions.find(d=>d.column==='Cluster acknowledged').values.filter(v=>/Mill/.test(v.name)).reduce((s,x)=>s+x.count,0);
+ $('millPapers').textContent=fmt(mill);const years=papers.dimensions.find(d=>d.column==='Year').values.map(x=>Number(x.name)).filter(Number.isFinite);$('yearRange').textContent=Math.min(...years)+'–'+Math.max(...years);
+ changeView('overview');
+ }catch(e){$('title').textContent='Metrics unavailable';$('description').textContent=e.message;console.error(e)}
+}
+document.querySelectorAll('.tab').forEach(b=>b.onclick=()=>{if(store.users)changeView(b.dataset.view)});
+document.querySelectorAll('.metric').forEach(b=>b.onclick=()=>{if(store.users)changeView(b.dataset.card)});
+$('clear').onclick=()=>{pin=null;render()};
+$('reset').onclick=()=>changeView(view);
+$('sort').onclick=()=>{sort=sort==='desc'?'alpha':'desc';buildControls();render()};
+$('rings').onclick=()=>{ringN=ringN===dataset().dimensions.length?1:ringN+1;pin=null;buildControls();render()};
+$('full').onclick=()=>{if(document.fullscreenElement)document.exitFullscreen?.();else document.documentElement.requestFullscreen?.()};
+init();
 })();
 </script>
 </body>
