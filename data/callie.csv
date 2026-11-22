@@ -1,1 +1,49 @@
-User,Descr,Classficiation,Status,Advisor
+Descr,Classficiation,Status,Advisor,Count
+Computer Science,Undergraduate,Active,Advisor recorded,285
+Other grouped categories,Other / privacy grouped,Other / privacy grouped,Other / privacy grouped,194
+Electrical & Computer Engr,Undergraduate,Active,Advisor recorded,180
+Computer Science,Undergraduate,Not specified,No advisor recorded,151
+Not specified,Other / unspecified,Not specified,No advisor recorded,89
+Other departments,Undergraduate,Not specified,No advisor recorded,65
+Computer Science,Undergraduate,Graduated,Advisor recorded,49
+Computer Science,Doctoral,Active,Advisor recorded,45
+Mechanical & Aerospace Engr,Undergraduate,Active,Advisor recorded,35
+Chemical & Biochemical Engr,Undergraduate,Active,Advisor recorded,32
+Mathematics & Statistics,Undergraduate,Active,Advisor recorded,30
+Computer Engineering,Undergraduate,Not specified,No advisor recorded,29
+Mechanical & Aerospace Engr,Doctoral,Active,Advisor recorded,26
+Computer Science,Other / unspecified,Graduated,Advisor recorded,24
+Other departments,Undergraduate,Active,Advisor recorded,21
+Other departments,Doctoral,Active,Advisor recorded,20
+Jaggi School of Business,Undergraduate,Active,Advisor recorded,20
+Electrical & Computer Engr,Doctoral,Active,Advisor recorded,20
+Other departments,Faculty,Not specified,No advisor recorded,19
+Other departments,Other / unspecified,Not specified,No advisor recorded,18
+Other departments,Doctoral,Not specified,No advisor recorded,16
+Other departments,Staff,Not specified,No advisor recorded,15
+Civil Engineering,Doctoral,Active,Advisor recorded,15
+Computer Science,Masters,Not specified,No advisor recorded,14
+Civil Engineering,Undergraduate,Active,Advisor recorded,14
+Mathematics & Statistics,Doctoral,Active,Advisor recorded,13
+Not specified,Other / unspecified,Active,No advisor recorded,11
+Earth Sciences and Engineering,Undergraduate,Active,Advisor recorded,11
+Earth Sciences and Engineering,Other / unspecified,Graduated,Advisor recorded,11
+Computer Science,Masters,Active,Advisor recorded,9
+Physics,Doctoral,Active,Advisor recorded,9
+Computer Science,Masters,Graduated,Advisor recorded,9
+Computer Science,Faculty,Not specified,No advisor recorded,9
+Chemistry,Doctoral,Active,Advisor recorded,8
+Physics,Undergraduate,Active,Advisor recorded,8
+Earth Sciences and Engineering,Doctoral,Active,Advisor recorded,8
+Earth Sciences and Engineering,Masters,Active,Advisor recorded,8
+Computer Science,Undergraduate,Active,No advisor recorded,8
+Other departments,Masters,Not specified,No advisor recorded,7
+Chemistry,Undergraduate,Active,Advisor recorded,7
+Mechanical & Aerospace Engr,Undergraduate,Graduated,Advisor recorded,6
+Computer Science,Faculty,Graduated,Advisor recorded,6
+Computer Science,Doctoral,Not specified,No advisor recorded,6
+Other departments,Other / unspecified,Active,Advisor recorded,6
+Other departments,Masters,Active,Advisor recorded,6
+Electrical & Computer Engr,Doctoral,Graduated,Advisor recorded,5
+Electrical & Computer Engr,Masters,Active,Advisor recorded,5
+Physics,Doctoral,Graduated,Advisor recorded,5
