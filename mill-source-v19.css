@@ -1,0 +1,33 @@
+/* v19: Make the real default Mill data source independently visible in Present mode. */
+#millSourceStrip{
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  min-height:32px;
+  margin:5px auto 5px;
+  padding:5px 12px;
+  max-width:100%;
+  width:fit-content;
+  border:1px solid #376c70;
+  border-radius:10px;
+  background:#102d37;
+  color:#b7e8e4;
+  font:650 11px/1.45 system-ui,-apple-system,sans-serif;
+  text-align:center;
+  overflow-wrap:anywhere;
+}
+#millSourceStrip[data-source="error"]{
+  background:#3c2127;
+  color:#ffd2ba;
+  border-color:#a45c61;
+}
+#millSourceStrip[data-source="local"]{
+  background:#18324d;
+  border-color:#4d87b7;
+  color:#cee9ff;
+}
+body.presentation-mode.presentation-papers #millSourceStrip,
+body.presentation-mode.presentation-graph #millSourceStrip{display:none!important}
+@media(max-width:850px){
+ #millSourceStrip{font-size:10px;margin:4px 0 7px;width:100%}
+}
