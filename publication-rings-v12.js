@@ -171,6 +171,7 @@ $('prMetadataFile').onchange=async event=>{
   $('prCaption').textContent='Loaded '+rows.length+' OpenAlex rows locally · original bibliography remains public · author links are not uploaded';
  }catch(err){$('prCaption').textContent='Metadata file could not be loaded: '+err.message}
 };
+window.addEventListener('dashboard:publication-results-request',()=>{if(atlas&&sourceRows.length)announceResults()});
 window.addEventListener('dashboard:publication-filter-request',ev=>{
  const f=ev.detail||{},fields=f.filter||{};
  if(Object.prototype.hasOwnProperty.call(fields,'search'))$('prSearch').value=fields.search||'';
