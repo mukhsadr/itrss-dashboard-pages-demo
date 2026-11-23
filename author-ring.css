@@ -1,0 +1,35 @@
+/* Four-ring publication explorer and evidence-led author drilldown. */
+.paperAuthorAnchorControl {display:flex;flex-wrap:wrap;gap:10px;align-items:end;margin-top:14px;padding:10px 12px;border:1px solid #324966;border-radius:10px;background:#14263d}
+.paperAuthorAnchorControl label{color:#c5daf2;font:12px/1.5 system-ui;display:flex;flex-direction:column;gap:6px;flex:1 1 240px}
+.paperAuthorAnchorControl select,.paperAuthorChooser select {border:1px solid #3c5b7d;border-radius:8px;background:#182c45;color:#eef7ff;font:13px system-ui;padding:9px}
+#paperAuthorAnchorNote{font:11px/1.55 system-ui;color:#a7c1d9;flex:2 1 260px}
+.paperWrap{position:relative}
+#paperAuthorBack{position:absolute;top:9px;left:9px;z-index:5;cursor:pointer;color:#e7f5ff;background:#27527be8;border:1px solid #669aca;border-radius:9px;font:700 12px system-ui;padding:9px 13px}
+#paperAuthorBack:hover{background:#3771a3}
+.paperAuthorFocusOverlay{display:none;position:absolute;top:50%;left:50%;transform:translate(-50%,-50%);width:34%;max-width:235px;min-width:105px;pointer-events:none;z-index:2;text-align:center;flex-direction:column;align-items:center;justify-content:center;gap:4px}
+.paperAuthorFocusOverlay strong{display:block;overflow-wrap:anywhere;color:#f6f4ff;font:750 clamp(13px,2.1vw,23px)/1.24 system-ui}
+.paperAuthorFocusOverlay span{font:12px/1.4 system-ui;color:#a9b9d7}
+.paperAuthorFocusOverlay .paperAuthorFocusKicker{font:700 10px system-ui;color:#baa7f0;letter-spacing:.075em}
+.paperAuthorStatus {color:#c5b7f7;text-align:center;font:12px/1.65 system-ui;max-width:780px;margin:8px auto 0;min-height:20px}
+.paperAuthorChooser {display:flex;align-items:center;justify-content:center;flex-wrap:wrap;gap:8px;margin:12px 5px 4px;color:#b6cce2;font:12px system-ui}
+.paperAuthorChooser button{background:#263e64;color:#f0f7ff;border:1px solid #506c95;border-radius:8px;cursor:pointer;padding:9px 11px}
+.paperAuthorChooser[hidden],#paperAuthorBack[hidden]{display:none!important}
+#papersSection.author-exploring .paperWrap .chartCenter{display:none!important}
+#papersSection.author-exploring .paperAuthorFocusOverlay{display:flex}
+#papersSection .authorArc {cursor:pointer;stroke:#0b1727;stroke-width:.9;transition:opacity .16s ease,filter .16s ease}
+#papersSection .authorArc:hover,#papersSection .authorArc:focus-visible{filter:brightness(1.28);outline:none;stroke:#e3d8ff;stroke-width:1.6}
+#papersSection .authorLegendGroup{border-top:1px solid #394561;margin-top:13px;padding-top:14px}
+#papersSection .authorLegendRow:focus-visible{outline:2px solid #ac8ef2;outline-offset:2px}
+body.presentation-mode.presentation-details .paperAuthorAnchorControl {display:flex}
+body.presentation-mode:not(.presentation-details) .paperAuthorAnchorControl {display:none}
+body.presentation-mode.presentation-papers .paperAuthorStatus {display:block}
+body.presentation-mode.presentation-papers .paperWrap {width:min(90vh,96vw,940px)}
+body.presentation-mode.presentation-papers.author-exploring #papersSection .paperWrap {width:min(90vh,96vw,940px)}
+body.presentation-mode.presentation-details.presentation-papers #papersSection .paperWrap {width:100%;max-width:630px}
+@media(max-width:700px) {
+  .paperAuthorFocusOverlay strong{font-size:clamp(12px,3vw,18px)}
+  .paperAuthorFocusOverlay .paperAuthorFocusKicker{font-size:8px}
+  .paperAuthorFocusOverlay span{font-size:10px}
+  .paperAuthorStatus{font-size:11px}
+  #paperAuthorBack{font-size:10px;padding:6px 9px}
+}
