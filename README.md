@@ -1,4 +1,4 @@
-# ITRSS Research Metrics Dashboard · v17
+# ITRSS Research Metrics Dashboard · v18
 
 **Live:** https://mukhsadr.github.io/itrss-dashboard-pages-demo/  
 **Source:** https://github.com/mukhsadr/itrss-dashboard-pages-demo
@@ -7,7 +7,7 @@
 
 The live **Mill users** tab loads **`data/PUBLIC_DATA.csv`** by default. It has 1,607 user-list records with the columns `User`, `Descr`, `Classficiation`, `Status`, `Advisor`. This is a **population / directory-like source, not evidence of Slurm compute usage**.
 
-The default chart derives and displays only broad, counted categories. The `User` identifiers and advisor names are excluded from chart data; department labels are normalized, academic classification is grouped by degree level, and category combinations with fewer than five records are folded into **Other / privacy grouped**. The original row count is preserved. If the new source becomes unavailable, the dashboard falls back to the earlier `data/callie.csv` grouped dataset.
+The default chart now uses the **actual detailed `Descr` department and `Classficiation` academic-program values**, rather than collapsing degree programs to generic Undergraduate/Doctoral labels. Rare labels occurring fewer than five times in the source are grouped within each column. The `User` identifiers and advisor names are never sent into chart rows. This produces **26 department categories and 42 academic-program categories from the current file**, preserving all 1,607 source records. If the new source becomes unavailable, the dashboard falls back to the earlier `data/callie.csv` grouped dataset.
 
 **Privacy notice:** `PUBLIC_DATA.csv` itself remains available as a raw file in this public GitHub repository and contains row-level user identifiers and advisor labels. The browser transformation protects visualized categories but **does not make the original hosted CSV private**. Review whether the raw file is approved for public release; removing it from the default chart does not remove it from Git history. Avoid claiming these counts reflect actual active HPC usage without Slurm evidence.
 
