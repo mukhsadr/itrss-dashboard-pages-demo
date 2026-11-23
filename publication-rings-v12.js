@@ -7,7 +7,7 @@ const $=id=>document.getElementById(id),NS='http://www.w3.org/2000/svg';
 const wrap=document.querySelector('#papersSection .paperWrap');
 if(!wrap)return;
 const stage=document.createElement('div');stage.id='prStage';stage.className='prStage';
-stage.innerHTML='<div class="prControls"><label>Find a paper, author, DOI<input id="prSearch" type="search" placeholder="Yamilov, seismic, tomography..."></label><label>Show relationships<select id="prRelation"><option value="title_terms">Related scientific concepts</option><option value="all">Concepts and journals</option><option value="venue">Same journal</option><option value="author">Verified shared authors (OpenAlex)</option></select></label><label>Curves<select id="prLimit"><option value="120">120 strongest</option><option value="260" selected>260 balanced</option><option value="500">500 detailed</option></select></label><button type="button" id="prMetadata">Load full author metadata</button><input type="file" accept=".jsonl,.json" id="prMetadataFile" hidden><button type="button" id="prReset">Reset</button></div><div id="prStats" class="prStats"></div><div class="prLayout"><div class="prChart"><svg id="prSvg" viewBox="0 0 1000 1000" role="img" aria-label="Circular research publications grouped by scientific theme with edge-bundled connections"></svg><div class="prChartCaption" id="prCaption">Loading source publications…</div></div><aside id="prDetails" class="prDetails"><h3>Select a publication</h3><p>Click a publication or colored group to inspect source relationships.</p></aside></div><div class="prRingKey"><span><b>1</b> Resource</span><span><b>2</b> Year</span><span><b>3</b> Output type</span><span><b>4</b> Research theme</span><small>Use top Rings 1–4 controls to hide or show each band.</small></div>';
+stage.innerHTML='<div class="prControls"><label>Find a paper, author, DOI<input id="prSearch" type="search" placeholder="Yamilov, seismic, tomography..."></label><label>Show relationships<select id="prRelation"><option value="title_terms">Related scientific concepts</option><option value="all">Concepts and journals</option><option value="venue">Same journal</option><option value="author">Verified shared authors (OpenAlex)</option></select></label><label>Curves<select id="prLimit"><option value="120" selected>120 focused</option><option value="260">260 balanced</option><option value="500">500 detailed</option></select></label><button type="button" id="prMetadata">Load full author metadata</button><input type="file" accept=".jsonl,.json" id="prMetadataFile" hidden><button type="button" id="prReset">Reset</button></div><div id="prStats" class="prStats"></div><div class="prLayout"><div class="prChart"><svg id="prSvg" viewBox="0 0 1000 1000" role="img" aria-label="Circular research publications grouped by scientific theme with edge-bundled connections"></svg><div class="prChartCaption" id="prCaption">Loading source publications…</div></div><aside id="prDetails" class="prDetails"><h3>Select a publication</h3><p>Click a publication or colored group to inspect source relationships.</p></aside></div><div class="prRingKey"><span><b>1</b> Resource</span><span><b>2</b> Year</span><span><b>3</b> Output type</span><span><b>4</b> Research theme</span><small>Use top Rings 1–4 controls to hide or show each band.</small></div>';
 wrap.insertAdjacentElement('afterend',stage);
 const SVG=$('prSvg'), color=['#75b9e9','#53d0b6','#e9ab6b','#c397e9','#e18fb4','#7fbbe3','#dfc575','#aaa1e5','#8fcead','#d799b1','#b9c38b','#9faec7'];
 const RINGCOL=[['#509de3','#42bea8','#bc8ae0'],['#70cbd0','#38a1b4','#91d8cc','#26818c','#a5ddd5','#55bdd0','#328ba0','#71becb'],['#daa45f','#e9c48b','#bd8d55','#ffd7a8','#bd7557','#d8b47c']];
@@ -58,7 +58,7 @@ function go(){
  mode=$('prRelation').value;
  candidates=candidates.filter(e=>mode==='all'?!e.types.includes('author'):e.types.includes(mode));
  candidates.sort((a,b)=>b.score-a.score);
- displayEdges=candidates.slice(0,Number($('prLimit').value)||260);
+ displayEdges=candidates.slice(0,Number($('prLimit').value)||120);
  SVG.replaceChildren();
  const n=papers.length;
  $('prStats').replaceChildren();
@@ -89,7 +89,7 @@ function go(){
  mark();
 }
 for(const id of ['prSearch','prRelation','prLimit'])$(id).addEventListener(id==='prSearch'?'input':'change',()=>{selected=null;go()});
-$('prReset').onclick=()=>{focusTheme='';selected=null;$('prSearch').value='';$('prRelation').value='title_terms';$('prLimit').value='260';go()};
+$('prReset').onclick=()=>{focusTheme='';selected=null;$('prSearch').value='';$('prRelation').value='title_terms';$('prLimit').value='120';go()};
 $('prMetadata').onclick=()=>$('prMetadataFile').click();
 $('prMetadataFile').onchange=async event=>{
  const file=event.target.files?.[0];if(!file)return;
