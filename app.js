@@ -20,7 +20,7 @@ function groupedPublicData(parsed){
   return m;
  };
  const deptFreq=frequency('Descr'),programFreq=frequency('Classficiation');
- const keyCount=new Map(),rareDeptRecords=0,rareProgramRecords=0;
+ const keyCount=new Map(); let rareDeptRecords=0,rareProgramRecords=0;
  for(const r of parsed.rows){
   const d=String(r.Descr||'').trim()||'Not specified';
   const degree=String(r.Classficiation||'').trim()||'Unknown';
