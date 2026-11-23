@@ -191,6 +191,7 @@
     $('paperAuthorBack').hidden=false;$('paperAuthorFocusName').textContent='More authors';
     $('paperAuthorFocusCount').textContent=remaining.length+' credited names';
     $('paperAuthorStatus').textContent='Select any author to explore their papers and verified collaborators.';
+    window.dispatchEvent(new Event('dashboard:author-cleared'));
     const chooser=$('paperAuthorChooser'),sel=$('paperAuthorQuickSelect');sel.replaceChildren();
     for(const a of remaining){const op=document.createElement('option');op.value=a.id;op.textContent=a.name+' · '+a.count+' credited papers';sel.append(op)}
     chooser.hidden=false;
@@ -233,6 +234,9 @@
       $('paperAuthorStatus').textContent='Only listed-author credits available here. Verified coauthor relationships require matching OpenAlex records.';
     }
     addRecordList(author.papers);
+    window.dispatchEvent(new CustomEvent('dashboard:author-focused',{detail:{
+      author:{id:author.id,name:author.name,count:author.count},papers:author.papers,neighbors
+    }}));
   }
   function reset(){
     focus=null;other=false;$('papersSection').classList.remove('author-exploring');
@@ -240,6 +244,7 @@
     $('paperAuthorStatus').textContent='';
     $('paperAuthorFocusName').textContent='';
     $('paperAuthorFocusCount').textContent='';
+    window.dispatchEvent(new Event('dashboard:author-cleared'));
     window.dispatchEvent(new Event('dashboard:paper-rerender'));
   }
   window.addEventListener('dashboard:paper-dataset-loaded',()=>{
@@ -263,6 +268,7 @@
     anchor=e.target.value;anchorManuallySet=true;
     if(state)window.dispatchEvent(new Event('dashboard:paper-rerender'));
   });
+  window.addEventListener('dashboard:author-select',event=>{if(event.detail?.id)showAuthor(event.detail.id)});
   $('paperAuthorBack').addEventListener('click',reset);
   $('paperAuthorQuickGo').addEventListener('click',()=>{
     const id=$('paperAuthorQuickSelect').value;
