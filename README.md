@@ -1,4 +1,4 @@
-# ITRSS Research Metrics Dashboard · v10
+# ITRSS Research Metrics Dashboard · v11
 
 **Live:** https://mukhsadr.github.io/itrss-dashboard-pages-demo/  
 **Source:** https://github.com/mukhsadr/itrss-dashboard-pages-demo
@@ -9,18 +9,23 @@
 - **Publications** — 247 original public bibliographic records, including 17 flagged duplicates (230 included by default). **Four linked rings:** Cluster, year, type, and a new outer author-priority ring. Titles, public links and bibliographic fields are available, but internal notes and evidence tracking were excluded.
 - **Graph / Research Canvas** — corrected to follow the actual local `research_canvas.py` design, **not a title-similarity graph**.
 
-## Fourth publication ring: authorship and collaboration priority
+## Publications: fourth author ring → MRI Circular Atlas switch
 
-The fourth (outermost) ring begins at 12 o'clock and sorts **credited authors high → low clockwise** by distinct included publication records, independently of the three publication-dimension sorting controls. It shows the top 16 names and a drill-down "Other authors" group so the chart stays readable.
+The original **four-ring Publications chart** remains intact: Cluster, Year, Type, and an outer Author-priority ring. The outer ring orders credited names clockwise, **highest publication count at 12 o'clock**; it shows 16 names plus an "Other authors" group.
 
-**Click an outer author slice:** the three original publication rings disappear and an author-focused wheel replaces them. The center names the selected researcher and counts their credited papers; the publication list shows source titles/years/DOIs. **Back to all publication rings** restores the full four-ring chart.
+**Click an author:** all three center category rings are removed and replaced by the source-linked **MRI Circular Atlas** embedded inside the same publication SVG. The focused center retains the author's name and credited-publication count. The new graph contains:
 
-- **Without a joined OpenAlex research export:** the focused wheel shows the author's documented publication years. It does **not** invent coauthors from "et al." references.
-- **With OpenAlex author IDs:** publication metadata is matched by DOI, then normalized title; direct coauthors are counted by unique shared OpenAlex publication IDs, sorted **most joint works first clockwise**, with names breaking ties alphabetically. Clicking a collaborator follows their actual paper links.
-- **Root researcher selection (Edit mode):** the author dropdown can rank collaborators of one researcher instead of the global author-frequency ranking. If Dr. Alexey G. Yamilov appears in the matched source and has coauthor links, he is chosen as the initial root until the user selects another.
-- **Parent filters:** the new author ring respects the current cluster/year/type publication selections. It does not change the public bibliography or the duplicate exclusion rule.
+- colored arcs for the original Atlas's **12 provisional title-derived research themes**, paper dots grouped inside those arcs, and **smooth curved links** that bundle across the circle;
+- source-linked candidate edges from the exact uploaded **MRI_Circular_Research_Explorer.html**: **230 matched nonduplicate papers, 637 links total**, of which **503 have shared distinctive title terms** and **183 have same-journal matches** (one link may have both);
+- options for **Shared scientific terms**, **Title terms + journals**, or **Same journal**, plus a cap on displayed link count;
+- hover a paper to highlight candidate edges; click a paper to inspect its title, year, theme and source URL, and navigate its connected works; click a theme arc to focus related papers;
+- a two-mode switch: **Research connections** and **Verified coauthors**. Research connections always works using the public bibliography/Atlas. The coauthor mode remains disabled until **OpenAlex-author-ID coauthorship** is available for that author.
+- when OpenAlex data is present, the coauthor mode uses **author IDs and shared publication IDs**, placing collaborators around the outer circle and linked papers inside, with curved author→paper connections. Clicking a collaborator switches the focused researcher instead of returning to a static donut.
+- **← All publication rings** restores the original four rings and clears the bundled focus view.
 
-**Important data limitations:** the published 230-record bibliography contains 153 entries with "et al." and 26 with blank author fields. Those cells cannot establish complete coauthorship. Names in the public bibliography are only credited-name labels, not guaranteed deduplicated OpenAlex identities. For verified author–paper ID relationships, load the real 186-work/858-authorship `research_graph_public.json` using Graph → Open file (browser only), or publish a vetted version at `data/research_graph_public.json` for automatic loading across laptops.
+**Source provenance and limitations:** `data/publication_atlas_public.json` is a sanitized copy of the submitted MRI Circular Atlas's public bibliography and relation types, and does **not** contain its 17 evidence-review notes, internal award claims or original extra spreadsheet fields. Its candidate connections are **not citations, verified collaborations, verified disciplines, or proof of using an HPC cluster**. This Atlas ZIP had **zero works with OpenAlex author IDs**; thus the title/journal graph cannot establish true coauthorship.
+
+The original `data/publications.json` remains 247 rows / 230 default included. The fourth-ring author names come from this bibliography, where **153 records use "et al." and 26 omit authors**. Coauthor data can be connected from the separately imported and reviewed 186-work/858-authorship OpenAlex export through the Graph tab (browser-only), or from a reviewed `data/research_graph_public.json` when separately approved for public GitHub deployment.
 
 ## Graph models (faithful to the original source)
 
