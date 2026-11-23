@@ -1,0 +1,108 @@
+/* v24 Publications results — same expandable workflow as Mill user results. */
+#publicationResultsPanel{
+ display:none;max-width:1550px;margin:11px auto 24px;
+ border:1px solid #345775;border-radius:16px;background:#0f2034;
+ overflow:hidden;scroll-margin-top:72px;
+}
+body.presentation-mode.presentation-papers #publicationResultsPanel{display:block}
+#publicationResultsPanel>summary{
+ list-style:none;display:flex;align-items:center;justify-content:space-between;
+ flex-wrap:wrap;gap:9px;padding:14px 18px;
+ background:#142c44;cursor:pointer;user-select:none;
+ color:#e5f6ff;font:740 14px/1.4 system-ui;
+}
+#publicationResultsPanel>summary::-webkit-details-marker{display:none}
+#publicationResultsPanel>summary:hover{background:#1b3c59}
+#publicationResultsPanel .pubSummaryLeft{display:inline-flex;align-items:center;gap:9px}
+#publicationResultsPanel .pubSummaryIcon{
+ display:inline-flex;align-items:center;justify-content:center;
+ width:28px;height:28px;background:#123b51;border:1px solid #4a8798;
+ border-radius:8px;color:#b8f3f9;
+}
+#publicationResultsPanel .pubSummaryRight{font:650 11px system-ui;color:#a5c6d9}
+#publicationResultsPanel .pubChevron{margin-left:6px;display:inline-block;transition:transform .15s}
+#publicationResultsPanel[open] .pubChevron{transform:rotate(180deg)}
+#publicationResultsPanel .pubResultsBody{padding:15px 17px 19px}
+#publicationResultsPanel .pubResultsHeading{display:flex;align-items:baseline;flex-wrap:wrap;gap:11px;margin-bottom:10px}
+#publicationResultsPanel .pubResultsHeading h2{margin:0;color:#f0faff;font:760 19px system-ui}
+#publicationResultsPanel .pubResultsHeading p{margin:0;color:#a0c2d6;font:11px/1.5 system-ui}
+#publicationResultsPanel .pubFilterChips{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:11px}
+#publicationResultsPanel .pubFilterChip,#publicationResultsPanel .pubFilterSelected{
+ display:inline-block;padding:6px 9px;border-radius:8px;background:#1c4052;border:1px solid #3f8191;
+ color:#d6f6f8;font:620 11px/1.4 system-ui;
+}
+#publicationResultsPanel .pubFilterSelected{border-color:#7ad9c2;background:#16443d;max-width:100%;overflow-wrap:anywhere}
+#publicationResultsPanel .pubFilterNeutral{font:11px system-ui;color:#a2bfd1;padding:5px 0}
+#publicationResultsPanel .pubResultsControls{
+ display:flex;align-items:end;flex-wrap:wrap;gap:8px;margin-bottom:12px;
+}
+#publicationResultsPanel .pubResultsControls label{
+ display:grid;gap:5px;flex:1 1 140px;min-width:125px;color:#acc8dc;font:11px system-ui;
+}
+#publicationResultsPanel .pubResultsControls label:first-child{flex:2 1 210px}
+#publicationResultsPanel input,#publicationResultsPanel select{
+ height:38px;min-width:0;width:100%;background:#0c1c2d;
+ border:1px solid #416680;border-radius:8px;color:#f0f9ff;padding:7px 9px;font:12px system-ui;
+}
+#publicationResultsPanel button{
+ cursor:pointer;background:#1a425f;border:1px solid #446d8b;border-radius:9px;
+ color:#d8f1ff;padding:8px 10px;font:650 11px system-ui;white-space:nowrap;
+}
+#publicationResultsPanel button:hover,#publicationResultsPanel button:focus-visible{background:#2b6082}
+#publicationResultsPanel .pubTableScroll{
+ max-height:min(55vh,570px);overflow:auto;background:#0b1b2d;
+ border-radius:11px;border:1px solid #34526e;
+}
+#publicationResultsPanel table{
+ min-width:1000px;width:100%;border-spacing:0;border-collapse:separate;
+ text-align:left;color:#d4e9fa;font:12px/1.5 system-ui;
+}
+#publicationResultsPanel th{
+ position:sticky;top:0;background:#183650;z-index:2;
+ padding:11px 12px;color:#bddff0;border-bottom:1px solid #456887;
+ font:730 11px system-ui;white-space:nowrap;
+}
+#publicationResultsPanel td{padding:10px 12px;border-bottom:1px solid #243c53;vertical-align:middle}
+#publicationResultsPanel tbody tr:hover{background:#1a3853}
+#publicationResultsPanel tbody tr.pubSelectedRow{background:#133f40;box-shadow:inset 3px 0 #53d5c2}
+#publicationResultsPanel .pubTitleCell{min-width:260px;max-width:430px}
+#publicationResultsPanel .pubTitleCell strong{display:block;color:#f2faff;font-size:12px;line-height:1.55}
+#publicationResultsPanel .pubTitleCell small{display:block;color:#9fbacf;margin:3px 0}
+#publicationResultsPanel .pubTitleCell a{display:inline-block;color:#7ad4f7;text-decoration:none;font-size:11px}
+#publicationResultsPanel .pubTitleCell a:hover{text-decoration:underline}
+#publicationResultsPanel .pubNumeric{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+#publicationResultsPanel .pubReviewed{color:#b8e9dc;text-transform:capitalize;font-size:10px}
+#publicationResultsPanel .pubUnreviewed{color:#829eaf;font-size:10px}
+#publicationResultsPanel .pubRowActions{white-space:nowrap;text-align:right}
+#publicationResultsPanel .pubRowActions button{padding:6px 8px;margin-left:3px}
+#publicationResultsPanel .pubRowActions .pubThemeBtn{background:#21384c}
+#publicationResultsPanel .pubEmpty{padding:25px;text-align:center;color:#a4c3d5}
+#publicationResultsPanel .pubResultsFooter{
+ display:flex;justify-content:space-between;align-items:center;gap:10px;flex-wrap:wrap;
+ padding:12px 1px 4px;color:#a0c1d8;font:11px/1.5 system-ui;
+}
+#publicationResultsPanel .pubCaution{color:#91adbf;margin:10px 1px 0;font:11px/1.6 system-ui}
+body.presentation-mode .presentationOnly #publicationResultsNav{display:none}
+body.presentation-mode.presentation-papers .presentationOnly #publicationResultsNav{display:inline-block}
+body.presentation-mode.presentation-papers .presentationOnly #millResultsNav{display:none!important}
+/* One custom readable hover tooltip; prevent browser-native SVG <title> duplicates. */
+.prHover{
+ max-width:min(490px,65vw)!important;
+ padding:14px 17px!important;
+ border-radius:13px!important;
+ font-size:15px!important;
+ line-height:1.55!important;
+ font-weight:650!important;
+ background:#0b263bfa!important;
+ border:1px solid #5bafc0!important;
+ color:#f4fcff!important;
+ white-space:normal!important;
+ box-shadow:0 10px 33px #010916db!important;
+}
+@media(max-width:720px){
+ #publicationResultsPanel>summary{padding:12px 11px;font-size:12px}
+ #publicationResultsPanel .pubResultsBody{padding:12px 10px}
+ #publicationResultsPanel .pubResultsControls{gap:6px}
+ #publicationResultsPanel .pubResultsControls label{min-width:110px}
+ .prHover{max-width:78vw!important;font-size:13px!important;padding:10px 13px!important}
+}
