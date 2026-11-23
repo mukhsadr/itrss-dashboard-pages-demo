@@ -26,7 +26,7 @@
       graphSource==='research'?'Original coauthor data · choose JSON':'Real grouped Mill metrics';
     const badge=localFiles[view]?'Local files · browser only':
       view==='graph'?graphBadge:
-      sourceLoaded[view]?(view==='users'?'Real Mill metrics':'Public publications loaded'):'Original data pending';
+      sourceLoaded[view]?(view==='users'?'Public Mill roster · grouped':'Public publications loaded'):'Original data pending';
     $('presentationDataMode').textContent=badge;
     const ringPanel=$('ringVisibility');
     if(ringPanel)ringPanel.style.display=(view==='users'||view==='papers')?'flex':'none';
