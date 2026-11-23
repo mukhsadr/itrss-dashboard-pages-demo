@@ -15,7 +15,6 @@
    if(container)container.append(node);
    return node;
  };
- const meaningfulCount=5;
  function togglePanel(open,scroll=false){
    panel.open=open;
    $('millResultsNav').setAttribute('aria-expanded',String(open));
@@ -23,23 +22,6 @@
  }
  function select(values){
    window.dispatchEvent(new CustomEvent('dashboard:filter-users-from-table',{detail:{values}}));
- }
- function groupedSafeRows(rows){
-   const kept=[],small=[];
-   for(const row of rows){
-     const count=Number(row.Count)||0;
-     if(count>=meaningfulCount)kept.push({...row,Count:count,isGrouped:false});
-     else if(count>0)small.push(row);
-   }
-   const omitted=small.reduce((n,r)=>n+Number(r.Count||0),0);
-   if(omitted>=meaningfulCount)kept.push({
-     Descr:'Other grouped combinations',
-     Classficiation:'Suppressed rare combinations',
-     Status:'Not individually shown',
-     Advisor:'Grouped',
-     Count:omitted,isGrouped:true
-   });
-   return {kept,rareCount:omitted};
  }
  const escapeCell=s=>String(s??'').trim()||'Not specified';
  function render(){
@@ -49,14 +31,15 @@
    if(selected.length){
      selected.forEach(x=>text('span',x,chips,'millFilterChip'));
    }else text('span','All Mill user groups',chips,'millFilterNeutral');
-   $('millResultsCount').textContent=compact(report.visible);
    $('millTableSource').textContent=
      report.source==='local'?'Local browser CSV · no upload':
      report.source==='error'?'Source unavailable':
      'PUBLIC_DATA.csv · aggregated user records; not Slurm utilization';
-   const {kept,rareCount}=groupedSafeRows(report.rows);
+   // Preserve EVERY available counted combination, including 1-person groups.
+   // Chart order and table order are descending by default.
+   const allRows=report.rows.map(row=>({...row,Count:Number(row.Count)||0}));
    const term=search.value.trim().toLowerCase();
-   let shown=kept.filter(row=>!term||[
+   let shown=allRows.filter(row=>!term||[
      row.Descr,row.Classficiation,row.Status,row.Advisor
    ].some(x=>escapeCell(x).toLowerCase().includes(term)));
    switch(sort.value){
@@ -72,7 +55,6 @@
    }
    for(const row of shown){
      const tr=text('tr',null,tbody);
-     if(row.isGrouped)tr.className='millPrivacyGroup';
      const vals=[row.Descr,row.Classficiation,row.Status,row.Advisor,compact(row.Count),
        report.visible?(100*row.Count/report.visible).toFixed(1)+'%':'—'];
      vals.forEach((v,index)=>{
@@ -80,22 +62,19 @@
        if(index>=4)td.className='millNumeric';
      });
      const action=text('td',null,tr);
-     if(!row.isGrouped){
-       const btn=text('button','Filter rings',action,'millApplyRow');
-       btn.type='button';
-       btn.title='Filter all four Mill rings to this category combination';
-       btn.addEventListener('click',()=>select({
-         Descr:row.Descr,Classficiation:row.Classficiation,
-         Status:row.Status,Advisor:row.Advisor
-       }));
-     }else text('span','Combined for privacy',action,'millGroupedNote');
+     const btn=text('button','Filter rings',action,'millApplyRow');
+     btn.type='button';
+     btn.title='Filter all four Mill rings to this exact counted combination';
+     btn.addEventListener('click',()=>select({
+       Descr:row.Descr,Classficiation:row.Classficiation,
+       Status:row.Status,Advisor:row.Advisor
+     }));
    }
    const listed=shown.reduce((n,r)=>n+r.Count,0);
    stat.textContent=
      compact(shown.length)+' groups shown · '+compact(listed)+' records'+
      (term?' match table search':'')+
-     (rareCount>0&&rareCount<meaningfulCount?' · tiny groups omitted':'')+
-     ' · click “Filter rings” to apply a group';
+     ' · every counted group retained · click “Filter rings” to apply a group';
    const btn=$('millResultsNav');
    btn.textContent=panel.open?'Hide results':'Results';
  }
