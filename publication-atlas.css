@@ -1,0 +1,65 @@
+
+/* v11: circular research atlas, with the existing publication rings preserved. */
+.pubViewSwitch{display:flex;align-items:center;flex-wrap:wrap;gap:10px;padding:12px 16px;margin:14px auto 12px;max-width:1380px;background:#12283d;border:1px solid #355a76;border-radius:14px}
+.pubViewSwitch strong{font-size:12px;color:#dceefc}.pubViewSwitch small{color:#95b4cc;font-size:11px}
+.pubModeButtons,.pubRingControls{display:flex;gap:6px;flex-wrap:wrap;align-items:center}
+.pubViewSwitch button,.atlasControls button,.atlasZoom button,.atlasThemes button{border-radius:9px;border:1px solid #3a5a75;background:#1b344d;color:#d0e9fb;font:650 12px system-ui;padding:9px 13px;cursor:pointer}
+.pubViewSwitch button[aria-pressed="true"],.atlasThemes button[aria-pressed="true"]{background:#45c9bd;color:#042a30;border-color:#60efe0}
+.pubRingControls{margin-left:auto}.pubRingControls span{color:#98b2cc;font-size:11px}.pubRingControls button{padding:6px 9px;font-size:11px}
+.pubRingControls button[aria-pressed="false"]{background:#152339;color:#829ab0;border-color:#334458;text-decoration:line-through}
+#papersSection.paper-hide-inner [data-ring="0"],#papersSection.paper-hide-middle [data-ring="1"],#papersSection.paper-hide-outer [data-ring="2"],#papersSection.paper-hide-author #paperChart .authorArc{display:none!important}
+#papersSection.paper-hide-author .authorLegendGroup,#papersSection.paper-hide-author #paperAuthorStatus{display:none!important}
+#papersSection.atlas-mode > .main{display:none!important}
+#paperAtlasView{display:none}
+#papersSection.atlas-mode #paperAtlasView{display:block}
+.atlasWorkspace{border:1px solid #2c4660;border-radius:18px;background:#0e1d30;padding:15px 18px 18px;max-width:1460px;margin:12px auto 20px}
+.atlasIntro{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;margin:0 0 12px}
+.atlasIntro h2{color:#edf7ff;font:750 22px system-ui;margin:0}.atlasIntro p{max-width:870px;margin:5px 0;color:#9eb9d0;font-size:12px}
+.atlasDataStatus{font:650 11px system-ui;color:#b6e8d4;border:1px solid #35786d;padding:7px 10px;border-radius:20px;background:#0e322f}
+.atlasControls{display:flex;gap:11px;flex-wrap:wrap;align-items:end;background:#10273d;padding:11px;border-radius:12px;border:1px solid #294760;margin-bottom:12px}
+.atlasControls label{display:flex;flex-direction:column;gap:5px;color:#abc2d6;font-size:11px;flex:1 1 140px;min-width:130px}
+.atlasControls label.atlasSearchBox{flex:2 1 210px}
+.atlasControls select,.atlasControls input{padding:9px 10px;border:1px solid #45657b;border-radius:8px;color:#eef6ff;background:#0b1c2f;font:12px system-ui;min-height:38px;max-width:100%}
+.atlasControls input[type=file]{display:none}
+.atlasControls button{min-height:38px;white-space:nowrap}
+.atlasKpis{display:flex;flex-wrap:wrap;gap:7px;margin:10px 0}.atlasKpis span{display:inline-flex;gap:5px;padding:6px 10px;border:1px solid #344c61;background:#183049;border-radius:9px;color:#9dbcd1;font:11px system-ui}.atlasKpis b{color:#f1fbff}
+.atlasThemes{display:flex;flex-wrap:wrap;gap:6px;margin:12px 0}
+.atlasThemes button{font-size:10px;padding:6px 9px;display:flex;gap:6px;align-items:center}
+.atlasThemes i{display:inline-block;width:8px;height:8px;border-radius:50%;background:var(--theme-color)}
+.atlasBody{display:grid;grid-template-columns:minmax(0,1fr) 295px;gap:12px}
+.atlasCanvas{border:1px solid #31475f;position:relative;border-radius:15px;background:radial-gradient(circle at 50% 49%,#18354e 0%,#0b1b2d 63%,#091728 100%);overflow:hidden;min-height:620px}
+#atlasSvg{display:block;width:100%;height:auto;max-height:calc(100vh - 170px);min-height:570px;touch-action:none;cursor:grab}
+#atlasSvg:active{cursor:grabbing}
+.atlasZoom{position:absolute;right:13px;top:13px;display:flex;gap:5px;z-index:2}
+.atlasZoom button{width:34px;height:34px;padding:4px;background:#133048d9}
+.atlasCanvasBottom{position:absolute;bottom:10px;left:10px;right:10px;pointer-events:none;display:flex;justify-content:space-between;gap:12px;font:11px system-ui;color:#99bbd0}
+.atlasCanvasBottom span{background:#0b2037d9;padding:5px 9px;border-radius:8px}
+.atlasDetails{border:1px solid #29425b;border-radius:13px;background:#101f32;min-width:0;padding:16px;font:12px/1.55 system-ui;overflow:auto;max-height:790px}
+.atlasDetails h3{margin:0 0 8px;font-size:18px;color:#f5faff;line-height:1.3;overflow-wrap:anywhere}
+.atlasDetails p{margin:7px 0;font-size:12px;color:#b3c8d8}
+.atlasDetails strong{color:#d9eef8}
+.atlasDetails a{display:block;margin:8px 0;color:#82d9ff;font-weight:600;word-break:break-word}
+.atlasDetails ol{margin:8px 0 0;padding-left:21px}.atlasDetails li{margin:6px 0}
+.atlasChip{display:inline-flex;padding:4px 7px;margin:3px 4px 3px 0;background:#1c4053;border:1px solid #3f6a76;border-radius:8px;color:#d9f2ff;font-size:10px}
+.atlasExplanation{color:#9cb9cd!important;font-size:11px!important}
+.atlasLink{fill:none;stroke:#7ec2ed;stroke-opacity:.13;stroke-width:1.3;pointer-events:stroke;transition:stroke-opacity .15s,stroke-width .15s}
+.atlasLink.author{stroke:#4ce2c5;stroke-opacity:.17}
+.atlasLink.selected{stroke-opacity:.9!important;stroke-width:2.7!important}
+.atlasLink.dim{stroke-opacity:.022!important}
+.atlasLeaf{cursor:pointer}.atlasLeaf circle{stroke:#d9f6ff;stroke-opacity:.3;stroke-width:.7}
+.atlasLeaf text{fill:#aabfd3;font-size:7.6px;paint-order:stroke;stroke:#0a1b2e;stroke-width:2.4;stroke-linejoin:round}
+.atlasLeaf:hover text,.atlasLeaf.selected text{fill:#fff;font-weight:750;font-size:8.6px}
+.atlasLeaf.dim{opacity:.26}
+.atlasArc{stroke:#15283a;stroke-width:1}
+.atlasArc.selected{stroke:#eef9ff;stroke-width:2}
+.atlasEmpty{color:#a6c7d6;font:13px system-ui;padding:80px 20px;text-align:center}
+.atlasFootnote{padding:10px 3px;color:#93adc5;font-size:11px;line-height:1.6}
+.atlasFootnote strong{color:#cde9ff}
+body.presentation-mode.presentation-papers #papersSection .pubViewSwitch{display:flex}
+body.presentation-mode.presentation-papers #papersSection.atlas-mode #paperAtlasView{display:block}
+body.presentation-mode.presentation-details.presentation-papers #papersSection.atlas-mode #paperAtlasView{display:block}
+body.presentation-mode.presentation-atlas .atlasWorkspace{max-width:1500px}
+body.presentation-mode.presentation-atlas #atlasSvg{max-height:calc(100vh - 170px);min-height:680px}
+body.presentation-mode.presentation-atlas #papersSection{max-width:1550px}
+@media(max-width:1050px){.atlasBody{grid-template-columns:1fr}.atlasDetails{max-height:320px}.atlasCanvas{min-height:490px}#atlasSvg{min-height:470px}.pubRingControls{margin-left:0}}
+@media(max-width:650px){.atlasWorkspace{padding:10px}.atlasControls label{min-width:100px}.atlasCanvas{min-height:370px}#atlasSvg{min-height:360px}.pubViewSwitch{padding:10px}.atlasControls{gap:7px}.atlasControls button{white-space:normal}}
