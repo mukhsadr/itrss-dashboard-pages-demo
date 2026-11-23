@@ -5,58 +5,40 @@ const PALETTES=[['#5c9eff','#3c7fdb','#8ebdff','#4568ae','#a1ceef','#6669ba','#3
 let rows=[],columns=[],layers=[],filters=[null,null,null,null];
 function csvParse(text){const raw=[];let f='',line=[],q=false;for(let i=0;i<text.length;i++){let c=text[i];if(c==='"'){if(q&&text[i+1]==='"'){f+='"';i++}else q=!q}else if(c===','&&!q){line.push(f);f=''}else if((c==='\r'||c==='\n')&&!q){if(c==='\r'&&text[i+1]==='\n')i++;line.push(f);if(line.some(v=>v.trim()))raw.push(line);line=[];f=''}else f+=c}line.push(f);if(line.some(v=>v.trim()))raw.push(line);if(!raw.length)return {columns:[],rows:[]};const cols=raw.shift().map(v=>v.replace(/^\ufeff/,'').trim());return {columns:cols,rows:raw.map(a=>Object.fromEntries(cols.map((h,i)=>[h,(a[i]||'').trim()])))}}
 
-/* Convert the newly supplied row-level PUBLIC_DATA.csv to a safe, counted
- * four-dimensional view. Unique User tokens and advisor names are never
- * made into graph categories or labels. Cells smaller than five are folded. */
+/* PUBLIC_DATA.csv is the canonical default source.
+ * Preserve actual department and academic-program labels (the earlier version
+ * reclassified them into generic buckets, making the display look unchanged).
+ * Unique User IDs and advisor names are NEVER included in chart rows.
+ * Rare individual department/program labels (<5 occurrences) are grouped,
+ * keeping detail while protecting small categories.
+ */
 function groupedPublicData(parsed){
  if(!parsed.columns.includes('User')||!parsed.columns.includes('Descr')||!parsed.columns.includes('Classficiation'))return parsed;
- const pick=r=>Object.fromEntries(parsed.columns.map(c=>[c,String(r[c]||'').trim()]));
- function department(value){
-  const s=value.toLowerCase().replace(/\s+/g,' ').trim();
-  if(!s)return 'Not specified';
-  if(/computer science/.test(s))return 'Computer Science';
-  if(/electrical.*(comp|computer)|computer.*engin|electrical engineering/.test(s))return 'Electrical & Computer Engr';
-  if(/mechanical|aerospace/.test(s))return 'Mechanical & Aerospace Engr';
-  if(/mathematics|statistics|applied mathematics/.test(s))return 'Mathematics & Statistics';
-  if(/earth science|geology|geophys|geological/.test(s))return 'Earth Sciences and Engineering';
-  if(/civil|architectur|environment engineer/.test(s))return 'Civil Engineering';
-  if(/physics/.test(s))return 'Physics';
-  if(/business|jaggi/.test(s))return 'Jaggi School of Business';
-  if(/chemistry|chemical|biochemical/.test(s))return 'Chemistry & Chemical Engr';
-  if(/materials science|material science|ceramic|metallurg/.test(s))return 'Materials Science & Engineering';
-  if(/nuclear/.test(s))return 'Nuclear Engineering';
-  if(/engineering mgt|engineering management|systems engineering/.test(s))return 'Engineering Management';
-  return 'Other departments';
+ const frequency=(name)=>{
+  const m=new Map();
+  for(const r of parsed.rows){const v=String(r[name]||'').trim()||(name==='Classficiation'?'Unknown':'Not specified');m.set(v,(m.get(v)||0)+1)}
+  return m;
+ };
+ const deptFreq=frequency('Descr'),programFreq=frequency('Classficiation');
+ const keyCount=new Map(),rareDeptRecords=0,rareProgramRecords=0;
+ for(const r of parsed.rows){
+  const d=String(r.Descr||'').trim()||'Not specified';
+  const degree=String(r.Classficiation||'').trim()||'Unknown';
+  const dept=deptFreq.get(d)>=5?d:'Other departments (<5 per department)';
+  const program=programFreq.get(degree)>=5?degree:'Other academic programs (<5 per program)';
+  if(dept!==d)rareDeptRecords++;
+  if(program!==degree)rareProgramRecords++;
+  const status=String(r.Status||'').trim()||'Not specified';
+  const advisor=String(r.Advisor||'').trim()?'Advisor recorded':'No advisor recorded';
+  const k=JSON.stringify([dept,program,status,advisor]);
+  keyCount.set(k,(keyCount.get(k)||0)+1);
  }
- function classification(value){
-  const s=value.toLowerCase().trim();
-  if(/^bs[- ]|^bachelor|undergrad/.test(s))return 'Undergraduate';
-  if(/^phd[- ]|^ph\.d|^doctoral/.test(s))return 'Doctoral';
-  if(/^ms[- ]|^master/.test(s))return 'Masters';
-  if(s==='faculty')return 'Faculty';
-  if(s==='staff')return 'Staff';
-  if(/postdoc/.test(s))return 'Postdoctoral researcher';
-  return 'Other / unspecified';
- }
- function state(value){
-  const s=value.toLowerCase().trim();
-  return s==='active'?'Active':s==='graduated'?'Graduated':'Not specified';
- }
- const counts=new Map();
- for(const original of parsed.rows){
-  const r=pick(original);
-  const fields=[department(r.Descr),classification(r.Classficiation),state(r.Status),r.Advisor?'Advisor recorded':'No advisor recorded'];
-  const key=JSON.stringify(fields);counts.set(key,(counts.get(key)||0)+1);
- }
- const rows=[];let suppressed=0;
- for(const [key,count] of counts){
-  if(count<5){suppressed+=count;continue}
-  const vals=JSON.parse(key);
-  rows.push({Descr:vals[0],Classficiation:vals[1],Status:vals[2],Advisor:vals[3],Count:String(count)});
- }
- if(suppressed)rows.push({Descr:'Other grouped categories',Classficiation:'Other / privacy grouped',Status:'Other / privacy grouped',Advisor:'Other / privacy grouped',Count:String(suppressed)});
- rows.sort((a,b)=>Number(b.Count)-Number(a.Count));
- return {columns:['Descr','Classficiation','Status','Advisor','Count'],rows,sourceRows:parsed.rows.length,smallCellsFolded:suppressed,sourceType:'PUBLIC_DATA.csv (grouped in browser)'};
+ const rows=[...keyCount].map(([key,count])=>{
+  const fields=JSON.parse(key);
+  return {Descr:fields[0],Classficiation:fields[1],Status:fields[2],Advisor:fields[3],Count:String(count)};
+ }).sort((a,b)=>Number(b.Count)-Number(a.Count));
+ return {columns:['Descr','Classficiation','Status','Advisor','Count'],rows,sourceRows:parsed.rows.length,rareDeptRecords,rareProgramRecords,
+  distinctDepartments:new Set(rows.map(r=>r.Descr)).size,distinctPrograms:new Set(rows.map(r=>r.Classficiation)).size,sourceType:'PUBLIC_DATA.csv'};
 }
 function value(r,col){return (r[col]||'').trim()||'Not specified'}
 function weight(r){const n=Number(r.Count);return r.Count!==undefined&&Number.isFinite(n)&&n>0?n:1}
@@ -120,8 +102,8 @@ async function load(){
   columns=parsed.columns;rows=parsed.rows;filters=[null,null,null,null];setup();
   $('badge').textContent='Public dataset · grouped view';
   $('badge').style.color='#8ee1cc';
-  $('sourceName').textContent='PUBLIC_DATA.csv · individual user/advisor labels omitted';
-  status.textContent=parsed.sourceRows.toLocaleString()+' public source rows · '+rows.length+' grouped categories · '+parsed.smallCellsFolded+' records placed in privacy grouping';
+  $('sourceName').textContent='PUBLIC_DATA.csv · detailed departments/programs · anonymized chart';
+  status.textContent=parsed.sourceRows.toLocaleString()+' PUBLIC_DATA.csv rows · '+parsed.distinctDepartments+' department categories · '+parsed.distinctPrograms+' academic programs · advisor names excluded';
   render();
   window.dispatchEvent(new CustomEvent('dashboard:source-data-loaded',{detail:{kind:'users'}}));
  }catch(error){
