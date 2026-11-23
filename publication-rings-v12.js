@@ -81,7 +81,7 @@ function go(){
  for(const w of papers){const a=angles.get(w.id),p=point(298,a),q=point(413,a),right=Math.cos(a)>0,angle=a*180/Math.PI;
   const leaf=el('g',{class:'prLeaf','data-id':w.id,role:'button',tabindex:0,'aria-label':w.title});
   leaf.append(el('circle',{cx:p[0],cy:p[1],r:n>100?3.6:5.5,fill:color[atlas.themes.indexOf(w.theme)%color.length]}));
-  const title=el('text',{x:q[0],y:q[1],transform:'rotate('+(right?angle:angle+180)+' '+q[0]+' '+q[1]+')','text-anchor':right?'start':'end'},w.title.length>29?w.title.slice(0,27)+'…':w.title);leaf.append(title);leaf.append(el('title',{},w.title));
+  const title=el('text',{x:q[0],y:q[1],transform:'rotate('+(right?angle:angle+180)+' '+q[0]+' '+q[1]+')','text-anchor':right?'start':'end'},w.title.length>21?w.title.slice(0,19)+'…':w.title);leaf.append(title);leaf.append(el('title',{},w.title));
   leaf.onclick=()=>showDetail(w);leaf.onkeydown=event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();showDetail(w)}};nodes.append(leaf)
  }
  $('prCaption').textContent=n+' publications · '+displayEdges.length+' '+(mode==='author'?'OpenAlex author':'candidate title/venue')+' relations · select a paper to trace the sources';
