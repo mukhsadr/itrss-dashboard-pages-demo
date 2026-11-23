@@ -190,7 +190,10 @@
     const chart=$('paperChart');chart.replaceChildren();$('paperLegend').replaceChildren();
     $('paperAuthorBack').hidden=false;$('paperAuthorFocusName').textContent='More authors';
     $('paperAuthorFocusCount').textContent=remaining.length+' credited names';
-    $('paperAuthorStatus').textContent='Select any author below to explore their publications and verified coauthors.';
+    $('paperAuthorStatus').textContent='Select any author to explore their papers and verified collaborators.';
+    const chooser=$('paperAuthorChooser'),sel=$('paperAuthorQuickSelect');sel.replaceChildren();
+    for(const a of remaining){const op=document.createElement('option');op.value=a.id;op.textContent=a.name+' · '+a.count+' credited papers';sel.append(op)}
+    chooser.hidden=false;
     // A second outer ring makes the full ranked list reachable without a dense 146-slice donut.
     const items=remaining.slice(0,MAX_VISIBLE),more=remaining.slice(MAX_VISIBLE);
     const set=[...items];if(more.length)set.push({id:'__othermore__',name:'Next '+more.length+' authors',count:more.reduce((s,a)=>s+a.count,0)});
@@ -209,6 +212,7 @@
     $('paperAuthorBack').hidden=false;
     $('paperAuthorFocusName').textContent=author.name;
     $('paperAuthorFocusCount').textContent=author.count+' credited '+(author.count===1?'paper':'papers');
+    $('paperAuthorChooser').hidden=true;
     const neighbors=coauthors(author,namedStats);
     if(neighbors.length){
       const top=neighbors.slice(0,MAX_VISIBLE),rest=neighbors.slice(MAX_VISIBLE);
@@ -232,7 +236,7 @@
   }
   function reset(){
     focus=null;other=false;$('papersSection').classList.remove('author-exploring');
-    $('paperAuthorBack').hidden=true;
+    $('paperAuthorBack').hidden=true;$('paperAuthorChooser').hidden=true;
     $('paperAuthorStatus').textContent='';
     $('paperAuthorFocusName').textContent='';
     $('paperAuthorFocusCount').textContent='';
@@ -240,7 +244,7 @@
   }
   window.addEventListener('dashboard:paper-dataset-loaded',()=>{
     focus=null;other=false;anchor='';anchorManuallySet=false;
-    $('papersSection').classList.remove('author-exploring');$('paperAuthorBack').hidden=true;
+    $('papersSection').classList.remove('author-exploring');$('paperAuthorBack').hidden=true;$('paperAuthorChooser').hidden=true;
   });
   window.addEventListener('dashboard:paper-rendered',event=>{
     state=event.detail;if(!state||!state.rows)return;
