@@ -1,4 +1,4 @@
-# ITRSS Research Metrics Dashboard · v9
+# ITRSS Research Metrics Dashboard · v10
 
 **Live:** https://mukhsadr.github.io/itrss-dashboard-pages-demo/  
 **Source:** https://github.com/mukhsadr/itrss-dashboard-pages-demo
@@ -6,8 +6,21 @@
 ## Live metrics: two ring charts + original Research Canvas
 
 - **Mill users** — privacy-grouped real counts from the original 1,607-user report. Four linked concentric rings. No individual user IDs or advisor names in the public export.
-- **Publications** — 247 original public bibliographic records, including 17 flagged duplicates (230 included by default). Three linked concentric rings. Titles, public links and bibliographic fields are available, but internal notes and evidence tracking were excluded.
+- **Publications** — 247 original public bibliographic records, including 17 flagged duplicates (230 included by default). **Four linked rings:** Cluster, year, type, and a new outer author-priority ring. Titles, public links and bibliographic fields are available, but internal notes and evidence tracking were excluded.
 - **Graph / Research Canvas** — corrected to follow the actual local `research_canvas.py` design, **not a title-similarity graph**.
+
+## Fourth publication ring: authorship and collaboration priority
+
+The fourth (outermost) ring begins at 12 o'clock and sorts **credited authors high → low clockwise** by distinct included publication records, independently of the three publication-dimension sorting controls. It shows the top 16 names and a drill-down "Other authors" group so the chart stays readable.
+
+**Click an outer author slice:** the three original publication rings disappear and an author-focused wheel replaces them. The center names the selected researcher and counts their credited papers; the publication list shows source titles/years/DOIs. **Back to all publication rings** restores the full four-ring chart.
+
+- **Without a joined OpenAlex research export:** the focused wheel shows the author's documented publication years. It does **not** invent coauthors from "et al." references.
+- **With OpenAlex author IDs:** publication metadata is matched by DOI, then normalized title; direct coauthors are counted by unique shared OpenAlex publication IDs, sorted **most joint works first clockwise**, with names breaking ties alphabetically. Clicking a collaborator follows their actual paper links.
+- **Root researcher selection (Edit mode):** the author dropdown can rank collaborators of one researcher instead of the global author-frequency ranking. If Dr. Alexey G. Yamilov appears in the matched source and has coauthor links, he is chosen as the initial root until the user selects another.
+- **Parent filters:** the new author ring respects the current cluster/year/type publication selections. It does not change the public bibliography or the duplicate exclusion rule.
+
+**Important data limitations:** the published 230-record bibliography contains 153 entries with "et al." and 26 with blank author fields. Those cells cannot establish complete coauthorship. Names in the public bibliography are only credited-name labels, not guaranteed deduplicated OpenAlex identities. For verified author–paper ID relationships, load the real 186-work/858-authorship `research_graph_public.json` using Graph → Open file (browser only), or publish a vetted version at `data/research_graph_public.json` for automatic loading across laptops.
 
 ## Graph models (faithful to the original source)
 
@@ -62,7 +75,7 @@ This is a **public GitHub Pages** site. Anyone can download its committed data. 
 
 ## Deployment and preview
 
-GitHub Actions deploys `main` automatically. If the browser is showing a cached version, use **Ctrl+Shift+R** or open the URL with `?v=9`.
+GitHub Actions deploys `main` automatically. If the browser is showing a cached version, use **Ctrl+Shift+R** or open the URL with `?v=10`.
 
 Local preview from the repository:
 
