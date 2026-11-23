@@ -173,3 +173,10 @@ body.presentation-mode:not(.presentation-details) .chartCenter strong {
     flex-wrap: wrap;
   }
 }
+
+/* Edit mode retains explanatory metrics, but does not force a too-large user chart. */
+body.presentation-mode.presentation-details:not(.presentation-papers):not(.presentation-graph) .chartWrap {
+  width: min(var(--mill-fit-width, 540px),100%) !important;
+  max-width: 100%;
+  margin: 0 auto;
+}
