@@ -40,6 +40,28 @@ function showDetail(w){
  for(const e of links.slice(0,10)){const other=papers.find(p=>p.id===(e.s===w.id?e.t:e.s));if(!other)continue;const li=tx('li',null,ul);const b=tx('button',other.title,li);b.onclick=()=>showDetail(other);const detail=strengthText(e)+(Array.isArray(e.words)&&e.words.length?' · Shared terms: '+e.words.slice(0,4).join(', '):'');tx('small',detail,li,'prRelationExplain')}
  mark();
 }
+function showConnection(link,a,b){
+ selected=null;const box=$('prDetails');box.replaceChildren();
+ tx('h3','Why these papers connect',box);
+ tx('span',relationKind(link),box,'prChip');
+ tx('span',strengthText(link),box,'prChip');
+ if(Array.isArray(link.words)&&link.words.length)tx('p','Shared distinctive title terms: '+link.words.slice(0,8).join(', '),box);
+ tx('p','This relationship comes from '+(link.types.includes('author')?'matching OpenAlex author identities. It is not evidence that both papers used the same computing resource.':link.types.includes('title_terms')?'similar wording in publication titles; the overlap score is relative and exploratory.':'a common journal; it does not establish a scientific dependency.'),box,'prHint');
+ for(const [i,w]of [a,b].entries()){
+  tx('h4',(i===0?'Publication A':'Publication B'),box);
+  const button=tx('button',w.title,box,'prConnectedPaper');button.onclick=()=>showDetail(w);
+  tx('p',w.year+' · '+w.theme,box);
+  if(w.url){const src=tx('a','Open publication source',box);src.href=w.url;src.target='_blank';src.rel='noopener noreferrer'}
+ }
+ for(const path of SVG.querySelectorAll('.prCurve')){
+  const hit=Number(path.dataset.s)===link.s&&Number(path.dataset.t)===link.t;
+  path.classList.toggle('focus',hit);path.classList.toggle('fade',!hit);
+ }
+ for(const x of SVG.querySelectorAll('.prLeaf')){
+  const id=Number(x.dataset.id),active=id===a.id||id===b.id;
+  x.classList.toggle('focus',active);x.classList.toggle('fade',!active);
+ }
+}
 function mark(){
  const near=new Set([selected]);displayEdges.forEach(x=>{if(x.s===selected)near.add(x.t);if(x.t===selected)near.add(x.s)});
  SVG.querySelectorAll('.prCurve').forEach(x=>{const hit=Number(x.dataset.s)===selected||Number(x.dataset.t)===selected;x.classList.toggle('focus',selected!=null&&hit);x.classList.toggle('fade',selected!=null&&!hit)});
@@ -89,7 +111,7 @@ function go(){
  const lGroup=el('g'),rings=el('g'),nodes=el('g');SVG.append(lGroup,rings,nodes);
  for(const e of displayEdges){const a=byID.get(e.s),b=byID.get(e.t),aa=angles.get(e.s),bb=angles.get(e.t),ha=themes.get(a.theme).mid,hb=themes.get(b.theme).mid;
   const path=el('path',{d:curve([point(296,aa),point(220,aa),point(147,ha),point(47,ha),point(47,hb),point(147,hb),point(220,bb),point(296,bb)]),class:'prCurve tier-'+strengthTier(e)+(e.types.includes('author')?' author':''),'data-s':e.s,'data-t':e.t});
-  path.append(el('title',{},strengthText(e)+(Array.isArray(e.words)&&e.words.length?' · '+e.words.slice(0,5).join(', '):'')+' · Exploratory unless verified authorship'));lGroup.append(path);
+  path.append(el('title',{},strengthText(e)+(Array.isArray(e.words)&&e.words.length?' · '+e.words.slice(0,5).join(', '):'')+' · Click to inspect this relationship'));path.setAttribute('role','button');path.setAttribute('tabindex','0');path.setAttribute('aria-label',a.title+' linked with '+b.title+': '+strengthText(e));path.onclick=()=>showConnection(e,a,b);path.onkeydown=ev=>{if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();showConnection(e,a,b)}};lGroup.append(path);
  }
  const radii=[[304,318],[325,339],[345,359],[366,380]];
  for(let i=0;i<4;i++){const layer=el('g',{'data-pr-ring':i});rings.append(layer);
