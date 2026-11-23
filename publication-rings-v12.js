@@ -62,6 +62,23 @@ function go(){
  candidates=candidates.filter(e=>mode==='all'?!e.types.includes('author'):e.types.includes(mode));
  candidates.sort((a,b)=>b.score-a.score);
  displayEdges=candidates.slice(0,Number($('prLimit').value)||120);
+ // Relative tiers are percentile groups *within the currently displayed title-similarity links*.
+ // Same-venue links have no scientific strength score; coauthorship is independently sourced.
+ const titleLinks=displayEdges.filter(e=>e.types.includes('title_terms')).sort((a,b)=>b.score-a.score);
+ titleLinks.forEach((link,i)=>{link.tier=i<Math.ceil(titleLinks.length*.24)?'high':i<Math.ceil(titleLinks.length*.60)?'medium':'light'});
+ displayEdges.filter(e=>!e.types.includes('title_terms')).forEach(link=>link.tier=link.types.includes('author')?'author':'venue');
+ rankScores=new Map();
+ const degree=new Map();
+ for(const link of displayEdges){
+  const score=link.types.includes('author')?1:Number(link.score)||1;
+  for(const id of [link.s,link.t]){
+   rankScores.set(id,(rankScores.get(id)||0)+score);
+   degree.set(id,(degree.get(id)||0)+1);
+  }
+ }
+ rankedPapers=papers.filter(w=>degree.has(w.id)).map(w=>({w,count:degree.get(w.id),weight:rankScores.get(w.id)})).sort((a,b)=>b.weight-a.weight||b.count-a.count||a.w.title.localeCompare(b.w.title));
+ // Preserve research communities while ordering the most strongly connected papers first clockwise.
+ if($('prSort').value==='strength') papers.sort((a,b)=>atlas.themes.indexOf(a.theme)-atlas.themes.indexOf(b.theme)||(rankScores.get(b.id)||0)-(rankScores.get(a.id)||0)||(degree.get(b.id)||0)-(degree.get(a.id)||0)||a.title.localeCompare(b.title));
  SVG.replaceChildren();
  const n=papers.length;
  $('prStats').replaceChildren();
@@ -71,8 +88,8 @@ function go(){
  for(const group of atlas.themes){const a=papers.filter(w=>w.theme===group);if(!a.length)continue;const first=-Math.PI/2+j/n*TWO,last=-Math.PI/2+(j+a.length)/n*TWO;themes.set(group,{from:first,to:last,mid:(first+last)/2,total:a.length});a.forEach((w,k)=>angles.set(w.id,-Math.PI/2+(j+k+.5)/n*TWO));j+=a.length}
  const lGroup=el('g'),rings=el('g'),nodes=el('g');SVG.append(lGroup,rings,nodes);
  for(const e of displayEdges){const a=byID.get(e.s),b=byID.get(e.t),aa=angles.get(e.s),bb=angles.get(e.t),ha=themes.get(a.theme).mid,hb=themes.get(b.theme).mid;
-  const path=el('path',{d:curve([point(296,aa),point(220,aa),point(147,ha),point(47,ha),point(47,hb),point(147,hb),point(220,bb),point(296,bb)]),class:'prCurve'+(e.types.includes('author')?' author':''),'data-s':e.s,'data-t':e.t});
-  path.append(el('title',{},e.types.includes('author')?'Shared OpenAlex author; bibliographic coauthorship':e.types.includes('title_terms')?'Shared terms in publication titles; exploratory':'Same journal; exploratory'));lGroup.append(path);
+  const path=el('path',{d:curve([point(296,aa),point(220,aa),point(147,ha),point(47,ha),point(47,hb),point(147,hb),point(220,bb),point(296,bb)]),class:'prCurve tier-'+strengthTier(e)+(e.types.includes('author')?' author':''),'data-s':e.s,'data-t':e.t});
+  path.append(el('title',{},strengthText(e)+(Array.isArray(e.words)&&e.words.length?' · '+e.words.slice(0,5).join(', '):'')+' · Exploratory unless verified authorship'));lGroup.append(path);
  }
  const radii=[[304,318],[325,339],[345,359],[366,380]];
  for(let i=0;i<4;i++){const layer=el('g',{'data-pr-ring':i});rings.append(layer);
@@ -80,19 +97,40 @@ function go(){
    x.append(el('title',{},field(w,i)+' · '+w.title));x.onclick=()=>showDetail(w);layer.append(x)}
  }
  for(const [name,group] of themes){const arc=el('path',{d:ra(385,397,group.from+.002,group.to-.002),fill:color[atlas.themes.indexOf(name)%color.length],class:'prTheme'});
-  arc.append(el('title',{},name+' · '+group.total+' papers'));arc.onclick=()=>{focusTheme=focusTheme===name?'':name;selected=null;go()};rings.append(arc)}
+  arc.append(el('title',{},name+' · '+group.total+' papers'));arc.onclick=()=>{focusTheme=focusTheme===name?'':name;selected=null;go()};rings.append(arc);
+  // Label wider scientific communities on their own arcs. Keep smaller ones hover-only.
+  const room=(group.to-group.from)*390;
+  if(room>120&&group.total>=12){
+   const a=group.mid,p=point(389,a),baseDeg=a*180/Math.PI+90;
+   const flip=baseDeg>90&&baseDeg<270,rotation=baseDeg+(flip?180:0);
+   const label=el('text',{x:p[0],y:p[1],transform:'rotate('+rotation+' '+p[0]+' '+p[1]+')','text-anchor':'middle',class:'prGroupLabel'},name.length>22?name.slice(0,20)+'…':name);
+   label.append(el('title',{},name+' · '+group.total+' publications'));label.onclick=()=>{focusTheme=focusTheme===name?'':name;selected=null;go()};rings.append(label);
+  }
+ }
  for(const w of papers){const a=angles.get(w.id),p=point(298,a),q=point(413,a),right=Math.cos(a)>0,angle=a*180/Math.PI;
   const leaf=el('g',{class:'prLeaf','data-id':w.id,role:'button',tabindex:0,'aria-label':w.title});
   leaf.append(el('circle',{cx:p[0],cy:p[1],r:n>100?3.6:5.5,fill:color[atlas.themes.indexOf(w.theme)%color.length]}));
   const title=el('text',{x:q[0],y:q[1],transform:'rotate('+(right?angle:angle+180)+' '+q[0]+' '+q[1]+')','text-anchor':right?'start':'end'},w.title.length>21?w.title.slice(0,19)+'…':w.title);leaf.append(title);leaf.append(el('title',{},w.title));
   leaf.onclick=()=>showDetail(w);leaf.onkeydown=event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();showDetail(w)}};nodes.append(leaf)
  }
- $('prCaption').textContent=n+' publications · '+displayEdges.length+' '+(mode==='author'?'OpenAlex author':'candidate title/venue')+' relations · select a paper to trace the sources';
+ // Rank badges are intentionally sparse to prevent labels from colliding at 230 papers.
+ const markedAngles=[],rankLabels=el('g',{class:'prTopRankLabels'});SVG.append(rankLabels);
+ for(let i=0;i<rankedPapers.length&&markedAngles.length<6;i++){
+  const item=rankedPapers[i],angle=angles.get(item.w.id);if(angle===undefined)continue;
+  if(markedAngles.some(a=>Math.abs(Math.atan2(Math.sin(a-angle),Math.cos(a-angle)))<.16))continue;
+  markedAngles.push(angle);
+  const p=point(277,angle),badge=el('g',{class:'prRankBadge',role:'button',tabindex:0,'aria-label':'Connected paper rank '+(i+1)+': '+item.w.title});
+  badge.append(el('circle',{cx:p[0],cy:p[1],r:10,fill:'#0d3144',stroke:'#7ce2ca','stroke-width':1.5}));
+  badge.append(el('text',{x:p[0],y:p[1]+3.4,'text-anchor':'middle'},String(i+1)));
+  badge.append(el('title',{},'Rank '+(i+1)+' · '+item.count+' displayed links · '+item.w.title));
+  badge.onclick=()=>showDetail(item.w);badge.onkeydown=ev=>{if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();showDetail(item.w)}};rankLabels.append(badge);
+ }
+ $('prCaption').textContent=n+' publications · '+displayEdges.length+' '+(mode==='author'?'OpenAlex author':'candidate title/venue')+' relations · strongest first clockwise within research groups';
  if(selected!=null&&byID.has(selected))showDetail(byID.get(selected));else{selected=null;showDetail(null)}
  mark();
 }
-for(const id of ['prSearch','prRelation','prLimit'])$(id).addEventListener(id==='prSearch'?'input':'change',()=>{selected=null;go()});
-$('prReset').onclick=()=>{focusTheme='';selected=null;$('prSearch').value='';$('prRelation').value='title_terms';$('prLimit').value='120';go()};
+for(const id of ['prSearch','prRelation','prLimit','prSort'])$(id).addEventListener(id==='prSearch'?'input':'change',()=>{selected=null;go()});
+$('prReset').onclick=()=>{focusTheme='';selected=null;$('prSearch').value='';$('prRelation').value='title_terms';$('prLimit').value='120';$('prSort').value='strength';go()};
 $('prMetadata').onclick=()=>$('prMetadataFile').click();
 $('prMetadataFile').onchange=async event=>{
  const file=event.target.files?.[0];if(!file)return;
