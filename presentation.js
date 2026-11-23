@@ -45,7 +45,8 @@
   }
   $('presentationClear').addEventListener('click',()=>{
     if(view==='graph')$('graphReset').click();
-    else $(view==='users'?'clear':'paperClear').click();
+    else if(view==='papers'){$('paperClear').click();window.dispatchEvent(new Event('dashboard:publication-reset-request'));}
+    else $('clear').click();
   });
   $('presentationFull').addEventListener('click',async()=>{
     try{
