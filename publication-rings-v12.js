@@ -29,7 +29,7 @@ function strengthTier(link){return link.types.includes('author')?'author':link.t
 function strengthText(link){if(link.types.includes('author'))return 'Shared OpenAlex author';if(link.types.includes('venue')&&!link.types.includes('title_terms'))return 'Same journal (not strength-ranked)';return (link.tier==='high'?'Higher':link.tier==='medium'?'Moderate':'Lower')+' title overlap · similarity '+Number(link.score||0).toFixed(1)}
 function showDetail(w){
  selected=w?.id??null;const box=$('prDetails');box.replaceChildren();
- if(!w){tx('h3','Explore the publications',box);tx('p','Click a paper around the circle, or a colored research group arc. Blue bundled curves reveal shared title concepts or journals.',box);tx('p','The four outer rings show resource, year, publication type, and research area. These are aligned to the same papers.',box,'prHint');return}
+ if(!w){tx('h3','Most connected research papers',box);tx('p','Clockwise order begins with the strongest connected papers within each research theme. Click a title to highlight its links.',box);const list=tx('ol',null,box,'prRankedList');for(const item of rankedPapers.slice(0,8)){const li=tx('li',null,list),b=tx('button',item.w.title,li);b.onclick=()=>showDetail(item.w);tx('small',item.count+' displayed connections · '+item.w.theme,li)}tx('p','Rankings come from the selected title/journal overlap network—not citation impact, usage, or verified research importance.',box,'prHint');return}
  tx('h3',w.title,box);tx('span',w.theme,box,'prChip');tx('span',w.year+' · '+facility(w),box,'prChip');
  tx('p','Authors: '+authorNames(w).join('; '),box);tx('p','Venue: '+(w.venue||'Not supplied'),box);
  if(w.url){let a=tx('a','Open original publication',box);a.href=w.url;a.target='_blank';a.rel='noopener noreferrer'}
@@ -37,7 +37,7 @@ function showDetail(w){
  if(support){tx('h4','Computing-evidence review',box);tx('span',support.status.replaceAll('_',' '),box,'prChip');if(support.facility)tx('p','Verified named resource: '+support.facility,box);tx('p',support.note,box);if(support.url){let a=tx('a','Open evidence source',box);a.href=support.url;a.target='_blank';a.rel='noopener noreferrer'}}
  else tx('p','No full-text computing acknowledgement reviewed for this publication yet.',box,'prHint');
  const links=displayEdges.filter(x=>x.s===w.id||x.t===w.id);tx('h4','Related works ('+links.length+')',box);const ul=tx('ul',null,box);
- for(const e of links.slice(0,10)){const other=papers.find(p=>p.id===(e.s===w.id?e.t:e.s));if(!other)continue;const li=tx('li',null,ul);const b=tx('button',other.title,li);b.onclick=()=>showDetail(other)}
+ for(const e of links.slice(0,10)){const other=papers.find(p=>p.id===(e.s===w.id?e.t:e.s));if(!other)continue;const li=tx('li',null,ul);const b=tx('button',other.title,li);b.onclick=()=>showDetail(other);const detail=strengthText(e)+(Array.isArray(e.words)&&e.words.length?' · Shared terms: '+e.words.slice(0,4).join(', '):'');tx('small',detail,li,'prRelationExplain')}
  mark();
 }
 function mark(){
