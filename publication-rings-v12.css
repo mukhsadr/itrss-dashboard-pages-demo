@@ -62,3 +62,46 @@ body.presentation-mode.presentation-papers #prSvg{max-height:calc(100vh - 235px)
 body.presentation-mode.presentation-papers .prDetails{max-height:calc(100vh - 235px)}
 @media(max-width:1000px){.prLayout{grid-template-columns:1fr}.prDetails{max-height:350px}#prSvg{max-height:75vh}}
 @media(max-width:620px){.prControls label{min-width:120px}.prControls{gap:5px}.prChartCaption{font-size:9px}#prSvg{min-height:380px}}
+
+/* v15 — source-aware link color, explicit scientific groups and sparse rank labels. */
+.prLinkLegend {
+ display:flex; flex-wrap:wrap; gap:13px; align-items:center; justify-content:center;
+ margin:0 0 5px; min-height:23px; color:#bed4df; font:10px/1.35 system-ui;
+}
+.prLinkLegend span {display:inline-flex;align-items:center;gap:5px;white-space:nowrap}
+.prLinkLegend small{color:#82a8c0;font-size:10px}
+.prKey {display:inline-block;width:19px;height:3px;border-radius:4px}
+.prKey.strong {background:#3de4ca;height:4px}
+.prKey.medium {background:#61adf4}
+.prKey.light {background:#6a7c92}
+.prKey.author {background:#b2ea76;height:4px}
+.prCurve.tier-high {stroke:#3de4ca;stroke-width:2;stroke-opacity:.51}
+.prCurve.tier-medium {stroke:#61adf4;stroke-width:1.35;stroke-opacity:.28}
+.prCurve.tier-light {stroke:#6a7c92;stroke-width:1;stroke-opacity:.15}
+.prCurve.tier-venue {stroke:#c19de3;stroke-width:1.15;stroke-opacity:.22}
+.prCurve.tier-author {stroke:#b2ea76;stroke-width:2.1;stroke-opacity:.57}
+.prCurve.focus {stroke-opacity:.99!important;stroke-width:3!important}
+.prCurve.fade {stroke-opacity:.015!important}
+.prGroupLabel {
+ fill:#effaff;font:750 8px system-ui;pointer-events:all;cursor:pointer;
+ paint-order:stroke;stroke:#193244;stroke-width:2.5px;stroke-linejoin:round;
+}
+.prGroupLabel:hover {font-size:9px;fill:#ffffff}
+.prRankBadge{cursor:pointer}
+.prRankBadge text{fill:#eafff7;font:750 10px system-ui;pointer-events:none}
+.prRankBadge:hover circle{fill:#176579;stroke:#eafff3;stroke-width:2.5}
+.prRankedList{padding-left:22px;margin:9px 0 0}
+.prRankedList li{margin-bottom:7px}
+.prRankedList li button{font-size:11px;line-height:1.35}
+.prRankedList small{display:block;color:#8facbf;font:10px/1.4 system-ui;margin:2px 0}
+.prRelationExplain{display:block;color:#89b9cb;font:10px/1.5 system-ui;margin:2px 0 7px}
+@media(min-width:1140px){
+ body.presentation-mode.presentation-papers .prControls{flex-wrap:nowrap}
+ body.presentation-mode.presentation-papers .prControls label{flex:1 1 150px;min-width:115px}
+ body.presentation-mode.presentation-papers .prControls label:first-child{flex:1.65 1 290px}
+ body.presentation-mode.presentation-papers .prControls button{white-space:nowrap}
+}
+@media(max-width:800px){
+ .prLinkLegend{gap:8px}
+ .prLinkLegend small{flex-basis:100%;text-align:center}
+}
