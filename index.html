@@ -1,12 +1,12 @@
-<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>ITRSS Research Metrics · v23</title><link rel="stylesheet" href="styles.css?v=1795367000"><link rel="stylesheet" href="papers.css?v=1795367000"><link rel="stylesheet" href="author-ring.css?v=10"><link rel="stylesheet" href="publication-atlas.css?v=11"><link rel="stylesheet" href="presentation.css?v=6"><link rel="stylesheet" href="graph.css?v=9"><link rel="stylesheet" href="atlas-switch.css?v=11"><link rel="stylesheet" href="publication-rings-v12.css?v=16"><link rel="stylesheet" href="viewport-fit-v13.css?v=14"><link rel="stylesheet" href="mill-source-v19.css?v=19"><link rel="stylesheet" href="presentation-focus-v20.css?v=20"><link rel="stylesheet" href="mill-results-v21.css?v=21"></head><body class="presentation-mode"><div id="publicBanner" style="position:sticky;top:0;z-index:9999;background:#6937b9;color:white;text-align:center;padding:12px;font:600 15px system-ui">PUBLIC RECORDS · 1,607 MILL USER ENTRIES · AGGREGATED VIEW · 247 PUBLICATION ENTRIES</div><nav id="presentationToolbar" class="presentationToolbar" aria-label="Dashboard display controls">
-  <span class="presentationBrand">ITRSS <strong>Research Metrics</strong> · v23</span>
+<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>ITRSS Research Metrics · v24</title><link rel="stylesheet" href="styles.css?v=1795367000"><link rel="stylesheet" href="papers.css?v=1795367000"><link rel="stylesheet" href="author-ring.css?v=10"><link rel="stylesheet" href="publication-atlas.css?v=11"><link rel="stylesheet" href="presentation.css?v=6"><link rel="stylesheet" href="graph.css?v=9"><link rel="stylesheet" href="atlas-switch.css?v=11"><link rel="stylesheet" href="publication-rings-v12.css?v=16"><link rel="stylesheet" href="viewport-fit-v13.css?v=14"><link rel="stylesheet" href="mill-source-v19.css?v=19"><link rel="stylesheet" href="presentation-focus-v20.css?v=20"><link rel="stylesheet" href="mill-results-v21.css?v=21"><link rel="stylesheet" href="publication-results-v24.css?v=24"></head><body class="presentation-mode"><div id="publicBanner" style="position:sticky;top:0;z-index:9999;background:#6937b9;color:white;text-align:center;padding:12px;font:600 15px system-ui">PUBLIC RECORDS · 1,607 MILL USER ENTRIES · AGGREGATED VIEW · 247 PUBLICATION ENTRIES</div><nav id="presentationToolbar" class="presentationToolbar" aria-label="Dashboard display controls">
+  <span class="presentationBrand">ITRSS <strong>Research Metrics</strong> · v24</span>
   <div class="presentationActions">
     <span class="presentationModes"><button id="presentationToggle" type="button" class="active" aria-pressed="true">Present</button><button id="presentationDetails" type="button" aria-pressed="false">Edit</button></span>
     <div class="presentationOnly">
       <button id="presentationUsers" type="button" class="active" aria-pressed="true">Mill users</button>
       <button id="presentationPapers" type="button" aria-pressed="false">Publications</button><button id="presentationGraph" type="button" disabled aria-pressed="false" title="Research connections metrics are planned for a later version">Connections · next</button>
       
-      <div class="ringVis" id="ringVisibility" aria-label="Show or hide individual chart rings"><span>Rings</span><button type="button" data-ring-toggle="0" aria-pressed="true" title="Show or hide the inner ring">1</button><button type="button" data-ring-toggle="1" aria-pressed="true" title="Show or hide ring 2">2</button><button type="button" data-ring-toggle="2" aria-pressed="true" title="Show or hide ring 3">3</button><button type="button" data-ring-toggle="3" aria-pressed="true" title="Show or hide the outer ring">4</button></div><button id="millResultsNav" type="button" aria-controls="millResultsPanel" aria-expanded="false" title="Open the filtered Mill Users results table">Results</button><button id="presentationClear" type="button">Reset filters</button>
+      <div class="ringVis" id="ringVisibility" aria-label="Show or hide individual chart rings"><span>Rings</span><button type="button" data-ring-toggle="0" aria-pressed="true" title="Show or hide the inner ring">1</button><button type="button" data-ring-toggle="1" aria-pressed="true" title="Show or hide ring 2">2</button><button type="button" data-ring-toggle="2" aria-pressed="true" title="Show or hide ring 3">3</button><button type="button" data-ring-toggle="3" aria-pressed="true" title="Show or hide the outer ring">4</button></div><button id="millResultsNav" type="button" aria-controls="millResultsPanel" aria-expanded="false" title="Open the filtered Mill Users results table">Results</button><button id="publicationResultsNav" type="button" aria-controls="publicationResultsPanel" aria-expanded="false" title="Open filtered Publications results below the circle">Results</button><button id="presentationClear" type="button">Reset filters</button>
       <button id="presentationFull" type="button">Fullscreen</button>
       <button id="presentationFile" type="button">Open local CSV</button>
       <span id="presentationDataMode" class="presentationDataMode">Loading metrics…</span>
@@ -87,7 +87,33 @@
   <aside class="side"><div class="sideHead"><h2>Explore publications</h2><p>Choose a category or author to filter and explore linked publication research.</p></div><div id="paperSelection" class="selection">Showing all</div><div id="paperLegend" class="legend paperLegend"></div><div class="dataFoot"><span>Public bibliography · optional local replacement</span><button id="paperReload" class="subtle">Choose another JSON</button></div></aside></div>
   <div class="paperList"><h2>Matching publication records</h2><p id="paperRecordCount">Waiting for data</p><div id="paperRecords"></div><p class="paperNote">Public bibliographic metadata only. Internal research notes and evidence-tracking fields have been excluded. Acknowledgments are not proof of direct cluster usage. Duplicates are excluded by default.</p></div>
 </section>
-
+<details id="publicationResultsPanel" class="publicationResultsPanel">
+  <summary id="pubResultSummaryToggle" aria-label="Show or hide results matching the publication research graph">
+    <span class="pubSummaryLeft"><span class="pubSummaryIcon" aria-hidden="true">▤</span><span id="pubResultSummary">Publication results · loading…</span></span>
+    <span class="pubSummaryRight">Open interactive paper table <span class="pubChevron" aria-hidden="true">⌄</span></span>
+  </summary>
+  <div class="pubResultsBody">
+    <div class="pubResultsHeading"><h2>Publications · Filtered Results</h2><p>Live selection from the circular research atlas · public bibliography</p></div>
+    <div id="pubFilterChips" class="pubFilterChips" aria-live="polite"></div>
+    <div class="pubResultsControls">
+      <label>Search papers, authors, or DOI<input id="pubResultSearch" type="search" placeholder="Seismic, Yamilov, quantum…" autocomplete="off"></label>
+      <label>Listed resource<select id="pubResultResource"><option value="">All resources</option><option value="Foundry">Foundry</option><option value="Mill">Mill</option><option value="Both">Both</option></select></label>
+      <label>Output type<select id="pubResultType"><option value="">All output types</option></select></label>
+      <label>Year<select id="pubResultYear"><option value="">All years</option></select></label>
+      <label>Research group<select id="pubResultTheme"><option value="">All research themes</option></select></label>
+      <label>Sort table<select id="pubResultSort"><option value="links">Most connected first</option><option value="year-desc">Newest year</option><option value="year-asc">Oldest year</option><option value="title">Paper title A–Z</option><option value="theme">Research group</option></select></label>
+      <button id="pubClearFilters" type="button">Clear filters</button>
+    </div>
+    <div class="pubTableScroll" role="region" aria-label="Live filtered publication records" tabindex="0">
+      <table>
+        <thead><tr><th scope="col">Publication and source</th><th scope="col">Year</th><th scope="col">Listed resource</th><th scope="col">Output</th><th scope="col">Research group</th><th scope="col">Links</th><th scope="col">Computing evidence</th><th scope="col">Actions</th></tr></thead>
+        <tbody id="pubResultBody"><tr><td colspan="8">Loading publications…</td></tr></tbody>
+      </table>
+    </div>
+    <div class="pubResultsFooter"><span id="pubResultStatus" role="status">Waiting for research graph…</span><button id="pubBackToChart" type="button">Back to circle</button></div>
+    <p class="pubCaution">Paper titles, listed facilities, and output types come from the original public bibliography. Research themes and candidate links are exploratory; reviewed computing evidence is identified separately. Selecting a table filter also filters the circle.</p>
+  </div>
+</details>
 <section id="graphSection" class="graphSection" aria-label="Interactive research literature explorer">
   <div class="graphHeading">
     <div><div class="eyebrow">RESEARCH OUTPUTS · LITERATURE EXPLORER</div>
@@ -157,4 +183,4 @@
   </div>
   <p id="graphInfo" role="status" aria-live="polite"></p>
 </section>
-<footer><span>Public Mill population data is grouped · not a measurement of HPC utilization · Publication relationships are exploratory</span><span>Missing values shown as “Not specified”</span></footer></div><script src="app.js?v=23"></script><script src="papers.js?v=12"></script><script src="author-ring.js?v=11"></script><script src="publication-rings-v12.js?v=20"></script><script src="presentation.js?v=17"></script><script src="graph.js?v=10"></script><script src="viewport-fit-v13.js?v=13"></script><script src="mill-results-v21.js?v=22"></script></body></html>
+<footer><span>Public Mill population data is grouped · not a measurement of HPC utilization · Publication relationships are exploratory</span><span>Missing values shown as “Not specified”</span></footer></div><script src="app.js?v=23"></script><script src="papers.js?v=12"></script><script src="author-ring.js?v=11"></script><script src="publication-rings-v12.js?v=24"></script><script src="presentation.js?v=17"></script><script src="graph.js?v=10"></script><script src="viewport-fit-v13.js?v=13"></script><script src="mill-results-v21.js?v=22"></script><script src="publication-results-v24.js?v=24"></script></body></html>
