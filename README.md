@@ -1,4 +1,4 @@
-# ITRSS Research Metrics Dashboard · v18
+# ITRSS Research Metrics Dashboard · v23
 
 **Live:** https://mukhsadr.github.io/itrss-dashboard-pages-demo/  
 **Source:** https://github.com/mukhsadr/itrss-dashboard-pages-demo
@@ -7,13 +7,13 @@
 
 The live **Mill users** tab loads **`data/PUBLIC_DATA.csv`** by default. It has 1,607 user-list records with the columns `User`, `Descr`, `Classficiation`, `Status`, `Advisor`. This is a **population / directory-like source, not evidence of Slurm compute usage**.
 
-The default chart now uses the **actual detailed `Descr` department and `Classficiation` academic-program values**, rather than collapsing degree programs to generic Undergraduate/Doctoral labels. Rare labels occurring fewer than five times in the source are grouped within each column. The `User` identifiers and advisor names are never sent into chart rows. This produces **26 department categories and 42 academic-program categories from the current file**, preserving all 1,607 source records. If the new source becomes unavailable, the dashboard falls back to the earlier `data/callie.csv` grouped dataset.
+The **Mill users** chart uses all original `Descr` department and `Classficiation` academic-program labels without suppression or minimum-count thresholds. The current file has **72 distinct departments, 82 academic programs, and 280 counted department/program/status/advisor-status combinations**, preserving **all 1,607 source records**, including 1-record categories. All four donut rings start at 12 o'clock and sort **clockwise largest-to-smallest by count**, with alphabetical tie-breaking. The collapsible results table shows all 280 combinations, also largest-first by default, and follows ring filters. The original `User` tokens and named `Advisor` values do not appear in the chart or results table; advisor information is limited to recorded versus not recorded. The default data fetch is `PUBLIC_DATA.csv` without silently reverting to `callie.csv`.
 
 **Privacy notice:** `PUBLIC_DATA.csv` itself remains available as a raw file in this public GitHub repository and contains row-level user identifiers and advisor labels. The browser transformation protects visualized categories but **does not make the original hosted CSV private**. Review whether the raw file is approved for public release; removing it from the default chart does not remove it from Git history. Avoid claiming these counts reflect actual active HPC usage without Slurm evidence.
 
 ## Live metrics: two ring charts + original Research Canvas
 
-- **Mill users** — privacy-grouped real counts from the original 1,607-user report. Four linked concentric rings. No individual user IDs or advisor names in the public export.
+- **Mill users** — all original category values preserved across four counted rings, plus 280 expandable results-table combinations. No individual user IDs or advisor names are displayed in the interface.
 - **Publications** — 247 original public bibliographic records, including 17 flagged duplicates (230 included by default). **Four linked rings:** Cluster, year, type, and a new outer author-priority ring. Titles, public links and bibliographic fields are available, but internal notes and evidence tracking were excluded.
 - **Graph / Research Canvas** — corrected to follow the actual local `research_canvas.py` design, **not a title-similarity graph**.
 
