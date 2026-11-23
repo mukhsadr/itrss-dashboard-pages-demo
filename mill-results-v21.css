@@ -1,0 +1,124 @@
+/* v21: Mill ring results table that follows ring selection.
+   Present mode keeps the chart clean; table is a separate optional section. */
+body.presentation-mode:not(.presentation-details) #millSourceStrip:not([data-source="error"]){
+  display:none!important;
+}
+#millResultsPanel{
+  display:block;
+  max-width:1320px;
+  margin:14px auto 22px;
+  border:1px solid #355470;
+  border-radius:16px;
+  background:#0e1f33;
+  overflow:hidden;
+  scroll-margin-top:80px;
+}
+#millResultsPanel>summary{
+  list-style:none;
+  display:flex;
+  justify-content:space-between;
+  align-items:center;
+  gap:12px;
+  cursor:pointer;
+  user-select:none;
+  padding:15px 20px;
+  background:#142b43;
+  color:#e2f4ff;
+  font:750 15px/1.4 system-ui;
+}
+#millResultsPanel>summary::-webkit-details-marker{display:none}
+#millResultsPanel>summary:hover,
+#millResultsPanel>summary:focus-visible{background:#1b3b58}
+#millResultsPanel>summary .millSummaryLeft{
+  display:flex;align-items:center;gap:10px;
+}
+#millResultsPanel>summary .millSummaryIcon{
+  display:inline-flex;align-items:center;justify-content:center;
+  width:27px;height:27px;border:1px solid #3c758e;border-radius:7px;
+  color:#b9eafb;background:#12384e;font-size:15px;
+}
+#millResultsPanel>summary .millSummaryRight{
+  font:650 12px system-ui;color:#9fc8da;display:flex;align-items:center;gap:7px;
+}
+#millResultsPanel>summary .millChevron{
+  display:inline-block;transform:rotate(0);transition:transform .14s;font-size:14px;
+}
+#millResultsPanel[open]>summary .millChevron{transform:rotate(180deg)}
+#millResultsPanel .millResultsBody{padding:15px 17px 18px}
+#millResultsPanel .millResultsLead{display:flex;flex-wrap:wrap;align-items:baseline;gap:10px;margin-bottom:13px}
+#millResultsPanel .millResultsLead h2{font:760 19px system-ui;color:#eefaff;margin:0}
+#millResultsPanel .millResultsLead p{font:12px/1.45 system-ui;color:#9fbfd1;margin:0}
+#millActiveFilters{display:flex;gap:6px;flex-wrap:wrap;margin:0 0 12px;align-items:center}
+.millFilterChip{
+  border:1px solid #41818e;background:#173e4c;color:#d2f8f7;
+  border-radius:8px;padding:6px 9px;font:650 11px/1.4 system-ui;
+}
+.millFilterNeutral{font:12px system-ui;color:#b3cbdf}
+.millTableBar{
+  display:flex;flex-wrap:wrap;align-items:end;gap:10px;margin-bottom:12px;
+}
+.millTableBar label{
+  display:grid;gap:5px;color:#a6c1d5;font:11px system-ui;flex:1 1 220px;
+}
+.millTableBar label:first-child{flex:2 1 320px}
+.millTableBar input,.millTableBar select{
+  height:38px;background:#0c1b2c;border:1px solid #42647e;border-radius:8px;
+  color:#f0f9ff;padding:7px 10px;min-width:0;font:12px system-ui;
+}
+#millResultsPanel button{
+  color:#d5eefe;background:#1b405b;border:1px solid #406983;
+  border-radius:9px;padding:9px 12px;font:650 11px system-ui;cursor:pointer;
+}
+#millResultsPanel button:hover,#millResultsPanel button:focus-visible{
+  background:#2a5a79;outline-color:#80d5ed;
+}
+#millResultsPanel .millTableScroll{
+  max-height:min(55vh,540px);overflow:auto;border:1px solid #304a63;
+  border-radius:11px;background:#0b1c2e;
+}
+#millResultsPanel table{
+  width:100%;border-collapse:separate;border-spacing:0;
+  font:12px/1.5 system-ui;text-align:left;min-width:880px;color:#d2e7f6;
+}
+#millResultsPanel th{
+  position:sticky;top:0;z-index:2;background:#18354f;
+  color:#b7d7ec;padding:12px 13px;border-bottom:1px solid #436584;
+  font:750 11px system-ui;white-space:nowrap;
+}
+#millResultsPanel td{
+  padding:10px 13px;border-bottom:1px solid #23384d;vertical-align:middle;
+}
+#millResultsPanel tbody tr:hover{background:#1b3952}
+#millResultsPanel .millNumeric{font-variant-numeric:tabular-nums;text-align:right;white-space:nowrap}
+#millResultsPanel th.millNumeric{text-align:right}
+#millResultsPanel td:last-child{white-space:nowrap;text-align:right}
+#millResultsPanel .millApplyRow{padding:6px 9px;border-radius:7px}
+#millResultsPanel .millGroupedNote{font-size:11px;color:#a2afbf;font-style:italic}
+#millResultsPanel .millPrivacyGroup{background:#202d3f}
+#millResultsPanel .millTableEmpty{text-align:center;color:#a9c6d8;padding:20px}
+#millResultsPanel .millTableFooter{
+  display:flex;align-items:center;flex-wrap:wrap;justify-content:space-between;
+  gap:9px;color:#aac8da;font:11px/1.5 system-ui;padding:12px 2px 3px;
+}
+#millResultsPanel .millPrivacyNote{
+  font:11px/1.55 system-ui;color:#8eadc0;margin:10px 1px 0;
+}
+#millResultsPanel .millResultsFooterActions{display:flex;flex-wrap:wrap;gap:8px}
+body.presentation-mode.presentation-papers #millResultsPanel,
+body.presentation-mode.presentation-graph #millResultsPanel{display:none!important}
+body.presentation-mode .presentationOnly #millResultsNav{display:inline-block}
+body.presentation-mode.presentation-papers #millResultsNav,
+body.presentation-mode.presentation-graph #millResultsNav{display:none!important}
+body.presentation-mode:not(.presentation-details) #millResultsPanel{
+  max-width:min(1250px,95vw);
+}
+body.presentation-mode:not(.presentation-details) #millResultsPanel:not([open]){
+  margin-top:10px;
+}
+@media(max-width:850px){
+ #millResultsPanel{margin:11px auto}
+ #millResultsPanel>summary{padding:13px 11px;font-size:13px}
+ #millResultsPanel .millResultsBody{padding:12px 10px}
+ #millResultsPanel .millSummaryRight{font-size:11px}
+ #millResultsPanel .millTableBar{gap:7px}
+}
