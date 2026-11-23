@@ -1,0 +1,120 @@
+{
+  "version": "2026-11-22-pilot-1",
+  "provenance": "Publisher pages and Missouri S&T Scholars' Mine entries checked in a small Firecrawl pilot; these are selected cases, not corpus-wide totals.",
+  "articles": [
+    {
+      "doi": "10.1103/physrevlett.125.165901",
+      "status": "abstract_only",
+      "facility": "",
+      "note": "Publisher abstract accessible; computing acknowledgment not independently verified.",
+      "url": "https://doi.org/10.1103/physrevlett.125.165901"
+    },
+    {
+      "doi": "10.1137/20m137344x",
+      "status": "workload_only",
+      "facility": "",
+      "note": "PIFE-PIC reports about one billion simulated particles, two million PIC cells and 154 wall-clock hours; named facility still needs confirmation in this paper.",
+      "url": "https://doi.org/10.1137/20m137344x"
+    },
+    {
+      "doi": "10.1038/s41567-021-01475-x",
+      "status": "funding_only",
+      "facility": "",
+      "note": "NSF OAC-1919789 acknowledged among funding grants; this does not prove direct cluster usage.",
+      "url": "https://doi.org/10.1038/s41567-021-01475-x"
+    },
+    {
+      "doi": "10.1007/s40571-022-00470-0",
+      "status": "institutional_computing",
+      "facility": "Missouri S&T HPC Center",
+      "note": "Repository and publisher acknowledge computing resources through OAC-1919789; lunar charging simulations include 150 million macroparticles and 324,000 cells.",
+      "url": "https://scholarsmine.mst.edu/math_stat_facwork/1107/"
+    },
+    {
+      "doi": "10.1038/s41598-024-51984-x",
+      "status": "funding_only",
+      "facility": "",
+      "note": "Computational part supported in part by NSF OAC-1919789; cluster not independently named.",
+      "url": "https://doi.org/10.1038/s41598-024-51984-x"
+    },
+    {
+      "doi": "10.1063/5.0246132",
+      "status": "institutional_computing",
+      "facility": "Missouri S&T Research Support Solutions",
+      "note": "Publisher acknowledges RSS and OAC-1919789 for computational facilities; not enough to verify separate Foundry and Mill usage.",
+      "url": "https://doi.org/10.1063/5.0246132"
+    },
+    {
+      "doi": "10.1063/5.0246364",
+      "status": "institutional_computing",
+      "facility": "Missouri S&T Research Support Solutions",
+      "note": "Acknowledgment credits RSS computing resources and OAC-1919789; the Mill DOI appears in references, not direct acknowledgment.",
+      "url": "https://doi.org/10.1063/5.0246364"
+    },
+    {
+      "doi": "10.1016/j.rse.2025.114922",
+      "status": "named_facilities",
+      "facility": "Mill; Foundry",
+      "note": "Publisher acknowledgment states data processing and simulations were run on both Mill and Foundry nodes; NASA 80NSSC22K0464 funding.",
+      "url": "https://doi.org/10.1016/j.rse.2025.114922"
+    },
+    {
+      "doi": "10.1103/wwbs-pftg",
+      "status": "abstract_only",
+      "facility": "",
+      "note": "Publisher abstract accessible; computing acknowledgment not independently retrieved.",
+      "url": "https://doi.org/10.1103/wwbs-pftg"
+    },
+    {
+      "doi": "10.1029/2025gl119670",
+      "status": "named_facilities",
+      "facility": "Mill",
+      "note": "Publisher acknowledgment explicitly credits Mill for Sentinel-1 InSAR processing and simulations; NASA 80NSSC22K0464 funding.",
+      "url": "https://doi.org/10.1029/2025gl119670"
+    },
+    {
+      "doi": "10.1128/msystems.00407-26",
+      "status": "attribution_conflict",
+      "facility": "Hellbender",
+      "note": "Publisher acknowledgment explicitly names Hellbender at University of Missouri, although it cites the Mill DOI; do not count as confirmed Mill use.",
+      "url": "https://doi.org/10.1128/msystems.00407-26"
+    },
+    {
+      "doi": "10.1038/s41598-026-73301-4",
+      "status": "named_facilities",
+      "facility": "Mill",
+      "note": "Publisher acknowledgment directly thanks Missouri S&T Mill HPC; NASA 80NSSC22K0464 funding.",
+      "url": "https://doi.org/10.1038/s41598-026-73301-4"
+    },
+    {
+      "doi": "10.48550/arxiv.2604.17617",
+      "status": "companion_dataset",
+      "facility": "Mill; MU computing",
+      "note": "Companion Scholars' Mine dataset explicitly documents Mill simulations; full article acknowledgment not yet extracted.",
+      "url": "https://scholarsmine.mst.edu/research_data/19/"
+    },
+    {
+      "doi": "10.48550/arxiv.2609.31583",
+      "status": "companion_dataset",
+      "facility": "Mill; Hellbender",
+      "note": "Companion university dataset documents 2D MESTI and 3D modified-Born simulations on both clusters.",
+      "url": "https://scholarsmine.mst.edu/research_data/20/"
+    }
+  ],
+  "datasets": [
+    {
+      "match": "research_data/19",
+      "status": "named_facilities",
+      "facility": "Mill; MU computing",
+      "note": "OSCAR companion data provides Python scripts, approximately 960 MB 3D data and ~7 GB RAM demonstration; Mill named for numerical simulations.",
+      "url": "https://scholarsmine.mst.edu/research_data/19/"
+    },
+    {
+      "match": "research_data/20",
+      "status": "named_facilities",
+      "facility": "Mill; Hellbender",
+      "note": "Coherent-wave tomography companion data credits 2D MESTI and 3D modified Born series on Mill and Hellbender.",
+      "url": "https://scholarsmine.mst.edu/research_data/20/"
+    }
+  ]
+}
