@@ -55,7 +55,7 @@ card.append(title,meta);const privateEvidence=String(r['Evidence sources']??'').
 function render(){const base=getBase(),current=filtered(),chart=$('paperChart'),legend=$('paperLegend');chart.replaceChildren();legend.replaceChildren();$('paperCount').textContent=base.length.toLocaleString();$('paperVisible').textContent=current.length.toLocaleString();$('paperCenter').textContent=current.length.toLocaleString();$('paperShare').textContent=pct(current.length,base.length)+' of included records';$('paperSelection').textContent=chosen.some(Boolean)?chosen.map((f,i)=>f?dims[i]+': '+f:null).filter(Boolean).join('  /  '):'All publications · click a segment to filter all rings';
 for(let i=0;i<3;i++){const ri=[110,171,232][i],ro=ri+50,items=totals(current,dims[i]),n=current.length;let angle=-Math.PI/2;const group=document.createElement('div');group.className='legendGroup';const head=document.createElement('div');head.className='legendTitle';head.textContent=`RING ${i+1} · ${dims[i]}`;group.append(head);
 for(let j=0;j<items.length;j++){const item=items[j],sw=item.n/n*Math.PI*2,end=angle+sw,color=colors[i][j%colors[i].length];if(sw>0){const p=el('path',{d:arc(ri,ro,angle,end),fill:color,class:'arc',tabindex:0,role:'button'});const title=el('title');title.textContent=`${dims[i]} · ${item.name}: ${item.n} (${pct(item.n,n)})`;p.append(title);p.addEventListener('click',()=>select(i,item.name));p.addEventListener('keydown',ev=>{if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();select(i,item.name)}});chart.append(p)}angle=end;
-const btn=document.createElement('button');btn.className='legendRow';const swatch=document.createElement('span');swatch.className='swatch';swatch.style.background=color;const label=document.createElement('span');label.className='name';label.textContent=item.name;const value=document.createElement('span');value.className='pct';value.textContent=item.n+' · '+pct(item.n,n);btn.append(swatch,label,value);btn.onclick=()=>select(i,item.name);group.append(btn)}legend.append(group)}renderRecords(current)}
+const btn=document.createElement('button');btn.className='legendRow';const swatch=document.createElement('span');swatch.className='swatch';swatch.style.background=color;const label=document.createElement('span');label.className='name';label.textContent=item.name;const value=document.createElement('span');value.className='pct';value.textContent=item.n+' · '+pct(item.n,n);btn.append(swatch,label,value);btn.onclick=()=>select(i,item.name);group.append(btn)}legend.append(group)}renderRecords(current);window.dispatchEvent(new CustomEvent('dashboard:paper-rendered',{detail:{rows:current,all:base,dims:[...dims],filters:[...chosen]}}))}
 function select(i,name){chosen[i]=chosen[i]===name?null:name;render()}
 
 function initializePublications(data,source){
@@ -77,6 +77,7 @@ function initializePublications(data,source){
   controlSetup();
   $('papersSection').classList.remove('publication-awaiting');
   $('paperLoaded').textContent=rows.length.toLocaleString()+' source records · '+cols.length+' columns · '+source;
+  window.dispatchEvent(new CustomEvent('dashboard:paper-dataset-loaded',{detail:{source,records:rows.length}}));
   render();
 }
 async function load(){
