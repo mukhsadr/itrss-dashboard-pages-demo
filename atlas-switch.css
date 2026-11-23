@@ -1,0 +1,27 @@
+/* v11: switch between Mill population rings, publication rings, and MRI relationships. */
+#atlasEmbedSection{display:none}
+body.presentation-mode.presentation-atlas .shell>main.main,
+body.presentation-mode.presentation-atlas #papersSection,
+body.presentation-mode.presentation-atlas #graphSection,
+body.presentation-mode.presentation-atlas .shell>header,
+body.presentation-mode.presentation-atlas .shell>.summary,
+body.presentation-mode.presentation-atlas .shell>footer{display:none!important}
+body.presentation-mode.presentation-atlas #atlasEmbedSection{display:block!important;max-width:1580px;margin:0 auto;padding:0 8px 16px}
+#atlasLiveFrame{display:block;width:100%;height:calc(100vh - 106px);min-height:700px;border:1px solid #2f4e63;border-radius:16px;background:#0c1c2d}
+.presentationToolbar #presentationAtlas.active{background:#43c9bd;color:#0b2734;border-color:#75eee1}
+.ringVis{display:flex;align-items:center;gap:5px;flex-wrap:wrap;border:1px solid #345573;border-radius:9px;padding:3px 6px}
+.ringVis span{font-size:10px;color:#abc4dc;white-space:nowrap;margin:0 2px}
+.presentationToolbar .ringVis button{font-size:10px;padding:6px 8px;border-radius:7px;min-width:24px}
+.presentationToolbar .ringVis button[aria-pressed="false"]{background:#112438;color:#738eaa;text-decoration:line-through;border-color:#2b4156}
+body.presentation-mode.presentation-atlas .ringVis,
+body.presentation-mode.presentation-graph .ringVis{display:none}
+body.presentation-mode.presentation-atlas #presentationFile{display:none}
+body.hide-user-ring-0 #chart [data-ring="0"],
+body.hide-user-ring-1 #chart [data-ring="1"],
+body.hide-user-ring-2 #chart [data-ring="2"],
+body.hide-user-ring-3 #chart [data-ring="3"]{display:none!important}
+body.hide-paper-ring-0 #paperChart .arc[data-ring="0"],
+body.hide-paper-ring-1 #paperChart .arc[data-ring="1"],
+body.hide-paper-ring-2 #paperChart .arc[data-ring="2"],
+body.hide-paper-ring-3 #paperChart .authorArc{display:none!important}
+@media(max-width:700px){#atlasLiveFrame{min-height:630px;height:calc(100vh - 165px)}.ringVis{margin-top:3px}}
