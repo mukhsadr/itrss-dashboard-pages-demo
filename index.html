@@ -1,5 +1,5 @@
-<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>ITRSS Research Metrics · v6</title><link rel="stylesheet" href="styles.css?v=1795367000"><link rel="stylesheet" href="papers.css?v=1795367000"><link rel="stylesheet" href="presentation.css?v=6"><link rel="stylesheet" href="graph.css?v=9"></head><body class="presentation-mode"><div id="publicBanner" style="position:sticky;top:0;z-index:9999;background:#6937b9;color:white;text-align:center;padding:12px;font:600 15px system-ui">PUBLIC METRICS · 1,607 GROUPED MILL RECORDS · 247 PUBLICATION ENTRIES · INTERNAL NOTES EXCLUDED</div><nav id="presentationToolbar" class="presentationToolbar" aria-label="Dashboard display controls">
-  <span class="presentationBrand">ITRSS <strong>Research Metrics</strong> · v9</span>
+<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>ITRSS Research Metrics · v6</title><link rel="stylesheet" href="styles.css?v=1795367000"><link rel="stylesheet" href="papers.css?v=1795367000"><link rel="stylesheet" href="author-ring.css?v=10"><link rel="stylesheet" href="presentation.css?v=6"><link rel="stylesheet" href="graph.css?v=9"></head><body class="presentation-mode"><div id="publicBanner" style="position:sticky;top:0;z-index:9999;background:#6937b9;color:white;text-align:center;padding:12px;font:600 15px system-ui">PUBLIC METRICS · 1,607 GROUPED MILL RECORDS · 247 PUBLICATION ENTRIES · INTERNAL NOTES EXCLUDED</div><nav id="presentationToolbar" class="presentationToolbar" aria-label="Dashboard display controls">
+  <span class="presentationBrand">ITRSS <strong>Research Metrics</strong> · v10</span>
   <div class="presentationActions">
     <span class="presentationModes"><button id="presentationToggle" type="button" class="active" aria-pressed="true">Present</button><button id="presentationDetails" type="button" aria-pressed="false">Edit</button></span>
     <div class="presentationOnly">
@@ -23,10 +23,27 @@
 </div>
   <div class="paperHeading"><div><div class="eyebrow">RESEARCH OUTPUTS • FOUNDRY & MILL</div><h2>Publication explorer</h2><p>Cluster acknowledgments, publications, years and venues</p></div><div class="pill">Public bibliography · 247 records</div></div>
   <section class="summary paperMetrics"><div><small>INCLUDED RECORDS</small><strong id="paperCount">—</strong><span>Duplicates excluded by default</span></div><div><small>VISIBLE AFTER FILTERS</small><strong id="paperVisible">—</strong><span id="paperShare">No filters</span></div><div><small>SOURCE</small><strong style="font-size:19px">Foundry / Mill</strong><span id="paperLoaded">Loading workbook…</span></div></section>
-  <div class="main"><section class="visual"><div class="sectionHead"><div><h2>Publication composition</h2><p>Three independent rings • click to filter</p></div><button id="paperClear" class="subtle">Reset selection</button></div>
+  <div class="main"><section class="visual"><div class="sectionHead"><div><h2>Publication composition</h2><p>Four linked dimensions · click outer author ring to explore collaborations</p></div><button id="paperClear" class="subtle">Reset selection</button></div>
   <div class="controlGrid paperControls"><label>Inner ring<select id="paperLayer0"></select></label><label>Middle ring<select id="paperLayer1"></select></label><label>Outer ring<select id="paperLayer2"></select></label><label>Slice order<select id="paperSort"><option value="desc">Largest first</option><option value="asc">Smallest first</option><option value="alpha">A → Z</option></select></label></div>
+  <div class="paperAuthorAnchorControl">
+    <label for="paperAuthorAnchor"><strong>Fourth ring · author priority</strong> <select id="paperAuthorAnchor"><option value="">All credited authors</option></select></label>
+    <span id="paperAuthorAnchorNote">Ranked clockwise by credited publications. True coauthor rankings require OpenAlex authorship IDs.</span>
+  </div>
   <div class="paperToggle"><input id="paperDup" type="checkbox"><label for="paperDup">Include records flagged as duplicates</label></div>
-  <div class="chartWrap paperWrap"><svg id="paperChart" viewBox="0 0 680 680" role="img" aria-label="Publication distributions by cluster, year and type"></svg><div class="chartCenter"><div class="mini">PUBLICATION RECORDS</div><strong id="paperCenter">—</strong><div>in focus</div></div></div><div class="ringsCaption">Cluster · Year · Publication type</div></section>
+  <div class="chartWrap paperWrap">
+    <button type="button" id="paperAuthorBack" hidden aria-label="Back to all publication rings">← All publication rings</button>
+    <div class="paperAuthorFocusOverlay" id="paperAuthorFocusOverlay" aria-live="polite">
+      <span class="paperAuthorFocusKicker">AUTHOR RESEARCH</span>
+      <strong id="paperAuthorFocusName"></strong>
+      <span id="paperAuthorFocusCount"></span>
+    </div>
+    <svg id="paperChart" viewBox="0 0 680 680" role="img" aria-label="Publication distributions by cluster, year and type"></svg><div class="chartCenter"><div class="mini">PUBLICATION RECORDS</div><strong id="paperCenter">—</strong><div>in focus</div></div></div><div class="paperAuthorChooser" id="paperAuthorChooser" hidden>
+    <label for="paperAuthorQuickSelect">Explore another author</label>
+    <select id="paperAuthorQuickSelect"></select>
+    <button id="paperAuthorQuickGo" type="button">View author</button>
+  </div>
+  <div id="paperAuthorStatus" class="paperAuthorStatus" role="status" aria-live="polite">Fourth ring · author credits · high to low clockwise</div>
+  <div class="ringsCaption">Cluster · Year · Publication type · Authors</div></section>
   <aside class="side"><div class="sideHead"><h2>Explore publications</h2><p>Choose any segment to filter all three rings.</p></div><div id="paperSelection" class="selection">Showing all</div><div id="paperLegend" class="legend paperLegend"></div><div class="dataFoot"><span>Public bibliography · optional local replacement</span><button id="paperReload" class="subtle">Choose another JSON</button></div></aside></div>
   <div class="paperList"><h2>Matching publication records</h2><p id="paperRecordCount">Waiting for data</p><div id="paperRecords"></div><p class="paperNote">Public bibliographic metadata only. Internal research notes and evidence-tracking fields have been excluded. Acknowledgments are not proof of direct cluster usage. Duplicates are excluded by default.</p></div>
 </section>
@@ -100,4 +117,4 @@
   </div>
   <p id="graphInfo" role="status" aria-live="polite"></p>
 </section>
-<footer><span>Public interface · Original data exports require disclosure review</span><a href="mri/" style="display:inline-block;background:#48d5c6;color:#071b23;border-radius:10px;padding:10px 16px;text-decoration:none;font-weight:800">Open MRI Research Graph ↗</a><span>Missing values shown as “Not specified”</span></footer></div><script src="app.js?v=5"></script><script src="papers.js?v=7"></script><script src="presentation.js?v=9"></script><script src="graph.js?v=9"></script></body></html>
+<footer><span>Public interface · Original data exports require disclosure review</span><a href="mri/" style="display:inline-block;background:#48d5c6;color:#071b23;border-radius:10px;padding:10px 16px;text-decoration:none;font-weight:800">Open MRI Research Graph ↗</a><span>Missing values shown as “Not specified”</span></footer></div><script src="app.js?v=5"></script><script src="papers.js?v=10"></script><script src="author-ring.js?v=10"></script><script src="presentation.js?v=9"></script><script src="graph.js?v=10"></script></body></html>
