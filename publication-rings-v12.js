@@ -18,7 +18,11 @@ const norm=s=>String(s||'').toLowerCase().replace(/[^a-z0-9]+/g,' ').trim();
 const C=500,TWO=Math.PI*2,point=(r,a)=>[C+r*Math.cos(a),C+r*Math.sin(a)];
 const ra=(r1,r2,a,b)=>{const a1=point(r2,a),a2=point(r2,b),b2=point(r1,b),b1=point(r1,a);return 'M'+a1+' A'+r2+' '+r2+' 0 '+(b-a>Math.PI?1:0)+' 1 '+a2+' L'+b2+' A'+r1+' '+r1+' 0 '+(b-a>Math.PI?1:0)+' 0 '+b1+' Z'};
 function curve(pts){let x='M'+pts[0].join(' ');for(let i=0;i<pts.length-1;i++){const a=pts[Math.max(0,i-1)],b=pts[i],c=pts[i+1],d=pts[Math.min(pts.length-1,i+2)];x+=' C'+(b[0]+(c[0]-a[0])*.18)+' '+(b[1]+(c[1]-a[1])*.18)+','+(c[0]-(d[0]-b[0])*.18)+' '+(c[1]-(d[1]-b[1])*.18)+','+c.join(' ')}return x}
-let atlas=null,pilot=null,sourceRows=[],metadata=new Map(),allPapers=[],papers=[],displayEdges=[],selected=null,focusTheme='',mode='title_terms',rankedPapers=[],rankScores=new Map();
+let atlas=null,pilot=null,sourceRows=[],metadata=new Map(),allPapers=[],papers=[],displayEdges=[],selected=null,focusTheme='',mode='title_terms',rankedPapers=[],rankScores=new Map(),ringFilters=[null,null,null];
+function announceSelection(){window.dispatchEvent(new CustomEvent('dashboard:publication-selection',{detail:{id:selected}}))}
+function announceResults(){window.dispatchEvent(new CustomEvent('dashboard:publication-results',{detail:{rows:papers.map(w=>({id:w.id,title:w.title,year:w.year,resource:facility(w),type:w.type,theme:w.theme,doi:w.doi,url:w.url,venue:w.venue,authors:w.authorsListed,connections:displayEdges.filter(e=>e.s===w.id||e.t===w.id).length,evidence:supporting(w)?.status||'not_reviewed'})),allCount:allPapers.length,selectedId:selected,filter:{search:$('prSearch').value,facility:ringFilters[0],year:ringFilters[1],type:ringFilters[2],theme:focusTheme},themes:atlas.themes.slice(),relations:displayEdges.length}}))}
+function selectRing(i,category){if(i===3)focusTheme=focusTheme===category?'':category;else ringFilters[i]=ringFilters[i]===category?null:category;selected=null;go()}
+
 const body=document.body;
 function openPanel(box){body.classList.add('pr-detail-open');const b=tx('button','×',box,'prClose');b.type='button';b.title='Close detail panel';b.setAttribute('aria-label','Close publication details');b.onclick=()=>showDetail(null);}
 function hoverLabel(node,label){const tip=$('prHover'),chart=SVG.closest('.prChart');if(!tip||!chart)return;const move=ev=>{const r=chart.getBoundingClientRect();tip.style.left=Math.min(Math.max(ev.clientX-r.left+14,10),Math.max(10,r.width-350))+'px';tip.style.top=Math.min(Math.max(ev.clientY-r.top+12,10),Math.max(10,r.height-85))+'px';};node.addEventListener('pointerenter',ev=>{tip.textContent=label;tip.hidden=false;move(ev)});node.addEventListener('pointermove',move);node.addEventListener('pointerleave',()=>{tip.hidden=true});node.addEventListener('click',()=>{tip.hidden=true});}
@@ -33,7 +37,7 @@ function strengthTier(link){return link.types.includes('author')?'author':link.t
 function strengthText(link){if(link.types.includes('author'))return 'Shared OpenAlex author';if(link.types.includes('venue')&&!link.types.includes('title_terms'))return 'Same journal (not strength-ranked)';return (link.tier==='high'?'Higher':link.tier==='medium'?'Moderate':'Lower')+' title overlap · similarity '+Number(link.score||0).toFixed(1)}
 function showDetail(w){
  selected=w?.id??null;const box=$('prDetails');box.replaceChildren();
- if(!w){body.classList.remove('pr-detail-open');tx('h3','Most connected research papers',box);tx('p','Clockwise order begins with the strongest connected papers within each research theme. Click a title to highlight its links.',box);const list=tx('ol',null,box,'prRankedList');for(const item of rankedPapers.slice(0,8)){const li=tx('li',null,list),b=tx('button',item.w.title,li);b.onclick=()=>showDetail(item.w);tx('small',item.count+' displayed connections · '+item.w.theme,li)}tx('p','Rankings come from the selected title/journal overlap network—not citation impact, usage, or verified research importance.',box,'prHint');mark();return}
+ if(!w){body.classList.remove('pr-detail-open');tx('h3','Most connected research papers',box);tx('p','Clockwise order begins with the strongest connected papers within each research theme. Click a title to highlight its links.',box);const list=tx('ol',null,box,'prRankedList');for(const item of rankedPapers.slice(0,8)){const li=tx('li',null,list),b=tx('button',item.w.title,li);b.onclick=()=>showDetail(item.w);tx('small',item.count+' displayed connections · '+item.w.theme,li)}tx('p','Rankings come from the selected title/journal overlap network—not citation impact, usage, or verified research importance.',box,'prHint');mark();announceSelection();return}
  openPanel(box);
  tx('h3',w.title,box);tx('span',w.theme,box,'prChip');tx('span',w.year+' · '+facility(w),box,'prChip');
  tx('p','Authors: '+authorNames(w).join('; '),box);tx('p','Venue: '+(w.venue||'Not supplied'),box);
@@ -43,10 +47,10 @@ function showDetail(w){
  else tx('p','No full-text computing acknowledgement reviewed for this publication yet.',box,'prHint');
  const links=displayEdges.filter(x=>x.s===w.id||x.t===w.id);tx('h4','Related works ('+links.length+')',box);const ul=tx('ul',null,box);
  for(const e of links.slice(0,10)){const other=papers.find(p=>p.id===(e.s===w.id?e.t:e.s));if(!other)continue;const li=tx('li',null,ul);const b=tx('button',other.title,li);b.onclick=()=>showDetail(other);const detail=strengthText(e)+(Array.isArray(e.words)&&e.words.length?' · Shared terms: '+e.words.slice(0,4).join(', '):'');tx('small',detail,li,'prRelationExplain')}
- mark();
+ mark();announceSelection();
 }
 function showConnection(link,a,b){
- selected=null;const box=$('prDetails');box.replaceChildren();openPanel(box);
+ selected=null;const box=$('prDetails');box.replaceChildren();openPanel(box);announceSelection();
  tx('h3','Why these papers connect',box);
  tx('span',relationKind(link),box,'prChip');
  tx('span',strengthText(link),box,'prChip');
@@ -77,7 +81,7 @@ function go(){
  const idDOI=new Set(sourceRows.map(r=>clean(r.DOI)).filter(Boolean)),idTitles=new Set(sourceRows.map(r=>norm(r.Title)));
  allPapers=atlas.works.filter(w=>idDOI.has(clean(w.doi))||idTitles.has(norm(w.title)));
  const search=$('prSearch').value.toLowerCase().trim();
- papers=allPapers.filter(w=>(!focusTheme||w.theme===focusTheme)&&(!search||[w.title,w.venue,w.doi,w.authorsListed,...authorNames(w)].some(x=>String(x||'').toLowerCase().includes(search))));
+ papers=allPapers.filter(w=>(!focusTheme||w.theme===focusTheme)&&(ringFilters[0]===null||facility(w)===ringFilters[0])&&(ringFilters[1]===null||String(w.year)===ringFilters[1])&&(ringFilters[2]===null||w.type===ringFilters[2])&&(!search||[w.title,w.venue,w.doi,w.authorsListed,...authorNames(w)].some(x=>String(x||'').toLowerCase().includes(search))));
  papers.sort((a,b)=>atlas.themes.indexOf(a.theme)-atlas.themes.indexOf(b.theme)||a.year-b.year||a.title.localeCompare(b.title));
  const ids=new Set(papers.map(w=>w.id)),byID=new Map(papers.map(w=>[w.id,w]));
  let candidates=atlas.links.filter(e=>ids.has(e.s)&&ids.has(e.t)).map(e=>({...e,types:[...e.types]}));
@@ -110,34 +114,34 @@ function go(){
  const n=papers.length;
  $('prStats').replaceChildren();
  for(const [name,val] of [['Works',n],['Journal papers',papers.filter(w=>w.type==='Journal article').length],['Research groups',new Set(papers.map(w=>w.theme)).size],['Displayed relations',displayEdges.length],['Source evidence',papers.filter(w=>supporting(w)).length]]){const t=tx('span',null,$('prStats'));tx('strong',val,t);tx('small',name,t)}
- if(!n){$('prCaption').textContent='No papers match this selection';showDetail(null);return}
+ if(!n){$('prCaption').textContent='No papers match this selection';showDetail(null);announceResults();return}
  const angles=new Map(),themes=new Map();let j=0;
  for(const group of atlas.themes){const a=papers.filter(w=>w.theme===group);if(!a.length)continue;const first=-Math.PI/2+j/n*TWO,last=-Math.PI/2+(j+a.length)/n*TWO;themes.set(group,{from:first,to:last,mid:(first+last)/2,total:a.length});a.forEach((w,k)=>angles.set(w.id,-Math.PI/2+(j+k+.5)/n*TWO));j+=a.length}
  const lGroup=el('g'),rings=el('g'),nodes=el('g');SVG.append(lGroup,rings,nodes);
  for(const e of displayEdges){const a=byID.get(e.s),b=byID.get(e.t),aa=angles.get(e.s),bb=angles.get(e.t),ha=themes.get(a.theme).mid,hb=themes.get(b.theme).mid;
   const path=el('path',{d:curve([point(296,aa),point(220,aa),point(147,ha),point(47,ha),point(47,hb),point(147,hb),point(220,bb),point(296,bb)]),class:'prCurve tier-'+strengthTier(e)+(e.types.includes('author')?' author':''),'data-s':e.s,'data-t':e.t});
-  path.append(el('title',{},strengthText(e)+(Array.isArray(e.words)&&e.words.length?' · '+e.words.slice(0,5).join(', '):'')+' · Click to inspect this relationship'));path.setAttribute('role','button');path.setAttribute('tabindex','0');path.setAttribute('aria-label',a.title+' linked with '+b.title+': '+strengthText(e));path.onclick=()=>showConnection(e,a,b);path.onkeydown=ev=>{if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();showConnection(e,a,b)}};hoverLabel(path,strengthText(e)+' · '+a.title+' ↔ '+b.title);lGroup.append(path);
+  path.setAttribute('role','button');path.setAttribute('tabindex','0');path.setAttribute('aria-label',a.title+' linked with '+b.title+': '+strengthText(e));path.onclick=()=>showConnection(e,a,b);path.onkeydown=ev=>{if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();showConnection(e,a,b)}};hoverLabel(path,strengthText(e)+' · '+a.title+' ↔ '+b.title);lGroup.append(path);
  }
  const radii=[[304,318],[325,339],[345,359],[366,380]];
  for(let i=0;i<4;i++){const layer=el('g',{'data-pr-ring':i});rings.append(layer);
   for(const w of papers){const a=angles.get(w.id);const x=el('path',{d:ra(radii[i][0],radii[i][1],a-TWO/(n*2)+.0005,a+TWO/(n*2)-.0005),fill:bandColor(w,i),class:'prSegment',role:'button',tabindex:0});
-   x.append(el('title',{},field(w,i)+' · '+w.title));x.onclick=()=>showDetail(w);hoverLabel(x,field(w,i)+' · '+w.title);layer.append(x)}
+   x.onclick=()=>selectRing(i,field(w,i));hoverLabel(x,'Filter '+['Resource','Year','Output type','Research theme'][i]+': '+field(w,i)+' · '+w.title);layer.append(x)}
  }
  for(const [name,group] of themes){const arc=el('path',{d:ra(385,397,group.from+.002,group.to-.002),fill:color[atlas.themes.indexOf(name)%color.length],class:'prTheme'});
-  arc.append(el('title',{},name+' · '+group.total+' papers'));arc.onclick=()=>{focusTheme=focusTheme===name?'':name;selected=null;go()};hoverLabel(arc,name+' · '+group.total+' publications');rings.append(arc);
+  arc.onclick=()=>selectRing(3,name);hoverLabel(arc,name+' · '+group.total+' publications · Click to filter');rings.append(arc);
   // Label wider scientific communities on their own arcs. Keep smaller ones hover-only.
   const room=(group.to-group.from)*390;
   if(room>120&&group.total>=12){
    const a=group.mid,p=point(389,a),baseDeg=a*180/Math.PI+90;
    const flip=baseDeg>90&&baseDeg<270,rotation=baseDeg+(flip?180:0);
    const label=el('text',{x:p[0],y:p[1],transform:'rotate('+rotation+' '+p[0]+' '+p[1]+')','text-anchor':'middle',class:'prGroupLabel'},name.length>22?name.slice(0,20)+'…':name);
-   label.append(el('title',{},name+' · '+group.total+' publications'));label.onclick=()=>{focusTheme=focusTheme===name?'':name;selected=null;go()};rings.append(label);
+   label.onclick=()=>selectRing(3,name);hoverLabel(label,name+' · '+group.total+' publications · Click to filter');rings.append(label);
   }
  }
  for(const w of papers){const a=angles.get(w.id),p=point(298,a),q=point(413,a),right=Math.cos(a)>0,angle=a*180/Math.PI;
   const leaf=el('g',{class:'prLeaf','data-id':w.id,role:'button',tabindex:0,'aria-label':w.title});
   leaf.append(el('circle',{cx:p[0],cy:p[1],r:n>100?3.6:5.5,fill:color[atlas.themes.indexOf(w.theme)%color.length]}));
-  const title=el('text',{x:q[0],y:q[1],transform:'rotate('+(right?angle:angle+180)+' '+q[0]+' '+q[1]+')','text-anchor':right?'start':'end'},w.title.length>21?w.title.slice(0,19)+'…':w.title);leaf.append(title);leaf.append(el('title',{},w.title));
+  const title=el('text',{x:q[0],y:q[1],transform:'rotate('+(right?angle:angle+180)+' '+q[0]+' '+q[1]+')','text-anchor':right?'start':'end'},w.title.length>21?w.title.slice(0,19)+'…':w.title);leaf.append(title);
   leaf.onclick=()=>showDetail(w);leaf.onkeydown=event=>{if(event.key==='Enter'||event.key===' '){event.preventDefault();showDetail(w)}};hoverLabel(leaf,w.title+' · '+w.year+' · '+w.theme);nodes.append(leaf)
  }
  // Rank badges are intentionally sparse to prevent labels from colliding at 230 papers.
@@ -149,15 +153,15 @@ function go(){
   const p=point(277,angle),badge=el('g',{class:'prRankBadge',role:'button',tabindex:0,'aria-label':'Connected paper rank '+(i+1)+': '+item.w.title});
   badge.append(el('circle',{cx:p[0],cy:p[1],r:13,fill:'#0d3144',stroke:'#7ce2ca','stroke-width':2}));
   badge.append(el('text',{x:p[0],y:p[1]+4.2,'text-anchor':'middle'},String(rankBadgeNumber)));
-  badge.append(el('title',{},'Rank '+(i+1)+' · '+item.count+' displayed links · '+item.w.title));
+  // Single custom hover label only; native SVG title would duplicate it.
   badge.onclick=()=>showDetail(item.w);badge.onkeydown=ev=>{if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();showDetail(item.w)}};hoverLabel(badge,'Top connected '+rankBadgeNumber+': '+item.w.title+' · '+item.count+' displayed links');rankLabels.append(badge);
  }
  $('prCaption').textContent=n+' publications · '+displayEdges.length+' '+(mode==='author'?'OpenAlex author':'candidate title/venue')+' relations · strongest first clockwise within research groups';
  if(selected!=null&&byID.has(selected))showDetail(byID.get(selected));else{selected=null;showDetail(null)}
- mark();
+ mark();announceResults();
 }
 for(const id of ['prSearch','prRelation','prLimit','prSort'])$(id).addEventListener(id==='prSearch'?'input':'change',()=>{selected=null;go()});
-$('prReset').onclick=()=>{focusTheme='';selected=null;$('prSearch').value='';$('prRelation').value='title_terms';$('prLimit').value='120';$('prSort').value='strength';go()};
+$('prReset').onclick=()=>{focusTheme='';ringFilters=[null,null,null];selected=null;$('prSearch').value='';$('prRelation').value='title_terms';$('prLimit').value='120';$('prSort').value='strength';go()};
 $('prMetadata').onclick=()=>$('prMetadataFile').click();
 $('prMetadataFile').onchange=async event=>{
  const file=event.target.files?.[0];if(!file)return;
@@ -167,6 +171,23 @@ $('prMetadataFile').onchange=async event=>{
   $('prCaption').textContent='Loaded '+rows.length+' OpenAlex rows locally · original bibliography remains public · author links are not uploaded';
  }catch(err){$('prCaption').textContent='Metadata file could not be loaded: '+err.message}
 };
+window.addEventListener('dashboard:publication-filter-request',ev=>{
+ const f=ev.detail||{},fields=f.filter||{};
+ if(Object.prototype.hasOwnProperty.call(fields,'search'))$('prSearch').value=fields.search||'';
+ if(Object.prototype.hasOwnProperty.call(fields,'facility'))ringFilters[0]=fields.facility||null;
+ if(Object.prototype.hasOwnProperty.call(fields,'year'))ringFilters[1]=fields.year?String(fields.year):null;
+ if(Object.prototype.hasOwnProperty.call(fields,'type'))ringFilters[2]=fields.type||null;
+ if(Object.prototype.hasOwnProperty.call(fields,'theme'))focusTheme=fields.theme||'';
+ selected=null;go();
+});
+window.addEventListener('dashboard:publication-focus-request',ev=>{
+ const id=Number(ev.detail?.id);
+ const w=papers.find(x=>x.id===id);
+ if(w){showDetail(w);$('prSvg').scrollIntoView({behavior:'smooth',block:'center'})}
+});
+window.addEventListener('dashboard:publication-reset-request',()=>{
+ $('prReset').click();
+});
 window.addEventListener('dashboard:paper-rendered',ev=>{sourceRows=ev.detail.rows||[];go()});
 Promise.all([
  fetch('data/publication_atlas_public.json',{cache:'no-store'}).then(r=>r.ok?r.json():Promise.reject(Error('No atlas data'))),
