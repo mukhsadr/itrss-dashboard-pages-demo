@@ -1,0 +1,196 @@
+<!doctype html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>MRI Research Evidence Graph · ITRSS</title>
+<style>
+:root{color-scheme:dark;--bg:#081321;--card:#111f32;--card2:#14263b;--line:#2a4055;--text:#eaf3fa;--muted:#9cb0c2;--teal:#44d8c4;--blue:#77a9ff;--orange:#f4ad65;--rose:#f08ca6}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 80% 0,#17334b 0,transparent 40%),var(--bg);color:var(--text);font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,sans-serif;line-height:1.5}
+a{color:#8fd9fc}button,select,input{font:inherit}button,select,input{color:var(--text)}button{cursor:pointer}button:focus-visible,a:focus-visible,input:focus-visible,select:focus-visible{outline:3px solid var(--teal);outline-offset:2px}
+.wrap{max-width:1470px;margin:auto;padding:24px 30px 65px}
+.top{display:flex;align-items:center;justify-content:space-between;gap:12px;flex-wrap:wrap;color:var(--muted);font-size:13px}
+.top strong{color:var(--teal);letter-spacing:.12em}.top a{text-decoration:none;border:1px solid var(--line);padding:7px 12px;border-radius:9px}
+.hero{padding:30px 0 20px;display:flex;align-items:end;justify-content:space-between;gap:22px;flex-wrap:wrap}
+.eyebrow{font-size:11px;color:var(--teal);font-weight:800;letter-spacing:.17em;text-transform:uppercase}h1{font-size:clamp(28px,4vw,49px);line-height:1.15;letter-spacing:-.035em;margin:8px 0 12px}h2{margin:0;font-size:19px;letter-spacing:-.02em}h3{margin:8px 0;font-size:15px}
+.hero p{color:var(--muted);margin:0;max-width:760px}.status{border:1px solid #377f76;color:#a8f4de;background:#0e342f;border-radius:22px;padding:7px 13px;font-size:12px}
+.kpis{display:grid;grid-template-columns:repeat(5,minmax(0,1fr));gap:11px;margin:22px 0}
+.kpi,.card{border:1px solid var(--line);background:linear-gradient(160deg,var(--card),#0d1a2b);border-radius:17px}
+.kpi{padding:16px}.kpi small{font-size:11px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:.05em}.kpi b{display:block;font-size:30px;line-height:1.25;margin:8px 0 3px;font-variant-numeric:tabular-nums}.kpi span{font-size:11px;color:var(--muted)}
+.card{padding:18px}.muted{color:var(--muted)}.filters{display:flex;gap:11px;align-items:end;flex-wrap:wrap;margin:0 0 17px}.filters label{color:var(--muted);font-size:11px;display:grid;gap:5px;min-width:130px;flex:1}.filters label.search{flex:2.5;min-width:195px}
+select,input{background:#0a1727;border:1px solid #36506a;border-radius:9px;padding:10px 11px;max-width:100%;min-height:42px}
+.actions{display:flex;align-items:center;gap:7px;flex-wrap:wrap}.btn{background:#1a344a;border:1px solid #3b5975;border-radius:10px;padding:10px 15px;font-weight:650}.btn.primary{background:var(--teal);color:#071b23;border-color:var(--teal)}.btn.active{background:#2e6c70;color:#ecfffd}
+.overview{display:grid;grid-template-columns:1.6fr .9fr;gap:15px;margin-bottom:15px}
+.card-head{display:flex;justify-content:space-between;align-items:start;gap:8px;flex-wrap:wrap;margin-bottom:9px}.card-head p{font-size:12px;color:var(--muted);margin:2px 0}.legend{display:flex;flex-wrap:wrap;gap:11px;font-size:12px;color:var(--muted)}
+.dot{width:9px;height:9px;border-radius:50%;display:inline-block;margin-right:5px}
+.timeline{height:230px;display:flex;align-items:end;gap:12px;padding:20px 10px 3px;border-bottom:1px solid #3a5062}
+.year{flex:1;text-align:center;min-width:0;height:100%;display:flex;flex-direction:column;justify-content:end}
+.bar{width:100%;display:flex;flex-direction:column-reverse;justify-content:end;border-radius:6px 6px 0 0;overflow:hidden;min-height:2px}
+.seg{width:100%;min-height:1px}.year small{display:block;margin:5px 0 0;font-size:11px;color:var(--muted)}.year strong{font-size:10px;color:#d6e2ed;font-weight:650}
+.mixrow{display:flex;align-items:center;justify-content:space-evenly;gap:16px;min-height:205px}.donut{height:170px;width:170px;border-radius:50%;position:relative;flex:0 0 170px}.donut:after{content:"";position:absolute;inset:34px;background:#112136;border-radius:50%;box-shadow:inset 0 0 0 1px #25374b}.mixlist{font-size:13px;display:grid;gap:10px;min-width:130px}.mixlist b{float:right;margin-left:14px}
+.graphbar{display:flex;gap:8px;flex-wrap:wrap;align-items:end;justify-content:space-between}.graphbar .toggle{display:flex;gap:6px;flex-wrap:wrap}
+.grapharea{display:grid;grid-template-columns:minmax(0,1fr) 260px;gap:12px}
+.network{min-height:530px;border:1px solid #2d455b;border-radius:14px;background:radial-gradient(circle at 48% 55%,#182d43,#0b1929 65%);position:relative;overflow:hidden}
+svg#network{display:block;width:100%;height:530px;touch-action:none;cursor:grab}
+svg#network:active{cursor:grabbing}.graph-tools{position:absolute;right:10px;top:10px;display:flex;gap:5px}
+.graph-tools button{border:1px solid #456077;background:#102238;border-radius:7px;width:34px;height:34px}
+.graph-annotation{position:absolute;bottom:11px;left:13px;background:#071727d9;padding:6px 10px;border-radius:9px;max-width:90%;font-size:11px;color:var(--muted)}
+.details{border:1px solid #2d455b;background:#0b1929;border-radius:13px;padding:14px;min-width:0;max-height:530px;overflow:auto;font-size:12px}.details h3{font-size:17px;word-break:break-word}
+.details p{margin:8px 0;color:var(--muted)}.details .chips{display:flex;flex-wrap:wrap;gap:5px;margin:8px 0}.chip{border:1px solid #38576d;border-radius:8px;padding:5px 8px;font-size:11px;color:#c4e2f5;background:#102238}
+.details a{display:block;margin:8px 0;text-decoration:none;line-height:1.35}.details ol{padding-left:17px}
+.topic-tools{display:flex;flex-wrap:wrap;gap:8px;align-items:center;margin:13px 0 7px}.topic-tools input{min-width:230px;flex:1}.topic-tools small{color:var(--muted)}
+.bridges{display:flex;flex-wrap:wrap;gap:7px;margin:7px 0 15px}.bridge{padding:5px 8px;border:1px solid #365773;background:#10263b;color:#cce5f5;border-radius:9px;font-size:12px}
+.below{display:grid;grid-template-columns:1.1fr 1fr;gap:15px;margin-top:16px}.paperlist{list-style:none;padding:0;margin:0;max-height:400px;overflow:auto}.paperlist li{padding:9px 0;border-bottom:1px solid #2b4054;font-size:12px}.paperlist a{font-weight:650;text-decoration:none}.paperlist small{display:block;color:var(--muted);padding-top:4px}
+.steps{margin:12px 0 0;padding-left:20px;color:#d7e7f3;font-size:13px}.steps li{padding:5px 0}.note{font-size:12px;color:var(--muted);border-left:3px solid var(--orange);padding:9px 12px;margin-top:16px;background:#182333;border-radius:4px}
+footer{margin-top:22px;padding:18px 0;border-top:1px solid #29425a;color:var(--muted);font-size:12px;display:flex;justify-content:space-between;gap:16px;flex-wrap:wrap}
+@media(max-width:1000px){.kpis{grid-template-columns:repeat(3,1fr)}.overview,.below{grid-template-columns:1fr}.grapharea{grid-template-columns:1fr}.details{max-height:250px}.mixrow{justify-content:center}}
+@media(max-width:600px){.wrap{padding:16px}.kpis{grid-template-columns:repeat(2,1fr)}.kpi b{font-size:25px}.overview{gap:10px}.mixrow{flex-wrap:wrap}.graphbar .toggle{width:100%}.network,svg#network{min-height:410px;height:410px}}
+</style></head>
+<body><div class="wrap">
+<div class="top"><div><strong>MISSOURI S&T · ITRSS</strong> &nbsp; / &nbsp; MRI research intelligence pilot</div><a href="../">← Main research dashboard</a></div>
+<header class="hero"><div><div class="eyebrow">Publications → research communities → instrument evidence</div><h1>MRI Research Evidence Graph</h1><p>Explore the Foundry / Mill publication foundation through journals, scientific concepts, and relationships. A first-pass network built from public bibliographic metadata—not a verified coauthor or grant graph.</p></div><span class="status" id="loadStatus">Loading public records…</span></header>
+<section class="kpis" aria-label="Source metrics">
+ <div class="kpi"><small>Original records</small><b id="kSource">—</b><span>Bibliography rows</span></div>
+ <div class="kpi"><small>Included works</small><b id="kUnique">—</b><span>After existing duplicate flags</span></div>
+ <div class="kpi"><small>Journal articles</small><b id="kJournal">—</b><span>Priority enrichment set</span></div>
+ <div class="kpi"><small>DOI coverage</small><b id="kDoi">—</b><span>Included works with DOI</span></div>
+ <div class="kpi"><small>Acknowledgment review</small><b id="kReview">3</b><span>Records marked “cluster not found”</span></div>
+</section>
+<div class="card"><div class="card-head"><div><h2>Filter the research evidence</h2><p>Graph, trends and publication list update together</p></div><button class="btn" id="reset">Reset filters</button></div>
+ <div class="filters">
+  <label>Publication category<select id="kind"><option value="journal">Journal articles first</option><option value="all">All output types</option></select></label>
+  <label>Infrastructure<select id="resource"><option value="all">Foundry + Mill</option><option value="Foundry">Foundry</option><option value="Mill">Mill</option><option value="Foundry + Mill">Both (recorded)</option></select></label>
+  <label>From year<select id="from"></select></label><label>Through year<select id="to"></select></label>
+  <label class="search">Paper, method or journal<input id="search" type="search" placeholder="e.g. wave, geophysics, tomography"></label>
+ </div>
+ <div style="font-size:12px;color:var(--muted)" id="filterSummary">Preparing filtered research data…</div>
+</div>
+<section class="overview">
+ <div class="card"><div class="card-head"><div><h2>Research publication timeline</h2><p>Source-recorded infrastructure classification by publication year</p></div><div class="legend"><span><i class="dot" style="background:#6fa9ff"></i>Foundry</span><span><i class="dot" style="background:#42d7c4"></i>Mill</span><span><i class="dot" style="background:#f3ae6e"></i>Both</span></div></div><div id="timeline" class="timeline"></div><p class="muted" style="font-size:11px;margin-bottom:0">2026 is incomplete (source coverage through October 26). These are bibliographic counts, not utilization measurements.</p></div>
+ <div class="card"><div class="card-head"><div><h2>Infrastructure attribution</h2><p>Included records in current filters</p></div></div><div class="mixrow"><div id="donut" class="donut" role="img" aria-label="Publication resource distribution"></div><div id="mixList" class="mixlist"></div></div></div>
+</section>
+<section class="card" id="networkSection"><div class="card-head"><div><div class="eyebrow">InfraNodus-inspired network science</div><h2>Explore the knowledge graph</h2><p>Node size = record frequency · connections = shared title concepts or venue attribution · select nodes for underlying papers</p></div><div class="graphbar"><div class="toggle"><button class="btn active" data-view="topic" id="topicBtn">Scientific topics</button><button class="btn" data-view="venue" id="venueBtn">Facilities & journals</button></div></div></div>
+<div class="grapharea"><div class="network"><svg id="network" viewBox="0 0 1000 620" role="img" aria-label="Interactive research topic and venue graph"><g id="scene"></g></svg><div class="graph-tools"><button id="zoomIn" title="Zoom in">+</button><button id="zoomOut" title="Zoom out">−</button><button id="fit" title="Fit graph">Fit</button></div><div class="graph-annotation" id="graphCaption">Title-term co-occurrence · not semantic embeddings</div></div><aside id="details" class="details"><h3>Explore connections</h3><p>Click a node to inspect associated publications, frequency, and graph relationships.</p></aside></div>
+<div class="topic-tools"><label for="removeTerms" style="font-size:12px;color:var(--muted)">Hide generic concepts (blind-spot exploration)</label><input id="removeTerms" placeholder="e.g. simulation, analysis, model"><button class="btn" id="applyTerms">Apply</button><button class="btn" id="clearTerms">Clear</button><small>Click a bridge term below to inspect it.</small></div><div class="bridges" id="bridges"></div>
+<div class="note">Network centrality and communities are exploratory properties of <strong>publication-title co-occurrence</strong>. They do not demonstrate collaboration, NSF award attribution, computing demand, or equipment shortfalls. The three explicitly unconfirmed acknowledgment records are omitted from the network.</div>
+</section>
+<section class="below">
+ <div class="card"><div class="card-head"><div><h2>Publications in focus</h2><p>Traceable bibliography for the current selection</p></div><button class="btn" id="export">Export selected CSV</button></div><div id="paperCount" class="muted" style="font-size:12px;margin-bottom:5px"></div><ul id="papers" class="paperlist"></ul></div>
+ <div class="card" id="nextSteps"><div class="eyebrow">MRI proposal translation</div><h2>Next evidence milestones</h2>
+ <ol class="steps"><li><strong>Complete journal metadata:</strong> full author IDs, affiliations, DOI matching, and confirmed duplicates.</li><li><strong>Verify acknowledgment relationships:</strong> publisher full text, Scholars' Mine datasets, evidence URL, confidence and date.</li><li><strong>Construct real researcher / grant graphs:</strong> OpenAlex and NSF award records, with unverified grant matches separately labeled.</li><li><strong>Connect to actual infrastructure requirements:</strong> Slurm accounting, CPU/GPU and memory needs, storage, research interviews.</li><li><strong>Write MRI claims:</strong> scientific achievements → unmet research capability → proposed shared instrument.</li></ol>
+ <div class="note">Starting Yamilov evidence: OSCAR and coherent-wave tomography (2026) with companion research datasets. These warrant detailed methods / workload extraction before projecting future instrument requirements.</div>
+ </div>
+</section>
+<footer><span>Research intelligence prototype · Generated from the existing public bibliography. Original workbook and internal evidence notes are not hosted here.</span><a href="../">Return to the live ITRSS dashboard</a></footer>
+</div>
+<script>
+'use strict';
+(function(){
+const $=id=>document.getElementById(id);
+const palette=['#5fa7fd','#49d2be','#efad6b','#ad8cf0','#fa879c','#81d7fa','#98d178','#e3c96d','#c69eea','#69b6ad'];
+const facilityColors={'Foundry':'#6fa9ff','Mill':'#42d7c4','Foundry + Mill':'#f3ae6e'};
+const badDois=new Set(['10.1073/pnas.2007897117','10.1063/1.5144219','10.1021/acs.chemmater.0c01672']);
+const stop=new Set(('about above after again against almost among another around because been before being below between both could different during each either enough every first from further given have into itself just less like made make many more most much must neither next only other over same should since some such than that their them there these those through thus toward towards under until upon using used uses where which while with within without would years year study studies results approach approaches effect effects based paper papers novel improved new investigation analysis').split(' '));
+let all=[],current=[],selected=null,view='topic',nodes=[],edges=[],pan={x:0,y:0,s:1};
+const esc=s=>String(s==null?'':s).replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]));
+const val=(r,k)=>String(r[k]||'').trim();
+const doi=r=>val(r,'DOI').replace(/^https?:\/\/(?:dx\.)?doi\.org\//i,'').toLowerCase();
+const isDuplicate=r=>{const d=val(r,'Counted as duplicate').toLowerCase();return d!==''&&!['no','false','0'].includes(d)};
+const acknowledged=r=>!badDois.has(doi(r));
+const year=r=>parseInt(val(r,'Year'),10)||0;
+const resource=r=>val(r,'Cluster acknowledged')||'Unspecified';
+const title=r=>val(r,'Title');
+const link=r=>{const l=val(r,'DOI / record link');return /^https:\/\//.test(l)?l:(doi(r)?'https://doi.org/'+encodeURIComponent(doi(r)):'')};
+const fmt=n=>Number(n||0).toLocaleString('en-US');
+const domain=r=>val(r,'Type')||'Other';
+function tone(r){return facilityColors[resource(r)]||'#8699a7'}
+function filtered(){const k=$('kind').value,fac=$('resource').value,from=Number($('from').value),to=Number($('to').value),q=$('search').value.trim().toLowerCase();return all.filter(r=>(k!=='journal'||domain(r).toLowerCase()==='journal article')&&(fac==='all'||resource(r)===fac)&&year(r)>=from&&year(r)<=to&&(!q||[title(r),val(r,'Authors'),val(r,'Venue'),doi(r)].some(x=>x.toLowerCase().includes(q))));}
+function metric(){const bib=all.length;const journal=all.filter(r=>domain(r).toLowerCase()==='journal article').length;const d=all.filter(r=>doi(r)).length;
+ $('kUnique').textContent=fmt(bib);$('kJournal').textContent=fmt(journal);$('kDoi').textContent=fmt(d);$('kReview').textContent=fmt(all.filter(r=>!acknowledged(r)).length);
+}
+function totals(a){const out={'Foundry':0,'Mill':0,'Foundry + Mill':0};a.forEach(r=>{if(out[resource(r)]!==undefined)out[resource(r)]++});return out}
+function drawTrend(){const yy=Array.from({length:8},(_,i)=>2019+i),group={};yy.forEach(y=>group[y]=totals(current.filter(r=>year(r)===y)));const max=Math.max(1,...yy.map(y=>Object.values(group[y]).reduce((a,b)=>a+b,0)));
+ $('timeline').innerHTML=yy.map(y=>{const n=Object.values(group[y]).reduce((a,b)=>a+b,0);return '<div class="year" title="'+y+': '+n+' records"><strong>'+n+'</strong><div class="bar" style="height:'+(n/max*170)+'px">'+['Foundry','Mill','Foundry + Mill'].map(k=>'<div class="seg" style="height:'+(n?group[y][k]/n*100:0)+'%;background:'+facilityColors[k]+'"></div>').join('')+'</div><small>'+y+'</small></div>'}).join('');
+}
+function drawMix(){const v=totals(current),t=current.length||1;let offset=0;const parts=Object.keys(v).map(k=>{const start=offset;offset+=v[k]/t*100;return facilityColors[k]+' '+start+'% '+offset+'%'});$('donut').style.background='conic-gradient('+parts.join(',')+')';$('mixList').innerHTML=Object.keys(v).map(k=>'<div><i class="dot" style="background:'+facilityColors[k]+'"></i>'+k+' <b>'+fmt(v[k])+'</b></div>').join('');$('donut').setAttribute('aria-label',Object.keys(v).map(k=>k+': '+v[k]).join(', '));}
+function drawPapers(){const r=[...current].sort((a,b)=>year(b)-year(a)||title(a).localeCompare(title(b)));$('paperCount').textContent=fmt(r.length)+' records in current selection · '+fmt(r.filter(p=>!acknowledged(p)).length)+' marked for acknowledgment review';$('papers').innerHTML=r.slice(0,70).map(p=>'<li>'+ (link(p)?'<a href="'+esc(link(p))+'" target="_blank" rel="noopener noreferrer">'+esc(title(p))+'</a>':'<strong>'+esc(title(p))+'</strong>')+'<small>'+esc(year(p)+' · '+val(p,'Venue')+' · '+resource(p))+(acknowledged(p)?'':' · acknowledgment needs review')+'</small></li>').join('')||'<li class="muted">No publications match these filters.</li>';}
+function words(t){return [...new Set((t.toLowerCase().replace(/[–—-]/g,' ').match(/[a-z]{4,}/g)||[]).filter(w=>!stop.has(w)&&!hiddenTerms.has(w)))];}
+let hiddenTerms=new Set();
+function topicsGraph(){const docs=current.filter(acknowledged);const occur=new Map();
+ docs.forEach((p,i)=>words(title(p)).forEach(w=>{if(!occur.has(w))occur.set(w,[]);occur.get(w).push(i)}));
+ const terms=[...occur].filter(([t,p])=>p.length>=2).sort((a,b)=>b[1].length-a[1].length||a[0].localeCompare(b[0])).slice(0,75);
+ const allowed=new Set(terms.map(x=>x[0]));const es=new Map();
+ docs.forEach(p=>{const a=words(title(p)).filter(w=>allowed.has(w));for(let i=0;i<a.length;i++)for(let j=i+1;j<a.length;j++){const k=[a[i],a[j]].sort().join('|');es.set(k,(es.get(k)||0)+1)}});
+ const ns=terms.map(([id,ids])=>({id,label:id,kind:'topic',count:ids.length,records:ids.map(i=>docs[i]),community:0,bridge:0}));
+ const ee=[...es].map(([k,w])=>({a:k.split('|')[0],b:k.split('|')[1],weight:w}));
+ return {nodes:ns,edges:ee,desc:'Title-term co-occurrence: '+ns.length+' concepts, '+ee.length+' connections. Node size is title frequency.'};
+}
+function venueGraph(){const docs=current.filter(acknowledged);const maps=new Map(),links=new Map(),count=totals(docs);
+ docs.forEach(p=>{const venue=val(p,'Venue')||'Not specified';if(!maps.has(venue))maps.set(venue,[]);maps.get(venue).push(p)});
+ const top=[...maps].sort((a,b)=>b[1].length-a[1].length).slice(0,25);const keep=new Set(top.map(x=>x[0]));
+ docs.forEach(p=>{const v=val(p,'Venue')||'Not specified';if(!keep.has(v))return;const fac=resource(p)==='Foundry + Mill'?['Foundry','Mill']:[resource(p)];fac.forEach(f=>{const key=f+'|'+v;links.set(key,(links.get(key)||0)+1)})});
+ const ns=['Foundry','Mill'].map(f=>({id:'F|'+f,label:f,kind:'facility',count:count[f]+count['Foundry + Mill'],records:docs.filter(p=>resource(p)===f||resource(p)==='Foundry + Mill'),community:f==='Mill'?1:0,bridge:0}));
+ top.forEach(([k,v])=>ns.push({id:'V|'+k,label:k,kind:'venue',count:v.length,records:v,community:2,bridge:0}));
+ const ee=[...links].map(([k,w])=>{const i=k.indexOf('|');return{a:'F|'+k.slice(0,i),b:'V|'+k.slice(i+1),weight:w}});
+ return{nodes:ns,edges:ee,desc:'Bipartite venue-to-facility links from spreadsheet classifications. A paper listed as “both” contributes to each facility.'};
+}
+function networkAnalytics(ns,ee){const index=new Map(ns.map((x,i)=>[x.id,i]));const adj=ns.map(()=>[]);
+ ee.forEach(e=>{const i=index.get(e.a),j=index.get(e.b);if(i===undefined||j===undefined)return;adj[i].push([j,e.weight]);adj[j].push([i,e.weight])});
+ const n=ns.length;const score=Array(n).fill(0);
+ if(n<100)for(let s=0;s<n;s++){const stack=[],pred=Array.from({length:n},()=>[]),sigma=Array(n).fill(0),dist=Array(n).fill(-1);sigma[s]=1;dist[s]=0;const q=[s];for(let h=0;h<q.length;h++){const v=q[h];stack.push(v);for(const [w] of adj[v]){if(dist[w]<0){q.push(w);dist[w]=dist[v]+1}if(dist[w]===dist[v]+1){sigma[w]+=sigma[v];pred[w].push(v)}}}const delta=Array(n).fill(0);while(stack.length){const w=stack.pop();for(const v of pred[w])if(sigma[w])delta[v]+=sigma[v]/sigma[w]*(1+delta[w]);if(w!==s)score[w]+=delta[w];}}
+ let labels=ns.map((_,i)=>i);const order=ns.map((_,i)=>i).sort((a,b)=>adj[b].length-adj[a].length||a-b);
+ for(let it=0;it<14;it++){let changed=false;for(const i of order){if(!adj[i].length)continue;const counts=new Map();for(const [j,w] of adj[i])counts.set(labels[j],(counts.get(labels[j])||0)+w);let best=labels[i],bestV=counts.get(best)||0;for(const [l,v] of counts)if(v>bestV+1e-6){best=l;bestV=v}if(best!==labels[i]){labels[i]=best;changed=true}}if(!changed)break}
+ const ids=[...new Set(labels)],pop=ids.map(id=>[id,labels.filter(v=>v===id).length]).sort((a,b)=>b[1]-a[1]);const remap=new Map(pop.map(([id],i)=>[id,i]));
+ ns.forEach((x,i)=>{x.bridge=score[i]/2;x.community=remap.get(labels[i]);x.degree=adj[i].length;});
+ return{adj,communities:pop.length};
+}
+function layout(ns,ee){const n=ns.length,idx=new Map(ns.map((x,i)=>[x.id,i]));ns.forEach((p,i)=>{const angle=i*2.39996;const r=30+260*Math.sqrt((i+1)/Math.max(n,1));p.x=500+r*Math.cos(angle);p.y=310+r*Math.sin(angle);p.vx=0;p.vy=0});
+ for(let t=0;t<125;t++){for(let i=0;i<n;i++)for(let j=i+1;j<n;j++){const a=ns[i],b=ns[j];let dx=a.x-b.x,dy=a.y-b.y,ds=dx*dx+dy*dy+80;const d=Math.sqrt(ds),f=Math.min(10,3500/ds);a.vx+=dx/d*f;a.vy+=dy/d*f;b.vx-=dx/d*f;b.vy-=dy/d*f;}
+ for(const e of ee){const a=ns[idx.get(e.a)],b=ns[idx.get(e.b)];if(!a||!b)continue;const dx=b.x-a.x,dy=b.y-a.y,d=Math.sqrt(dx*dx+dy*dy)+.01;const target=Math.max(56,120-6*Math.min(e.weight,7));const f=(d-target)*.0032*Math.min(3,1+e.weight*.08);a.vx+=dx/d*f;a.vy+=dy/d*f;b.vx-=dx/d*f;b.vy-=dy/d*f;}
+ for(const p of ns){p.vx+=(500-p.x)*.0009;p.vy+=(310-p.y)*.0009;p.vx*=.81;p.vy*=.81;p.x=Math.max(25,Math.min(975,p.x+p.vx));p.y=Math.max(24,Math.min(596,p.y+p.vy));}}
+}
+const NS='http://www.w3.org/2000/svg';
+function svg(tag,attrs={}){const e=document.createElementNS(NS,tag);for(const[k,v]of Object.entries(attrs))e.setAttribute(k,String(v));return e}
+function applyPan(){ $('scene').setAttribute('transform','translate('+pan.x+' '+pan.y+') scale('+pan.s+')') }
+function showInfo(n){selected=n;const r=n.records||[],sample=r.slice(0,9).map(p=>'<li>'+ (link(p)?'<a href="'+esc(link(p))+'" target="_blank" rel="noopener">'+esc(title(p))+'</a>':esc(title(p)))+'</li>').join('');
+ let body='<h3>'+esc(n.label)+'</h3><div class="chips"><span class="chip">'+esc(n.kind)+'</span><span class="chip">'+fmt(n.count)+' papers</span><span class="chip">'+fmt(n.degree)+' links</span></div>';
+ if(n.kind==='topic')body+='<p><strong>Betweenness:</strong> '+n.bridge.toFixed(2)+' (unweighted graph). <strong>Community:</strong> '+(n.community+1)+'.</p><p>Shared occurrence in publication titles, not a validated scientific dependency.</p>';
+ else body+='<p>Connections reflect venue and resource labels in the public bibliography.</p>';
+ body+='<h3>Related works</h3><ol>'+sample+'</ol>';
+ if(r.length>9)body+='<p>Showing 9 of '+r.length+' papers.</p>';
+ $('details').innerHTML=body;
+}
+function drawGraph(){const gg=view==='venue'?venueGraph():topicsGraph();nodes=gg.nodes;edges=gg.edges;const info=networkAnalytics(nodes,edges);layout(nodes,edges);const idx=new Map(nodes.map(n=>[n.id,n]));
+ const scene=$('scene');scene.textContent='';for(const e of edges){const a=idx.get(e.a),b=idx.get(e.b);if(!a||!b)continue;scene.appendChild(svg('line',{x1:a.x,y1:a.y,x2:b.x,y2:b.y,stroke:view==='venue'?'#7892a4':'#7f94aa','stroke-opacity':Math.min(.4,.10+e.weight*.09),'stroke-width':Math.min(3,.5+e.weight*.45)}))}
+ const topLabs=new Set([...nodes].sort((a,b)=>b.count-a.count).slice(0,view==='venue'?25:27).map(p=>p.id));
+ for(const p of nodes){const color=p.kind==='facility'?(facilityColors[p.label]||palette[0]):palette[p.community%palette.length];const grp=svg('g',{'data-node':p.id,style:'cursor:pointer'});const rad=(p.kind==='facility'?18:5)+Math.sqrt(Math.max(1,p.count))*(p.kind==='facility'?1.8:2);
+ grp.appendChild(svg('circle',{cx:p.x,cy:p.y,r:rad+4,fill:color,'fill-opacity':.10}));
+ grp.appendChild(svg('circle',{cx:p.x,cy:p.y,r:rad,fill:color,'fill-opacity':.9,stroke:'#dff5ff','stroke-opacity':.23,'stroke-width':1}));
+ if(topLabs.has(p.id)){const lab=svg('text',{x:p.x,y:p.y+rad+13,'font-size':view==='venue'?11:12,fill:'#dbeef5','text-anchor':'middle','paint-order':'stroke',stroke:'#071727','stroke-width':3});lab.textContent=p.label.length>28?p.label.slice(0,26)+'…':p.label;grp.appendChild(lab)}
+ const tip=svg('title');tip.textContent=p.label+' · '+p.count+' associated titles';grp.appendChild(tip);
+ grp.addEventListener('click',ev=>{ev.stopPropagation();showInfo(p)});scene.appendChild(grp)}
+ $('graphCaption').textContent=gg.desc+' · '+info.communities+' detected communities. Drag to pan, scroll to zoom.';
+ const ranked=[...nodes].filter(n=>n.kind==='topic').sort((a,b)=>b.bridge-a.bridge).slice(0,10);
+ $('bridges').innerHTML=ranked.map(p=>'<button class="bridge" data-term="'+esc(p.id)+'">'+esc(p.label)+' · '+p.bridge.toFixed(1)+'</button>').join('');
+ $('bridges').querySelectorAll('[data-term]').forEach(b=>b.onclick=()=>showInfo(idx.get(b.dataset.term)));
+ $('topicBtn').classList.toggle('active',view==='topic');$('venueBtn').classList.toggle('active',view==='venue');
+ $('removeTerms').disabled=view!=='topic';$('applyTerms').disabled=view!=='topic';
+ const first=nodes.length?[...nodes].sort((a,b)=>b.bridge-a.bridge)[0]:null;
+ if(first)showInfo(first);else $('details').innerHTML='<h3>No graph nodes in this selection</h3><p>Broaden filters or choose all output types.</p>';
+ pan={x:0,y:0,s:1};applyPan();
+}
+function update(){current=filtered();$('filterSummary').textContent=fmt(current.length)+' included works match filters; '+fmt(current.filter(acknowledged).length)+' source-supported records shown in networks; '+fmt(current.filter(p=>!acknowledged(p)).length)+' withheld from networks for acknowledgment review.';drawTrend();drawMix();drawPapers();drawGraph();}
+function init(data){const rows=Array.isArray(data)?data:data.rows||[];all=rows.filter(r=>!isDuplicate(r));$('kSource').textContent=fmt(rows.length);metric();
+ for(let y=2019;y<=2026;y++){const o='<option value="'+y+'">'+y+'</option>';$('from').insertAdjacentHTML('beforeend',o);$('to').insertAdjacentHTML('beforeend',o)}
+ $('from').value='2019';$('to').value='2026';['kind','resource','from','to','search'].forEach(k=>$(k).addEventListener(k==='search'?'input':'change',update));
+ $('reset').onclick=()=>{$('kind').value='journal';$('resource').value='all';$('from').value='2019';$('to').value='2026';$('search').value='';hiddenTerms.clear();$('removeTerms').value='';view='topic';update()};
+ document.querySelectorAll('[data-view]').forEach(b=>b.onclick=()=>{view=b.dataset.view;drawGraph()});
+ $('applyTerms').onclick=()=>{hiddenTerms=new Set($('removeTerms').value.toLowerCase().split(/[,\s]+/).filter(Boolean));drawGraph()};
+ $('clearTerms').onclick=()=>{hiddenTerms.clear();$('removeTerms').value='';drawGraph()};
+ $('export').onclick=()=>{const h=['Year','Title','Authors','Venue','Type','Facility','DOI','Acknowledgment review'];const body=current.map(p=>[year(p),title(p),val(p,'Authors'),val(p,'Venue'),domain(p),resource(p),doi(p),acknowledged(p)?'No':'Yes']);const csv=[h,...body].map(a=>a.map(v=>'"'+String(v).replace(/"/g,'""')+'"').join(',')).join('\r\n');const url=URL.createObjectURL(new Blob([csv],{type:'text/csv;charset=utf-8'}));const a=document.createElement('a');a.href=url;a.download='MRI_publication_selection.csv';a.click();setTimeout(()=>URL.revokeObjectURL(url),500)};
+ $('zoomIn').onclick=()=>{pan.s=Math.min(3,pan.s*1.2);applyPan()};$('zoomOut').onclick=()=>{pan.s=Math.max(.45,pan.s/1.2);applyPan()};$('fit').onclick=()=>{pan={x:0,y:0,s:1};applyPan()};
+ let drag=null;const canvas=$('network');canvas.addEventListener('pointerdown',e=>{if(e.target.closest('[data-node]'))return;drag={x:e.clientX,y:e.clientY,panX:pan.x,panY:pan.y};canvas.setPointerCapture(e.pointerId)});
+ canvas.addEventListener('pointermove',e=>{if(!drag)return;const r=canvas.getBoundingClientRect();pan.x=drag.panX+(e.clientX-drag.x)*1000/r.width;pan.y=drag.panY+(e.clientY-drag.y)*620/r.height;applyPan()});
+ canvas.addEventListener('pointerup',()=>drag=null);canvas.addEventListener('pointercancel',()=>drag=null);
+ canvas.addEventListener('wheel',e=>{e.preventDefault();pan.s=Math.max(.45,Math.min(3,pan.s*(e.deltaY<0?1.12:.89)));applyPan()},{passive:false});
+ $('loadStatus').textContent='Public bibliography loaded';update();}
+fetch('../data/publications.json').then(r=>{if(!r.ok)throw Error('HTTP '+r.status);return r.json()}).then(init).catch(e=>{$('loadStatus').textContent='Could not load publication data';$('filterSummary').textContent='Source dataset error: '+e.message;$('details').innerHTML='<h3>Dataset unavailable</h3><p>Open the main dashboard and confirm data/publications.json is accessible.</p>'});
+})();
+</script></body></html>
