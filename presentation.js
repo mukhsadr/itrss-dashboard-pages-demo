@@ -2,6 +2,7 @@
 (() => {
   const $=id=>document.getElementById(id), body=document.body, chooser=$('presentationInput');
   let view='users';
+  const ringVisibility={users:[true,true,true,true],papers:[true,true,true,true]};
   const localFiles={users:null,papers:null,graph:null};
   const sourceLoaded={users:false,papers:false};
   function alert(message){$('presentationAlert').textContent=message||''}
@@ -9,24 +10,31 @@
     const editing=body.classList.contains('presentation-details');
     body.classList.add('presentation-mode');
     body.classList.toggle('presentation-papers',view==='papers');
+    body.classList.toggle('presentation-atlas',view==='atlas');
     body.classList.toggle('presentation-graph',view==='graph');
     $('presentationToggle').classList.toggle('active',!editing);
     $('presentationDetails').classList.toggle('active',editing);
     $('presentationToggle').setAttribute('aria-pressed',String(!editing));
     $('presentationDetails').setAttribute('aria-pressed',String(editing));
-    for(const [id,name] of [['presentationUsers','users'],['presentationPapers','papers'],['presentationGraph','graph']]){
+    for(const [id,name] of [['presentationUsers','users'],['presentationPapers','papers'],['presentationAtlas','atlas'],['presentationGraph','graph']]){
       $(id).classList.toggle('active',view===name);
       $(id).setAttribute('aria-pressed',String(view===name));
     }
-    $('presentationFile').textContent=view==='users'?'Open local CSV':view==='papers'?'Open local JSON':'Open research CSVs';
+    $('presentationFile').textContent=view==='users'?'Open local CSV':view==='papers'?'Open local JSON':view==='atlas'?'Open metadata in atlas':'Open research CSVs';
     const graphSource=$('graphSource')?.value;
     const graphBadge=graphSource==='papers'?'Public bibliography · auto-loaded':
       graphSource==='entities'?'Authors · Papers · candidate grants':
       graphSource==='research'?'Original coauthor data · choose JSON':'Real grouped Mill metrics';
     const badge=localFiles[view]?'Local files · browser only':
+      view==='atlas'?'Circular relationships · 230 publications':
       view==='graph'?graphBadge:
       sourceLoaded[view]?(view==='users'?'Real Mill metrics':'Public publications loaded'):'Original data pending';
     $('presentationDataMode').textContent=badge;
+    const ringPanel=$('ringVisibility');
+    if(ringPanel)ringPanel.style.display=(view==='users'||view==='papers')?'flex':'none';
+    const activeRings=ringVisibility[view]||ringVisibility.users;
+    document.querySelectorAll('[data-ring-toggle]').forEach(btn=>btn.setAttribute('aria-pressed',String(activeRings[Number(btn.dataset.ringToggle)])));
+    for(const kind of ['users','papers'])for(let i=0;i<4;i++)body.classList.toggle('hide-'+(kind==='users'?'user':'paper')+'-ring-'+i,!ringVisibility[kind][i]);
   }
   $('presentationToggle').addEventListener('click',()=>{
     body.classList.remove('presentation-details');refresh();
@@ -34,11 +42,12 @@
   $('presentationDetails').addEventListener('click',()=>{
     body.classList.add('presentation-details');refresh();
   });
-  for(const [id,name] of [['presentationUsers','users'],['presentationPapers','papers'],['presentationGraph','graph']]){
+  for(const [id,name] of [['presentationUsers','users'],['presentationPapers','papers'],['presentationAtlas','atlas'],['presentationGraph','graph']]){
     $(id).addEventListener('click',()=>{view=name;alert('');refresh()});
   }
   $('presentationClear').addEventListener('click',()=>{
     if(view==='graph')$('graphReset').click();
+    else if(view==='atlas'){$('atlasLiveFrame').src='atlas/?v=11&reset='+Date.now();}
     else $(view==='users'?'clear':'paperClear').click();
   });
   $('presentationFull').addEventListener('click',async()=>{
@@ -105,6 +114,10 @@
     alert('Loaded '+event.detail.works+' publications and '+event.detail.authors+' authorship entries locally. Nothing uploaded.');
   });
   $('graphSource').addEventListener('change',refresh);
+  document.querySelectorAll('[data-ring-toggle]').forEach(btn=>btn.addEventListener('click',()=>{
+    const kind=view==='users'?'users':'papers',ring=Number(btn.dataset.ringToggle);
+    ringVisibility[kind][ring]=!ringVisibility[kind][ring];refresh();
+  }));
   document.addEventListener('keydown',event=>{
     if(event.key==='Escape'&&!document.fullscreenElement&&body.classList.contains('presentation-details')){
       body.classList.remove('presentation-details');refresh();
