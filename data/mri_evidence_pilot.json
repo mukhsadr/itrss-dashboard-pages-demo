@@ -3,6 +3,13 @@
   "provenance": "Publisher pages and Missouri S&T Scholars' Mine entries checked in a small Firecrawl pilot; these are selected cases, not corpus-wide totals.",
   "articles": [
     {
+      "doi": "10.1093/gji/ggz525",
+      "status": "temporal_review",
+      "facility": "",
+      "note": "2019 publication predates Foundry production (2020). An award association in the starter bibliography is not proof that the later cluster was used. Requires explicit historical resource verification.",
+      "url": "https://doi.org/10.1093/gji/ggz525"
+    },
+    {
       "doi": "10.1103/physrevlett.125.165901",
       "status": "abstract_only",
       "facility": "",
