@@ -1,5 +1,5 @@
-<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>ITRSS Research Metrics · v6</title><link rel="stylesheet" href="styles.css?v=1795367000"><link rel="stylesheet" href="papers.css?v=1795367000"><link rel="stylesheet" href="author-ring.css?v=10"><link rel="stylesheet" href="presentation.css?v=6"><link rel="stylesheet" href="graph.css?v=9"></head><body class="presentation-mode"><div id="publicBanner" style="position:sticky;top:0;z-index:9999;background:#6937b9;color:white;text-align:center;padding:12px;font:600 15px system-ui">PUBLIC METRICS · 1,607 GROUPED MILL RECORDS · 247 PUBLICATION ENTRIES · INTERNAL NOTES EXCLUDED</div><nav id="presentationToolbar" class="presentationToolbar" aria-label="Dashboard display controls">
-  <span class="presentationBrand">ITRSS <strong>Research Metrics</strong> · v10</span>
+<!doctype html><html lang="en"><head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1"><title>ITRSS Research Metrics · v6</title><link rel="stylesheet" href="styles.css?v=1795367000"><link rel="stylesheet" href="papers.css?v=1795367000"><link rel="stylesheet" href="author-ring.css?v=10"><link rel="stylesheet" href="publication-atlas.css?v=11"><link rel="stylesheet" href="presentation.css?v=6"><link rel="stylesheet" href="graph.css?v=9"></head><body class="presentation-mode"><div id="publicBanner" style="position:sticky;top:0;z-index:9999;background:#6937b9;color:white;text-align:center;padding:12px;font:600 15px system-ui">PUBLIC METRICS · 1,607 GROUPED MILL RECORDS · 247 PUBLICATION ENTRIES · INTERNAL NOTES EXCLUDED</div><nav id="presentationToolbar" class="presentationToolbar" aria-label="Dashboard display controls">
+  <span class="presentationBrand">ITRSS <strong>Research Metrics</strong> · v11</span>
   <div class="presentationActions">
     <span class="presentationModes"><button id="presentationToggle" type="button" class="active" aria-pressed="true">Present</button><button id="presentationDetails" type="button" aria-pressed="false">Edit</button></span>
     <div class="presentationOnly">
@@ -30,6 +30,27 @@
     <span id="paperAuthorAnchorNote">Ranked clockwise by credited publications. True coauthor rankings require OpenAlex authorship IDs.</span>
   </div>
   <div class="paperToggle"><input id="paperDup" type="checkbox"><label for="paperDup">Include records flagged as duplicates</label></div>
+  <div id="atlasControls" class="atlasControls" hidden>
+    <div class="atlasModeSwitch" role="group" aria-label="Author relationship view">
+      <button id="atlasModeResearch" type="button" class="active">Research connections</button>
+      <button id="atlasModeCoauthors" type="button">Verified coauthors</button>
+    </div>
+    <div id="atlasResearchOptions" class="atlasResearchOptions">
+      <label>Relationship
+        <select id="atlasRelation">
+          <option value="science">Shared scientific terms</option>
+          <option value="all">Title terms + journals</option>
+          <option value="venue">Same journal</option>
+        </select>
+      </label>
+      <label>Max connections
+        <select id="atlasLinksLimit">
+          <option value="40">40</option><option value="110" selected>110</option><option value="200">200</option><option value="400">400</option>
+        </select>
+      </label>
+    </div>
+    <button id="atlasClearNode" type="button">Clear highlight</button>
+  </div>
   <div class="chartWrap paperWrap">
     <button type="button" id="paperAuthorBack" hidden aria-label="Back to all publication rings">← All publication rings</button>
     <div class="paperAuthorFocusOverlay" id="paperAuthorFocusOverlay" aria-live="polite">
@@ -42,9 +63,9 @@
     <select id="paperAuthorQuickSelect"></select>
     <button id="paperAuthorQuickGo" type="button">View author</button>
   </div>
-  <div id="paperAuthorStatus" class="paperAuthorStatus" role="status" aria-live="polite">Fourth ring · author credits · high to low clockwise</div>
+  <div id="paperAuthorStatus" class="paperAuthorStatus" role="status" aria-live="polite">Fourth ring · author credits · high to low clockwise</div><div id="atlasInspect" class="atlasInspect" hidden aria-live="polite"></div>
   <div class="ringsCaption">Cluster · Year · Publication type · Authors</div></section>
-  <aside class="side"><div class="sideHead"><h2>Explore publications</h2><p>Choose any segment to filter all three rings.</p></div><div id="paperSelection" class="selection">Showing all</div><div id="paperLegend" class="legend paperLegend"></div><div class="dataFoot"><span>Public bibliography · optional local replacement</span><button id="paperReload" class="subtle">Choose another JSON</button></div></aside></div>
+  <aside class="side"><div class="sideHead"><h2>Explore publications</h2><p>Choose a category or author to filter and explore linked publication research.</p></div><div id="paperSelection" class="selection">Showing all</div><div id="paperLegend" class="legend paperLegend"></div><div class="dataFoot"><span>Public bibliography · optional local replacement</span><button id="paperReload" class="subtle">Choose another JSON</button></div></aside></div>
   <div class="paperList"><h2>Matching publication records</h2><p id="paperRecordCount">Waiting for data</p><div id="paperRecords"></div><p class="paperNote">Public bibliographic metadata only. Internal research notes and evidence-tracking fields have been excluded. Acknowledgments are not proof of direct cluster usage. Duplicates are excluded by default.</p></div>
 </section>
 
@@ -117,4 +138,4 @@
   </div>
   <p id="graphInfo" role="status" aria-live="polite"></p>
 </section>
-<footer><span>Public interface · Original data exports require disclosure review</span><a href="mri/" style="display:inline-block;background:#48d5c6;color:#071b23;border-radius:10px;padding:10px 16px;text-decoration:none;font-weight:800">Open MRI Research Graph ↗</a><span>Missing values shown as “Not specified”</span></footer></div><script src="app.js?v=5"></script><script src="papers.js?v=10"></script><script src="author-ring.js?v=10"></script><script src="presentation.js?v=9"></script><script src="graph.js?v=10"></script></body></html>
+<footer><span>Public interface · Original data exports require disclosure review</span><a href="mri/" style="display:inline-block;background:#48d5c6;color:#071b23;border-radius:10px;padding:10px 16px;text-decoration:none;font-weight:800">Open MRI Research Graph ↗</a><span>Missing values shown as “Not specified”</span></footer></div><script src="app.js?v=5"></script><script src="papers.js?v=11"></script><script src="author-ring.js?v=11"></script><script src="publication-atlas.js?v=11"></script><script src="presentation.js?v=9"></script><script src="graph.js?v=10"></script></body></html>
