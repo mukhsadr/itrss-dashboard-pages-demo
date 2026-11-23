@@ -157,6 +157,7 @@ window.addEventListener('dashboard:load-users',event=>{
     window.dispatchEvent(new CustomEvent('dashboard:local-data-error',{detail:{message:'CSV could not be loaded: '+error.message}}));
   }
 });
+window.addEventListener('dashboard:request-user-results',()=>render());
 window.addEventListener('dashboard:filter-users-from-table',ev=>{
   const selected=ev.detail?.values||{};
   filters=layers.map(col=>selected[col]===undefined?null:selected[col]);
