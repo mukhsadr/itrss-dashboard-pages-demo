@@ -106,5 +106,6 @@ window.addEventListener('dashboard:load-papers',event=>{
     }}));
   }
 });
+window.addEventListener('dashboard:paper-rerender',render);
 $('paperSort').onchange=e=>{sort=e.target.value;render()};$('paperDup').onchange=e=>{includeDup=e.target.checked;chosen=[null,null,null];render()};$('paperClear').onclick=()=>{chosen=[null,null,null];render()};$('paperReload').onclick=()=>window.dispatchEvent(new Event('dashboard:choose-publications'));load();
 })();
