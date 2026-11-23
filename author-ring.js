@@ -95,7 +95,7 @@
     }
     if(!anchorManuallySet&&network&&!anchor){
       const match=ranked.find(a=>/\byamilov\b/i.test(a.name));
-      if(match)anchor=match.id;
+      if(match&&coauthors(match,stats).length)anchor=match.id;
     }
     if(!stats.has(anchor))anchor='';
     sel.value=anchor;
@@ -124,13 +124,13 @@
     }
     $('paperLegend').append(box);
   }
-  function wheel(items,inner,outer,chart,onClick){
+  function wheel(items,inner,outer,chart,onClick,metric='credited papers'){
     const total=items.reduce((s,x)=>s+x.count,0);
     let angle=-Math.PI/2;
     for(let i=0;i<items.length;i++){
       const a=items[i],sweep=total?a.count/total*Math.PI*2:0,next=angle+sweep;
       makeSlice(chart,inner,outer,angle,next,palettes[i%palettes.length],
-        a.name+' · '+a.count,a.name+' · '+a.count+' '+(focus?'shared papers':'credited papers'),()=>onClick(a));
+        a.name+' · '+a.count,a.name+' · '+a.count+' '+metric,()=>onClick(a));
       angle=next;
     }
   }
@@ -153,7 +153,7 @@
     wheel(segments,294,323,$('paperChart'),a=>{
       if(a.id==='__other__'){other=true;showOther(rest);return}
       showAuthor(a.id);
-    });
+    },anchor?'shared papers':'credited papers');
     legend(segments,'RING 4 · '+(anchor?'Collaborators · shared papers':'Authors · credited papers')+' ↓ clockwise',
       a=>a.id==='__other__'?showOther(rest):showAuthor(a.id));
     $('paperAuthorStatus').textContent=anchor
@@ -218,7 +218,7 @@
       const top=neighbors.slice(0,MAX_VISIBLE),rest=neighbors.slice(MAX_VISIBLE);
       const slices=[...top];
       if(rest.length)slices.push({id:'__other__',name:'Other coauthors ('+rest.length+')',count:rest.reduce((s,n)=>s+n.count,0)});
-      wheel(slices,170,305,chart,n=>n.id==='__other__'?showOther(rest):showAuthor(n.id));
+      wheel(slices,170,305,chart,n=>n.id==='__other__'?showOther(rest):showAuthor(n.id),'joint OpenAlex works');
       legend(slices,'CONNECTED COAUTHORS · joint papers ↓ clockwise',
         n=>n.id==='__other__'?showOther(rest):showAuthor(n.id));
       $('paperAuthorStatus').textContent=neighbors.length+' verified coauthors in '+author.verifiedWorks+' matched papers · priority is shared work count';
@@ -228,7 +228,7 @@
         const y=String(p.row.Year||'Not specified');years.set(y,(years.get(y)||0)+1);
       }
       const items=[...years].map(([name,count])=>({id:'year:'+name,name,count})).sort((a,b)=>b.count-a.count||a.name.localeCompare(b.name));
-      wheel(items,170,305,chart,()=>{});
+      wheel(items,170,305,chart,()=>{},'publications in year');
       legend(items,'PUBLICATION YEARS · no verified coauthors',()=>{});
       $('paperAuthorStatus').textContent='Only listed-author credits available here. Verified coauthor relationships require matching OpenAlex records.';
     }
