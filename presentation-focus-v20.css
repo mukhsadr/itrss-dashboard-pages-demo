@@ -1,0 +1,159 @@
+/* v20 — presentation is the circular chart; editing retains controls and analytical detail.
+   All original filters remain active and are accessible in Edit mode. */
+body.presentation-mode.presentation-papers:not(.presentation-details) #prStage .prControls,
+body.presentation-mode.presentation-papers:not(.presentation-details) #prStage .prStats,
+body.presentation-mode.presentation-papers:not(.presentation-details) #prStage .prLinkLegend,
+body.presentation-mode.presentation-papers:not(.presentation-details) #prStage .prRingKey{
+  display:none!important;
+}
+body.presentation-mode.presentation-papers:not(.presentation-details) #prStage .prLayout {
+  position:relative;
+  display:block!important;
+  grid-template-columns:none!important;
+  width:100%;
+  margin:0;
+}
+body.presentation-mode.presentation-papers:not(.presentation-details) #prStage .prChart {
+  height:var(--pr-fit-height,600px);
+  min-height:0!important;
+  width:100%;
+  overflow:hidden;
+  border-radius:16px;
+}
+body.presentation-mode.presentation-papers:not(.presentation-details) #prStage #prSvg {
+  display:block;
+  width:100%;
+  height:var(--pr-fit-height,600px)!important;
+  min-height:0!important;
+  max-height:none!important;
+  margin:0 auto;
+}
+body.presentation-mode.presentation-papers:not(.presentation-details) #prStage .prDetails {
+  display:none!important;
+}
+body.presentation-mode.presentation-papers:not(.presentation-details).pr-detail-open #prStage .prDetails {
+  display:block!important;
+  position:absolute;
+  right:14px;
+  top:12px;
+  bottom:auto;
+  width:min(375px,35vw);
+  max-height:calc(var(--pr-fit-height,600px) - 25px)!important;
+  height:auto!important;
+  min-height:0!important;
+  z-index:8;
+  padding:16px 17px;
+  border:1px solid #4d8290;
+  border-radius:13px;
+  box-shadow:0 12px 48px #020b17df;
+  background:#11283bf5;
+  overflow-y:auto;
+}
+body.presentation-mode.presentation-papers:not(.presentation-details) #prStage .prChartCaption {
+  display:none;
+}
+body.presentation-mode.presentation-papers:not(.presentation-details) #prStage .prLeaf text{
+  display:none!important; /* All 230 tiny titles must not compete with the graph. */
+}
+body.presentation-mode.presentation-papers:not(.presentation-details) #prStage .prLeaf circle{
+  stroke:#e3faff;
+  stroke-opacity:.55;
+  stroke-width:1.25px;
+}
+body.presentation-mode.presentation-papers:not(.presentation-details) #prStage .prLeaf:hover circle,
+body.presentation-mode.presentation-papers:not(.presentation-details) #prStage .prLeaf.focus circle {
+  stroke:#fff;
+  stroke-width:3;
+  r:6;
+}
+body.presentation-mode.presentation-papers:not(.presentation-details) #prStage .prGroupLabel {
+  font-size:13px!important;
+  font-weight:800!important;
+  stroke-width:4px!important;
+  fill:#eafcff!important;
+}
+body.presentation-mode.presentation-papers:not(.presentation-details) #prStage .prRankBadge text{
+  font-size:13px!important;
+  font-weight:800;
+}
+body.presentation-mode.presentation-papers:not(.presentation-details) #prStage .prRankBadge circle {
+  stroke-width:2.5;
+}
+.prHover {
+  position:absolute;
+  z-index:10;
+  width:max-content;
+  max-width:min(350px,75vw);
+  padding:10px 13px;
+  border:1px solid #5ba5bd;
+  border-radius:10px;
+  background:#072238f4;
+  color:#f1fcff;
+  box-shadow:0 5px 28px #010a15b3;
+  font:650 13px/1.5 system-ui,-apple-system,Segoe UI,sans-serif;
+  overflow-wrap:anywhere;
+  pointer-events:none;
+}
+.prHover[hidden]{display:none!important}
+.prDetails .prClose {
+  position:sticky;
+  top:-9px;
+  right:0;
+  float:right;
+  display:flex;
+  justify-content:center;
+  align-items:center;
+  margin:-4px -5px 8px 8px;
+  width:32px;
+  height:32px;
+  border-radius:9px;
+  border:1px solid #527c98;
+  background:#19445a;
+  color:#fff;
+  font:750 23px/1 system-ui;
+  cursor:pointer;
+  z-index:9;
+}
+.prDetails .prClose:hover,.prDetails .prClose:focus-visible{
+  background:#3a7991;
+  border-color:#a8eef9;
+}
+body.presentation-mode.presentation-papers:not(.presentation-details) #prStage .prDetails h3{
+  font-size:18px!important;
+  line-height:1.4;
+  font-weight:780;
+}
+body.presentation-mode.presentation-papers:not(.presentation-details) #prStage .prDetails h4{
+  font-size:14px;
+}
+body.presentation-mode.presentation-papers:not(.presentation-details) #prStage .prDetails p,
+body.presentation-mode.presentation-papers:not(.presentation-details) #prStage .prDetails a,
+body.presentation-mode.presentation-papers:not(.presentation-details) #prStage .prDetails button.prConnectedPaper {
+  font-size:13px;
+  line-height:1.6;
+}
+body.presentation-mode.presentation-papers:not(.presentation-details) #prStage .prRelationExplain{
+  font-size:12px;
+  line-height:1.55;
+}
+body.presentation-mode.presentation-papers:not(.presentation-details) #prStage .prChip{
+  font-size:11px;
+}
+body.presentation-mode.presentation-papers #prStage .prGroupLabel {
+  paint-order:stroke;
+  stroke:#102d3e;
+  stroke-width:3px;
+}
+body.presentation-mode.presentation-details.presentation-papers #prStage .prLeaf text {
+  font-size:8px; /* Detailed names remain in Edit mode, where controls are available. */
+}
+@media(max-width:720px){
+  body.presentation-mode.presentation-papers:not(.presentation-details).pr-detail-open #prStage .prDetails {
+    right:5px;
+    top:8px;
+    width:calc(100% - 10px);
+    max-height:min(76vh,calc(var(--pr-fit-height,500px) - 12px))!important;
+  }
+  .prHover{max-width:78vw;font-size:12px}
+  body.presentation-mode.presentation-papers:not(.presentation-details) #prStage .prGroupLabel{font-size:11px!important}
+}
