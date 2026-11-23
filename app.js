@@ -90,6 +90,21 @@ const items=layers[i]?countBy(filtered,layers[i]):[],n=selectedN;let angle=-Math
 if(!n){chart.append(sEl('circle',{cx:340,cy:340,r:(ri+ro)/2,fill:'none',stroke:'#26364b','stroke-width':50}));legend.append(group);continue}
 for(let j=0;j<items.length;j++){const d=items[j],sweep=d.count/n*Math.PI*2,end=angle+sweep,color=PALETTES[i][j%PALETTES[i].length];if(sweep>0){const p=sEl('path',{d:path(ri,ro,angle,Math.min(end,angle+Math.PI*2-0.000001)),fill:color,class:'arc',role:'button',tabindex:0});p.setAttribute('aria-label',`${layers[i]}: ${d.name}, ${d.count} users, ${pct(d.count,n)}`);p.dataset.ring=String(i);p.dataset.category=d.name;p.addEventListener('mouseenter',()=>spotlightRing(i,d.name,true));p.addEventListener('mouseleave',()=>spotlightRing(i,d.name,false));p.addEventListener('focus',()=>spotlightRing(i,d.name,true));p.addEventListener('blur',()=>spotlightRing(i,d.name,false));p.addEventListener('click',()=>clickSegment(i,d.name));p.addEventListener('keydown',ev=>{if(ev.key==='Enter'||ev.key===' '){ev.preventDefault();clickSegment(i,d.name)}});const t=sEl('title',{});t.textContent=`${layers[i]} / ${d.name}: ${d.count} (${pct(d.count,n)})`;p.append(t);chart.append(p)}angle=end;
 const row=document.createElement('button');row.className='legendRow';const dot=document.createElement('span');dot.className='swatch';dot.style.background=color;const name=document.createElement('span');name.className='name';name.textContent=d.name;name.title=d.name;const percent=document.createElement('span');percent.className='pct';percent.textContent=`${d.count} · ${pct(d.count,n)}`;row.append(dot,name,percent);row.onclick=()=>clickSegment(i,d.name);row.dataset.ring=String(i);row.dataset.category=d.name;row.onmouseenter=()=>spotlightRing(i,d.name,true);row.onmouseleave=()=>spotlightRing(i,d.name,false);row.onfocus=()=>spotlightRing(i,d.name,true);row.onblur=()=>spotlightRing(i,d.name,false);group.append(row)}legend.append(group)}
+  // Deliver counted, non-identifying rows to the collapsible results table.
+  // The table never receives user tokens or individual advisor names.
+  const safeRows=filtered.map(r=>({
+    Descr:String(r.Descr||'Not specified'),
+    Classficiation:String(r.Classficiation||'Unknown'),
+    Status:String(r.Status||'Not specified'),
+    Advisor:['Advisor recorded','No advisor recorded','Other / privacy grouped'].includes(r.Advisor)
+      ?r.Advisor:(r.Advisor?'Advisor recorded':'No advisor recorded'),
+    Count:weight(r)
+  }));
+  window.dispatchEvent(new CustomEvent('dashboard:users-rendered',{
+    detail:{rows:safeRows,columns:layers.slice(),filters:filters.slice(),
+      visible:selectedN,total:allN,source:$('millSourceStrip')?.dataset.source||'loading'}
+  }));
+
 }
 async function load(){
  const status=$('fileStatus');
@@ -141,6 +156,11 @@ window.addEventListener('dashboard:load-users',event=>{
   }catch(error){
     window.dispatchEvent(new CustomEvent('dashboard:local-data-error',{detail:{message:'CSV could not be loaded: '+error.message}}));
   }
+});
+window.addEventListener('dashboard:filter-users-from-table',ev=>{
+  const selected=ev.detail?.values||{};
+  filters=layers.map(col=>selected[col]===undefined?null:selected[col]);
+  render();
 });
 $('sort').onchange=render;$('clear').onclick=()=>{filters=[null,null,null,null];render()};$('reload').onclick=load;load();
 })();
