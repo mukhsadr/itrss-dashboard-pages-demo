@@ -1,0 +1,64 @@
+/* v12: publication rings become a circular research relationships explorer. */
+#papersSection .paperWrap,#papersSection .paperAuthorAnchorControl,
+#papersSection .paperAuthorStatus,#papersSection .paperAuthorChooser,
+#papersSection .paperAuthorFocusOverlay,#papersSection #atlasControls,
+#papersSection #atlasInspect{display:none!important}
+#prStage{display:block;margin:10px auto 8px;max-width:1580px;width:100%}
+.prControls{display:flex;align-items:end;flex-wrap:wrap;gap:8px;margin-bottom:10px}
+.prControls label{display:flex;flex-direction:column;gap:5px;min-width:150px;flex:1 1 170px;font:11px system-ui;color:#abc4d7}
+.prControls label:first-child{flex:2 1 220px}
+.prControls select,.prControls input{width:100%;min-height:38px;padding:9px;background:#11263c;color:#dceffc;border:1px solid #395875;border-radius:9px;font:12px system-ui}
+.prControls button{min-height:38px;color:#c9e9f7;background:#1c405c;border:1px solid #426680;border-radius:9px;font:650 11px system-ui;padding:9px 10px;cursor:pointer}
+.prControls button:hover{background:#2c6080}
+.prStats{display:flex;flex-wrap:wrap;justify-content:center;gap:6px;margin:9px auto}
+.prStats>span{display:flex;gap:6px;align-items:baseline;padding:6px 10px;border:1px solid #375570;background:#152e45;border-radius:9px;color:#8eb3cb;font-size:11px}
+.prStats strong{color:#e4f8ff;font-size:14px}
+.prLayout{display:grid;grid-template-columns:minmax(0,1fr) 275px;gap:13px;align-items:start}
+.prChart{position:relative;overflow:hidden;background:radial-gradient(circle at center,#1b3d53,#0a1c2e 59%,#061627 100%);border:1px solid #264962;border-radius:17px}
+#prSvg{width:100%;max-height:min(calc(100vh - 240px),950px);min-height:470px;display:block}
+.prChartCaption{position:absolute;left:12px;bottom:10px;font:11px system-ui;color:#a4c8db;background:#0b2238d9;padding:7px 10px;border-radius:8px;pointer-events:none}
+.prDetails{background:#102339;border:1px solid #304b64;border-radius:14px;padding:15px;min-height:225px;max-height:720px;overflow:auto;text-align:left;font:12px/1.65 system-ui}
+.prDetails h3{margin:0 0 9px;font:750 18px/1.35 system-ui;overflow-wrap:anywhere;color:#e7f5ff}
+.prDetails h4{margin:13px 0 6px;font:750 13px system-ui;color:#d7eafd}
+.prDetails p{font:12px/1.6 system-ui;color:#aec8d9;margin:6px 0}
+.prDetails a{display:block;color:#8bdfff;margin:9px 0;font-weight:650}
+.prDetails ul{padding-left:17px;margin:7px 0}
+.prDetails li{margin:4px 0}
+.prDetails li button{border:none;background:transparent;color:#94d7f5;font:12px/1.4 system-ui;text-align:left;cursor:pointer}
+.prDetails li button:hover{text-decoration:underline}
+.prChip{display:inline-flex;margin:3px 4px 3px 0;padding:4px 7px;background:#224453;color:#c4eff6;border:1px solid #3a7582;border-radius:8px;font:10px system-ui}
+.prDetails .prHint{font-style:italic;color:#8caac2}
+.prCurve{fill:none;stroke:#60b0e9;stroke-width:1.25;stroke-opacity:.23;transition:stroke-opacity .15s,stroke-width .15s}
+.prCurve.author{stroke:#52ddbc;stroke-opacity:.34}
+.prCurve.focus{stroke-opacity:.98;stroke-width:2.4}
+.prCurve.fade{stroke-opacity:.012}
+.prSegment{stroke:#071b2c;stroke-width:.38;cursor:pointer}
+.prSegment:hover{filter:brightness(1.5)}
+.prTheme{cursor:pointer;stroke:#051828;stroke-width:.6}
+.prTheme:hover{stroke:#f3f9ff;stroke-width:1.6}
+.prLeaf{cursor:pointer;transition:opacity .12s}
+.prLeaf circle{stroke:#d8f7ff;stroke-opacity:.35;stroke-width:.7}
+.prLeaf text{fill:#a9c7d8;font:7.1px system-ui;stroke:#081928;stroke-width:2;paint-order:stroke;stroke-linejoin:round}
+.prLeaf:hover text,.prLeaf.focus text{fill:white;font-weight:800;font-size:8.5px}
+.prLeaf.fade{opacity:.19}
+.prRingKey{display:flex;align-items:center;justify-content:center;gap:11px;flex-wrap:wrap;padding:12px 0;font:11px system-ui;color:#a4c0d4}
+.prRingKey span{display:inline-flex;gap:5px;align-items:center}
+.prRingKey b{display:inline-flex;background:#23546b;border:1px solid #43809a;border-radius:6px;width:21px;height:21px;align-items:center;justify-content:center;color:#dbf7ff;font-size:11px}
+.prRingKey small{font-size:10px;color:#749ab8}
+body.hide-paper-ring-0 #prSvg [data-pr-ring="0"],
+body.hide-paper-ring-1 #prSvg [data-pr-ring="1"],
+body.hide-paper-ring-2 #prSvg [data-pr-ring="2"],
+body.hide-paper-ring-3 #prSvg [data-pr-ring="3"]{display:none!important}
+body.presentation-mode.presentation-papers #papersSection{max-width:1590px;margin:auto}
+body.presentation-mode.presentation-papers #papersSection>.main{display:block;max-width:1590px}
+body.presentation-mode.presentation-papers #papersSection .visual{padding:0;background:transparent;border:0;box-shadow:none}
+body.presentation-mode.presentation-papers #papersSection .prControls,
+body.presentation-mode.presentation-papers #papersSection .prStats,
+body.presentation-mode.presentation-papers #papersSection .prRingKey{display:flex}
+body.presentation-mode.presentation-details.presentation-papers #papersSection>.main{display:block;max-width:1560px}
+body.presentation-mode.presentation-papers #papersSection .main>.side{display:none}
+body.presentation-mode.presentation-details.presentation-papers #papersSection .main>.side{display:none}
+body.presentation-mode.presentation-papers #prSvg{max-height:calc(100vh - 235px);min-height:510px}
+body.presentation-mode.presentation-papers .prDetails{max-height:calc(100vh - 235px)}
+@media(max-width:1000px){.prLayout{grid-template-columns:1fr}.prDetails{max-height:350px}#prSvg{max-height:75vh}}
+@media(max-width:620px){.prControls label{min-width:120px}.prControls{gap:5px}.prChartCaption{font-size:9px}#prSvg{min-height:380px}}
