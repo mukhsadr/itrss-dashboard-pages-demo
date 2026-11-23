@@ -361,6 +361,7 @@
       const initial=document.createElement('option');initial.value='';initial.textContent=label;sel.append(initial);
       for(const year of years){const item=document.createElement('option');item.value=String(year);item.textContent=String(year);sel.append(item)}
     }
+    window.dispatchEvent(new CustomEvent('dashboard:research-data-loaded',{detail:{works,authors,origin:data.source||'OpenAlex'}}));
   }
   function setInfo(text){$('graphInfo').textContent=text}
   function focus(id){
