@@ -104,22 +104,26 @@ async function load(){
   $('badge').style.color='#8ee1cc';
   $('sourceName').textContent='PUBLIC_DATA.csv · detailed departments/programs · anonymized chart';
   status.textContent=parsed.sourceRows.toLocaleString()+' PUBLIC_DATA.csv rows · '+parsed.distinctDepartments+' department categories · '+parsed.distinctPrograms+' academic programs · advisor names excluded';
+  // This source label remains visible in Present mode, unlike the Edit-only legend.
+  const sourceStrip=$('millSourceStrip');
+  if(sourceStrip){
+   const top=parsed.rows.reduce((m,r)=>{const key=r.Classficiation;m.set(key,(m.get(key)||0)+Number(r.Count));return m},new Map());
+   const first=[...top].sort((a,b)=>b[1]-a[1])[0];
+   sourceStrip.textContent='LIVE SOURCE: PUBLIC_DATA.csv  ·  '+parsed.sourceRows.toLocaleString()+' rows  ·  '+parsed.distinctDepartments+' department categories  ·  '+parsed.distinctPrograms+' academic programs'+(first?'  ·  Top program: '+first[0]+' ('+first[1]+')':'');
+   sourceStrip.dataset.source='PUBLIC_DATA.csv';
+  }
   render();
   window.dispatchEvent(new CustomEvent('dashboard:source-data-loaded',{detail:{kind:'users'}}));
  }catch(error){
-  // Keep a working public dashboard if the new source is temporarily unavailable.
-  try{
-   const fallback=await fetch('data/callie.csv?x='+Date.now(),{cache:'no-store'});
-   if(!fallback.ok)throw Error('No fallback CSV');
-   const parsed=csvParse(await fallback.text());columns=parsed.columns;rows=parsed.rows;filters=[null,null,null,null];setup();
-   $('badge').textContent='Fallback grouped Mill data';$('badge').style.color='#f8c987';
-   $('sourceName').textContent='callie.csv · PUBLIC_DATA.csv unavailable';
-   status.textContent='Fallback aggregate loaded. New dataset error: '+error.message;
-   render();window.dispatchEvent(new CustomEvent('dashboard:source-data-loaded',{detail:{kind:'users'}}));
-  }catch(_){
-   $('badge').textContent='Dataset unavailable';$('badge').style.color='#ffbc99';
-   status.textContent='Unable to load PUBLIC_DATA.csv: '+error.message;columns=[];rows=[];render();
-  }
+  // Never silently substitute callie.csv: the dashboard must show the actual selected source.
+  columns=[];rows=[];filters=[null,null,null,null];
+  $('badge').textContent='PUBLIC_DATA.csv unavailable';
+  $('badge').style.color='#ffbc99';
+  $('sourceName').textContent='PUBLIC_DATA.csv (load failed)';
+  status.textContent='Could not load PUBLIC_DATA.csv: '+error.message;
+  const sourceStrip=$('millSourceStrip');
+  if(sourceStrip){sourceStrip.textContent='SOURCE ERROR: PUBLIC_DATA.csv could not be loaded · '+error.message;sourceStrip.dataset.source='error'}
+  render();
  }
 }
 window.addEventListener('dashboard:load-users',event=>{
@@ -130,6 +134,8 @@ window.addEventListener('dashboard:load-users',event=>{
     $('badge').textContent='Local browser file loaded';$('badge').style.color='#8ee1cc';
     $('sourceName').textContent=event.detail.name;
     $('fileStatus').textContent=totalWeight(rows).toLocaleString()+' records · '+columns.length+' columns · browser-only CSV';
+    const localStrip=$('millSourceStrip');
+    if(localStrip){localStrip.textContent='LOCAL FILE: '+event.detail.name+' · '+totalWeight(rows).toLocaleString()+' rows · browser-only';localStrip.dataset.source='local'}
     render();
     window.dispatchEvent(new CustomEvent('dashboard:local-data-loaded',{detail:{name:event.detail.name,kind:'users'}}));
   }catch(error){
