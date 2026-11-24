@@ -1,7 +1,7 @@
 'use strict';
 (() => {
   const $=id=>document.getElementById(id), body=document.body, chooser=$('presentationInput');
-  let view='users';
+  let view=location.hash==='#publications'?'papers':'users';
   const ringVisibility={users:[true,true,true,true],papers:[true,true,true,true]};
   const localFiles={users:null,papers:null,graph:null};
   const sourceLoaded={users:false,papers:false};
